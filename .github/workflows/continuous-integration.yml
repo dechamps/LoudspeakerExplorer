@@ -9,3 +9,7 @@ jobs:
       - uses: actions/setup-python@v1
       - run: pip3 install jupyter jupytext
       - run: jupytext --to notebook --execute Loudspeaker_Explorer.md
+      - uses: actions/upload-artifact@v1
+        with:
+          name: Loudspeaker_Explorer
+          path: Loudspeaker_Explorer.ipynb
