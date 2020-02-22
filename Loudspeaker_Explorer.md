@@ -13,7 +13,9 @@ jupyter:
 ---
 
 <!-- #region id="view-in-github" colab_type="text" -->
-<a href="https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+**You are viewing the source version of the Loudspeaker Explorer notebook.** You can also open the ready-to-use, published version in [Colab]((https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb)).
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb)
 <!-- #endregion -->
 
 <!-- #region id="04RRpMNFkSxn" colab_type="text" -->
