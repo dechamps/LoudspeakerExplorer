@@ -13,3 +13,39 @@ jobs:
         with:
           name: Loudspeaker_Explorer
           path: Loudspeaker_Explorer.ipynb
+  publish:
+    name: Publish notebook
+    needs: run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: Loudspeaker_Explorer
+      - run: install --verbose --no-target-directory --mode=0600 /dev/null rendered_repo_deploy_key
+      - run: echo "$RENDERED_REPO_DEPLOY_KEY" > rendered_repo_deploy_key
+        env:
+          RENDERED_REPO_DEPLOY_KEY: ${{ secrets.RenderedRepoDeployKey }}
+      - run: mkdir -v LoudspeakerExplorer-rendered
+      - run: git -C LoudspeakerExplorer-rendered init
+      - run: git -C LoudspeakerExplorer-rendered remote add origin git@github.com:dechamps/LoudspeakerExplorer-rendered.git
+      - run: git -C LoudspeakerExplorer-rendered config core.sshCommand 'ssh -i ../rendered_repo_deploy_key -v'
+      - run: git -C LoudspeakerExplorer-rendered fetch origin "$GITHUB_REF" --verbose
+        continue-on-error: true
+      - run: git -C LoudspeakerExplorer-rendered checkout FETCH_HEAD
+        continue-on-error: true
+      - run: mv --verbose Loudspeaker_Explorer/* LoudspeakerExplorer-rendered/
+      # TODO: this will never delete files. Maybe we should just overwrite the full contents of the destination repo.
+      - run: git -C LoudspeakerExplorer-rendered add . --verbose
+      - run: git -C LoudspeakerExplorer-rendered config user.name 'LoudspeakerExplorer Continuous Integration <>'
+      - run: git -C LoudspeakerExplorer-rendered config user.email ''
+      - run: |
+          {
+            echo "Built from $GITHUB_SHA"
+            echo
+            for var in GITHUB_WORKFLOW GITHUB_RUN_ID GITHUB_RUN_NUMBER GITHUB_ACTION GITHUB_ACTIONS GITHUB_ACTOR GITHUB_REPOSITORY GITHUB_EVENT_NAME GITHUB_SHA GITHUB_REF GITHUB_HEAD_REF GITHUB_BASE_REF
+            do
+              echo "${var}=${!var}"
+            done
+          } | git -C LoudspeakerExplorer-rendered commit --file=-
+      # TODO: this doesn't handle concurrent workflows well, and is prone to race conditions where an older commit could overwrite a more recent one.
+      - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" --verbose
