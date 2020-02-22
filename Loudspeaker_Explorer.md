@@ -51,7 +51,7 @@ Loudspeaker Explorer is published under [MIT License](https://github.com/dechamp
 ```python id="NhdyLTvTovip" colab_type="code" colab={}
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
 import sys
-!{sys.executable} -m pip install numpy pandas engarde yattag altair
+!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde yattag altair
 
 from pathlib import Path
 import numpy as np
