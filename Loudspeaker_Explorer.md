@@ -55,8 +55,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import engarde.decorators as ed
-import ipywidgets as widgets
-from IPython.display import display
+import IPython
 import yattag
 import altair as alt
 ```
@@ -305,7 +304,7 @@ speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
 ```
 
 ```python id="Ohnl5ExgvtGs" colab_type="code" colab={}
-widgets.HTML(speaker_list_html())
+IPython.display.HTML(speaker_list_html())
 ```
 
 <!-- #region id="LrJkGq6Qi6F3" colab_type="text" -->
