@@ -13,7 +13,7 @@ jupyter:
 ---
 
 <!-- #region id="view-in-github" colab_type="text" -->
-<a href="https://colab.research.google.com/github/dechamps/LoudspeakerExplorer/blob/master/Loudspeaker_Explorer.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 <!-- #endregion -->
 
 <!-- #region id="04RRpMNFkSxn" colab_type="text" -->
