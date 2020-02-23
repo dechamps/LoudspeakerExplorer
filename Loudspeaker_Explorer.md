@@ -97,9 +97,10 @@ Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)*
 
 ```python
 speaker_enable_AdamAudio_S2V = False #@param {type:"boolean"}
-speaker_enable_DaytonAudio_B652AIR = True #@param {type:"boolean"}
+speaker_enable_DaytonAudio_B652AIR = False #@param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = True #@param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False #@param {type:"boolean"}
+speaker_enable_Genelec_8341A = True #@param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False #@param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False #@param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False #@param {type:"boolean"}
@@ -149,6 +150,15 @@ speakers = pd.DataFrame([{
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/emotiva-airmotive-6s-powered-monitor-speaker-review-jpg.48017/',
     'Active': True,
     'Price (Single, USD)': 250.00,
+  }, {
+    'Speaker': 'Genelec 8341A',
+    'Enabled': speaker_enable_Genelec_8341A,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/genelec-8431a-spl-adjusted-zip.51413/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/',
+    'Product URL': 'https://www.genelec.com/8341a',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/genelec-8341a-sam%E2%84%A2-studio-monitor-powered-speaker-audio-review-jpg.51396/',
+    'Active': True,
+    'Price (Single, USD)': 2950.00,
   }, {
     'Speaker': 'Harbeth Monitor 30 (low order)',
     'Enabled': speaker_enable_Harbeth_Monitor30_LowOrder,
