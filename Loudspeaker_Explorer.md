@@ -79,6 +79,8 @@ import altair as alt
 
 # Speaker selection
 
+This is the most important setting. Here you can select the speakers you wish to analyze and compare. See below for more information on each speaker. **Don't forget to click "Runtime" → "Run all" after changing your selection.**
+
 Note that the following speakers, despite having been measured by amirm, are not (yet) available in this tool:
 
  - [**Kali IN-8 (damaged sample)**](https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/): the raw data was not published. The data shown here is for the [good sample](https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/page-29#post-318617).
@@ -89,11 +91,7 @@ Note that the following speakers, despite having been measured by amirm, are not
 
 Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
 
-**How to add a new speaker**: in the "Enable/Disable speakers" code block, add a new variable, and repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
-
-## Enable/Disable speakers
-
-This is the most important setting. Here you can select the speakers you wish to analyze and compare. See the *Speaker list* section below for more information on each speaker. **Don't forget to use "Run all" after changing your selection.**
+**How to add a new speaker**: in the following code block, add a new variable, and repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
 
 ```python
 speaker_enable_AdamAudio_S2V = False #@param {type:"boolean"}
@@ -277,11 +275,7 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 650.00,
   },
 ]).set_index('Speaker')
-```
 
-## Speaker list
-
-```python
 speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
 ```
 
