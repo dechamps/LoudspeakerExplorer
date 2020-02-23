@@ -413,8 +413,6 @@ pd.concat([
 
 This calculates a single sensitivity value for each speaker using the **mean on-axis SPL** in a configurable frequency band. The result can then be used as the basis for normalization (see next section).
 
-
-
 The recommended frequency band is **200-400 Hz**, as it appears to be the most appropriate for normalization - c.f. [Olive](http://www.aes.org/e-lib/online/browse.cfm?elib=12847) (section 3.2.1):
 
 > The use of a reference band of 200-400 Hz is based
@@ -700,7 +698,6 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 ```
 
 ## Estimated In-Room Response
-
 
 ```python
 (frequency_response_chart(speakers_fr_splnorm
