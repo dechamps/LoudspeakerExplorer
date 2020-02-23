@@ -379,10 +379,17 @@ def index_by_frequency(data):
     # Move all other index levels back to columns
     .unstack(level=preserve_column_level))
 
+# In "Sound Pessure Level [dB] / [2.83V 1m]", eliminates " / [2.83V 1m]", as it varies between measurements
+def cleanup_spl_column(column):
+  match = re.match(r'^(Sound Pessure Level \[dB\])', column)
+  return column if match is None else match.group(1)
+
 def load_fr(file):
   fr = pd.read_table(file, header=[0,1,2], thousands=',')
   fr.columns = fix_unnamed_columns(fr.columns)
-  return fr.pipe(index_by_frequency)
+  return (fr
+    .rename(columns=cleanup_spl_column)
+    .pipe(index_by_frequency))
 
 # If the none_missing() assertion fires, it likely means something is wrong or
 # corrupted in the data files of the speaker (e.g. some frequencies present in
@@ -453,7 +460,7 @@ Note that in other contexts a band centered around 1 kHz is often used.
 sensitivity_first_frequency_hz = 200 #@param
 sensitivity_last_frequency_hz = 400 #@param
 
-sensitivity_input_column = ('Sound Pessure Level [dB]  / [2.83V 1m] ', 'CEA2034', 'On Axis')
+sensitivity_input_column = ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')
 speakers_sensitivity = (speakers_fr_raw
   .loc[speakers_fr_raw.index.to_frame()['Frequency [Hz]'].between(sensitivity_first_frequency_hz, sensitivity_last_frequency_hz), sensitivity_input_column]
   .mean(level='Speaker'))
@@ -479,13 +486,13 @@ The normalized data is stored in the `speakers_fr_splnorm` variable, which is us
 ```python
 normalization_mode = 'Equal sensitivity' #@param ["None", "Equal sensitivity", "Flat on-axis"]
 
-speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]  / [2.83V 1m] ']
+speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
 if normalization_mode == 'Equal sensitivity':
   speakers_fr_splnorm = speakers_fr_splnorm.sub(
       speakers_sensitivity, axis='index', level='Speaker')
 if normalization_mode == 'Flat on-axis':
   speakers_fr_splnorm = speakers_fr_splnorm.sub(
-      speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]  / [2.83V 1m] ', 'CEA2034', 'On Axis')], axis='index')
+      speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
 speakers_fr_splnorm
 ```
 
