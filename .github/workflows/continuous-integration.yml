@@ -13,14 +13,31 @@ jobs:
         with:
           name: Loudspeaker_Explorer
           path: Loudspeaker_Explorer.ipynb
-  publish:
-    name: Publish notebook
+  colab:
+    name: Prepare for Colab
     needs: run
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v1
         with:
           name: Loudspeaker_Explorer
+      - run: sudo apt-get install jq
+      # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
+      # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
+      # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
+      - run: jq '(.cells[] | select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@title\n"] + .)' Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb
+      - uses: actions/upload-artifact@v1
+        with:
+          name: Loudspeaker_Explorer-colab
+          path: Loudspeaker_Explorer.ipynb
+  publish:
+    name: Publish notebook
+    needs: colab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: Loudspeaker_Explorer-colab
       - run: install --verbose --no-target-directory --mode=0600 /dev/null rendered_repo_deploy_key
       - run: echo "$RENDERED_REPO_DEPLOY_KEY" > rendered_repo_deploy_key
         env:
@@ -33,7 +50,7 @@ jobs:
         continue-on-error: true
       - run: git -C LoudspeakerExplorer-rendered checkout FETCH_HEAD
         continue-on-error: true
-      - run: mv --verbose Loudspeaker_Explorer/* LoudspeakerExplorer-rendered/
+      - run: mv --verbose Loudspeaker_Explorer-colab/* LoudspeakerExplorer-rendered/
       # TODO: this will never delete files. Maybe we should just overwrite the full contents of the destination repo.
       - run: git -C LoudspeakerExplorer-rendered add . --verbose
       - run: git -C LoudspeakerExplorer-rendered config user.name 'LoudspeakerExplorer Continuous Integration <>'
