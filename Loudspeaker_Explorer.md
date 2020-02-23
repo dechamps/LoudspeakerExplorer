@@ -1,6 +1,13 @@
 ---
 jupyter:
   colab:
+    collapsed_sections:
+    - preliminary-boilerplate
+    - load
+    - raw-summary
+    - sensitivity
+    - normalization
+    - plot-settings
     name: Loudspeaker Explorer
     toc_visible: true
   jupytext:
@@ -47,7 +54,10 @@ None of this would have been possible without [amirm](https://www.audiosciencere
 
 Loudspeaker Explorer is published under [MIT License](https://github.com/dechamps/LoudspeakerExplorer/blob/master/LICENSE.txt). Note that input data, including measurement data and pictures, is not part of Loudspeaker Explorer - it is published by third parties under potentially different licenses.
 
+
+<!-- #region id="preliminary-boilerplate" -->
 # Preliminary boilerplate
+<!-- #endregion -->
 
 ```python
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
@@ -311,7 +321,9 @@ for speaker_name, speaker_data_url in speakers.loc[speakers['Enabled'], 'Data UR
     !unzip "speaker_data/{speaker_name}.zip" -d "speaker_data/{speaker_name}"
 ```
 
+<!-- #region id="load" -->
 ## Load
+<!-- #endregion -->
 
 This loads all data from all speakers into a single, massive `speaker_fr_raw`
 DataFrame. The DataFrame index is arranged by speaker name, then frequency. All
@@ -385,9 +397,13 @@ speakers_fr_raw = pd.concat(
 speakers_fr_raw
 ```
 
+<!-- #region id="raw-summary" -->
+
 # Raw data summary
 
 Basic information about loaded data, including frequency bounds and resolution.
+
+<!-- #endregion -->
 
 ```python
 speakers_frequencies = (speakers_fr_raw
@@ -409,9 +425,13 @@ pd.concat([
 ], axis='columns')
 ```
 
+<!-- #region id="sensitivity" -->
+
 # Sensitivity
 
 This calculates a single sensitivity value for each speaker using the **mean on-axis SPL** in a configurable frequency band. The result can then be used as the basis for normalization (see next section).
+
+<!-- #endregion -->
 
 The recommended frequency band is **200-400 Hz**, as it appears to be the most appropriate for normalization - c.f. [Olive](http://www.aes.org/e-lib/online/browse.cfm?elib=12847) (section 3.2.1):
 
@@ -440,9 +460,15 @@ speakers_sensitivity = (speakers_fr_raw
 speakers_sensitivity.to_frame()
 ```
 
+<!-- #region id="normalization" -->
+
 # Normalization
 
-This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-axis, estimated in-room response, etc.) according to the `normalization_mode` variable, which can take the following values:
+This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-axis, estimated in-room response, etc.).
+
+<!-- #endregion -->
+
+The data is normalized according to the `normalization_mode` variable, which can take the following values:
 
  - **None**: raw absolute SPL values are carried over as-is.
  - **Equal sensitivity** (recommended): sensitivity values calculated in the previous section are subtracted from all SPL values of each speaker, such that all speakers have 0 dB sensitivity. Improves readability and makes it easier to compare speakers.
@@ -463,9 +489,13 @@ if normalization_mode == 'Flat on-axis':
 speakers_fr_splnorm
 ```
 
+<!-- #region id="plot-settings" -->
+
 # Plot settings
 
 Here you can customize some parameters related to the charts.
+
+<!-- #endregion -->
 
 ```python
 #@markdown Dimensions for standalone charts
