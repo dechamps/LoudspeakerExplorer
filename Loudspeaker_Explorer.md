@@ -68,6 +68,7 @@ import sys
 !{sys.executable} -m pip install --progress-bar=off numpy pandas engarde yattag altair
 
 from pathlib import Path
+import re
 import numpy as np
 import pandas as pd
 import engarde.decorators as ed
@@ -669,7 +670,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
     .loc[:, 'Horizontal Reflections']
     .rename_axis(columns=['Direction'])
-    .rename(columns={'Total Horizontal Reflection': 'Total'})
+    .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
     .stack(level=['Direction'])
     .reset_index()
     .pipe(prepare_alt_chart, {
@@ -680,7 +681,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       }))
     .encode(
       alt.Column('speaker', title=None),
-      alt.Color('direction', title='Direction'),
+      alt.Color('direction', title=None),
       sound_pressure_yaxis('value'))
     .interactive()
 )
@@ -696,7 +697,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
     .loc[:, 'Vertical Reflections']
     .rename_axis(columns=['Direction'])
-    .rename(columns={'Total Vertical Reflection': 'Total'})
+    .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
     .stack(level=['Direction'])
     .reset_index()
     .pipe(prepare_alt_chart, {
@@ -707,7 +708,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       }))
     .encode(
       alt.Column('speaker', title=None),
-      alt.Color('direction', title='Direction'),
+      alt.Color('direction', title=None),
       sound_pressure_yaxis('value'))
     .interactive()
 )
