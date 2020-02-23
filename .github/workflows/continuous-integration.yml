@@ -42,7 +42,7 @@ jobs:
           {
             echo "Built from $GITHUB_SHA"
             echo
-            echo "Open this commit in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA/Loudspeaker_Explorer.ipynb"
+            echo "Open this commit in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA-$GITHUB_RUN_ID/Loudspeaker_Explorer.ipynb"
             echo "Source commit: https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
             echo "Workflow run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo
@@ -52,6 +52,7 @@ jobs:
             done
           } | git -C LoudspeakerExplorer-rendered commit --file=-
       # TODO: this doesn't handle concurrent workflows well, and is prone to race conditions where an older commit could overwrite a more recent one.
-      - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" "HEAD:refs/tags/ci-$GITHUB_SHA" --verbose
+      # We include the workflow Run ID in the tag to avoid conflicts when the same source commit is published multiple times (e.g. from different branches).
+      - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" "HEAD:refs/tags/ci-$GITHUB_SHA-$GITHUB_RUN_ID" --verbose
       - run: |
-          echo "Open in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA/Loudspeaker_Explorer.ipynb"
+          echo "Open in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA-$GITHUB_RUN_ID/Loudspeaker_Explorer.ipynb"
