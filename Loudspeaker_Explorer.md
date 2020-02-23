@@ -8,6 +8,9 @@ jupyter:
     - sensitivity
     - normalization
     - plot-settings
+    - off-axis-responses
+    - horizontal-reflection-responses
+    - vertical-reflection-responses
     name: Loudspeaker Explorer
     toc_visible: true
   jupytext:
@@ -624,9 +627,13 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
   .interactive())
 ```
 
+<!-- #region id="off-axis-responses" -->
+
 ## Off-axis responses
 
 Note that this chart can be particularly taxing on your browser due to the sheer number of points.
+
+<!-- #endregion -->
 
 ```python
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
@@ -652,7 +659,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 )
 ```
 
+<!-- #region id="horizontal-reflection-responses" -->
+
 ## Horizontal reflection responses
+
+<!-- #endregion -->
 
 ```python
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
@@ -675,7 +686,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 )
 ```
 
+<!-- #region id="vertical-reflection-responses" -->
+
 ## Vertical reflection responses
+
+<!-- #endregion -->
 
 ```python
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
