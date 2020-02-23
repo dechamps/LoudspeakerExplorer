@@ -1,6 +1,10 @@
 ---
 jupyter:
+  colab:
+    name: Loudspeaker Explorer
+    toc_visible: true
   jupytext:
+    notebook_metadata_filter: colab
     text_representation:
       extension: .md
       format_name: markdown
