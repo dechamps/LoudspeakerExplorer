@@ -47,7 +47,7 @@ To run the code and (re)generate the data, go to the **Runtime** menu and click 
 
 **Charts can take a few seconds to load when scrolling**, especially if you're using the notebook for the first time. Be patient.
 
-**Charts will not be generated if the section they're under is folded while the code runs.** To manually load a chart, click the Run (Play) icon next to the code block above it. Or use *Run all* again after unfolding the section.
+**Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ## Acknowledgments
 
@@ -565,7 +565,7 @@ The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a 
 
 Remember:
  - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan.
- - **Charts are not computed if the section they're under is folded while the code runs.** To manually load a chart, click the Run (Play) icon next to the code block above it.
+ - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
 spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=
