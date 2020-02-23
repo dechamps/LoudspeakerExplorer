@@ -16,13 +16,13 @@ jupyter:
     name: python3
 ---
 
-<!-- #region id="view-in-github" colab_type="text" -->
+<!-- #region id="view-in-github" -->
 **You are viewing the source version of the Loudspeaker Explorer notebook.** You can also open the ready-to-use, published version in [Colab]((https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb)).
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb)
 <!-- #endregion -->
 
-<!-- #region id="04RRpMNFkSxn" colab_type="text" -->
+<!-- #region id="04RRpMNFkSxn" -->
 # The Loudspeaker Explorer
 
 *By Etienne Dechamps (etienne@edechamps.fr)* - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer)
@@ -48,11 +48,11 @@ None of this would have been possible without [amirm](https://www.audiosciencere
 Loudspeaker Explorer is published under [MIT License](https://github.com/dechamps/LoudspeakerExplorer/blob/master/LICENSE.txt). Note that input data, including measurement data and pictures, is not part of Loudspeaker Explorer - it is published by third parties under potentially different licenses.
 <!-- #endregion -->
 
-<!-- #region id="ZOhKCU3Go26x" colab_type="text" -->
+<!-- #region id="ZOhKCU3Go26x" -->
 # Preliminary boilerplate
 <!-- #endregion -->
 
-```python id="NhdyLTvTovip" colab_type="code" colab={}
+```python id="NhdyLTvTovip"
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
 import sys
 !{sys.executable} -m pip install --progress-bar=off numpy pandas engarde yattag altair
@@ -66,7 +66,7 @@ import yattag
 import altair as alt
 ```
 
-<!-- #region id="_xFyFEAhA_EB" colab_type="text" -->
+<!-- #region id="_xFyFEAhA_EB" -->
 # Speaker selection
 
 Note that the following speakers, despite having been measured by amirm, are not (yet) available in this tool:
@@ -82,13 +82,13 @@ Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)*
 **How to add a new speaker**: add a new variable in the "Enable/Disable speakers" code block, and repeat the pattern in the "Raw speaker specification" code block. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
 <!-- #endregion -->
 
-<!-- #region id="vbT7q38fvcLa" colab_type="text" -->
+<!-- #region id="vbT7q38fvcLa" -->
 ## Enable/Disable speakers
 
 This is the most important setting. Here you can select the speakers you wish to analyze and compare. See the *Speaker list* section below for more information on each speaker. **Don't forget to use "Run all" after changing your selection.**
 <!-- #endregion -->
 
-```python id="laytqyKSBBUI" colab_type="code" colab={}
+```python id="laytqyKSBBUI"
 speaker_enable_AdamAudio_S2V = False #@param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = True #@param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = True #@param {type:"boolean"}
@@ -109,11 +109,11 @@ speaker_enable_Realistic_MC1000 = False #@param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False #@param {type:"boolean"}
 ```
 
-<!-- #region id="Xz_e10hWvhQs" colab_type="text" -->
+<!-- #region id="Xz_e10hWvhQs" -->
 ## Raw speaker specification
 <!-- #endregion -->
 
-```python id="KxMbO72a7Dgh" colab_type="code" cellView="code" colab={}
+```python id="KxMbO72a7Dgh"
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
     'Enabled': speaker_enable_AdamAudio_S2V,
@@ -278,7 +278,7 @@ speakers = pd.DataFrame([{
 ]).set_index('Speaker')
 ```
 
-```python id="_TAZfS40gN1l" colab_type="code" colab={}
+```python id="_TAZfS40gN1l"
 def speaker_list_html():
   doc, tag, text, line = yattag.Doc().ttl()
   for speaker_name in speakers.index:
@@ -301,29 +301,29 @@ def speaker_list_html():
   return doc.getvalue()
 ```
 
-<!-- #region id="hwvM09h0voNa" colab_type="text" -->
+<!-- #region id="hwvM09h0voNa" -->
 ## Speaker list
 <!-- #endregion -->
 
-```python id="Z8DFJB6wflUQ" colab_type="code" colab={}
+```python id="Z8DFJB6wflUQ"
 speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
 ```
 
-```python id="Ohnl5ExgvtGs" colab_type="code" colab={}
+```python id="Ohnl5ExgvtGs"
 IPython.display.HTML(speaker_list_html())
 ```
 
-<!-- #region id="LrJkGq6Qi6F3" colab_type="text" -->
+<!-- #region id="LrJkGq6Qi6F3" -->
 # Data intake
 <!-- #endregion -->
 
-<!-- #region id="OvN7MtmnofOx" colab_type="text" -->
+<!-- #region id="OvN7MtmnofOx" -->
 ## Download and unpack
 
 This downloads and unpacks speaker measurement data for each *enabled* speaker using the URL specified in `data_url`. This step is skipped if the files already exist in the `speaker_data` folder.
 <!-- #endregion -->
 
-```python id="byzTXpiEgEZm" colab_type="code" cellView="both" colab={}
+```python id="byzTXpiEgEZm"
 Path('speaker_data').mkdir(exist_ok=True)
 for speaker_name, speaker_data_url in speakers.loc[speakers['Enabled'], 'Data URL'].items():
   if not (Path('speaker_data') / speaker_name).exists():
@@ -332,7 +332,7 @@ for speaker_name, speaker_data_url in speakers.loc[speakers['Enabled'], 'Data UR
     !unzip "speaker_data/{speaker_name}.zip" -d "speaker_data/{speaker_name}"
 ```
 
-<!-- #region id="feKcX-dQo8i3" colab_type="text" -->
+<!-- #region id="feKcX-dQo8i3" -->
 ## Load
 
 This loads all data from all speakers into a single, massive `speaker_fr_raw`
@@ -340,7 +340,7 @@ DataFrame. The DataFrame index is arranged by speaker name, then frequency. All
 data files for each speaker are merged to form the columns of the DataFrame.
 <!-- #endregion -->
 
-```python id="swQuvz41m84M" colab_type="code" colab={}
+```python id="swQuvz41m84M"
 # pd.read_table() expects the following multi-level column headers:
 #   A, A, A, A, B, B, B, B
 #   I, I, J, J, K, K, L, L
@@ -408,13 +408,13 @@ speakers_fr_raw = pd.concat(
 speakers_fr_raw
 ```
 
-<!-- #region id="0sxZSHE8e8qV" colab_type="text" -->
+<!-- #region id="0sxZSHE8e8qV" -->
 # Raw data summary
 
 Basic information about loaded data, including frequency bounds and resolution.
 <!-- #endregion -->
 
-```python id="Aj572tr9e-g1" colab_type="code" colab={}
+```python id="Aj572tr9e-g1"
 speakers_frequencies = (speakers_fr_raw
   .index
   .to_frame()
@@ -434,7 +434,7 @@ pd.concat([
 ], axis='columns')
 ```
 
-<!-- #region id="E-_wPWN6w7FG" colab_type="text" -->
+<!-- #region id="E-_wPWN6w7FG" -->
 # Sensitivity
 
 This calculates a single sensitivity value for each speaker using the **mean on-axis SPL** in a configurable frequency band. The result can then be used as the basis for normalization (see next section).
@@ -442,7 +442,7 @@ This calculates a single sensitivity value for each speaker using the **mean on-
 
 <!-- #endregion -->
 
-<!-- #region id="wdCEUnXk7BFR" colab_type="text" -->
+<!-- #region id="wdCEUnXk7BFR" -->
 The recommended frequency band is **200-400 Hz**, as it appears to be the most appropriate for normalization - c.f. [Olive](http://www.aes.org/e-lib/online/browse.cfm?elib=12847) (section 3.2.1):
 
 > The use of a reference band of 200-400 Hz is based
@@ -460,12 +460,12 @@ Note that in other contexts a band centered around 1 kHz is often used.
 **CAUTION:** take the numbers in the below table with a grain of salt. Indeed the raw measurement data is using the wrong absolute scale for some speakers, especially active ones.
 <!-- #endregion -->
 
-```python id="QhGjOxtVw955" colab_type="code" cellView="both" colab={}
+```python id="QhGjOxtVw955"
 sensitivity_first_frequency_hz = 200 #@param
 sensitivity_last_frequency_hz = 400 #@param
 ```
 
-```python id="zKWRxJ8WxgQN" colab_type="code" colab={}
+```python id="zKWRxJ8WxgQN"
 sensitivity_input_column = ('Sound Pessure Level [dB]  / [2.83V 1m] ', 'CEA2034', 'On Axis')
 speakers_sensitivity = (speakers_fr_raw
   .loc[speakers_fr_raw.index.to_frame()['Frequency [Hz]'].between(sensitivity_first_frequency_hz, sensitivity_last_frequency_hz), sensitivity_input_column]
@@ -473,7 +473,7 @@ speakers_sensitivity = (speakers_fr_raw
 speakers_sensitivity.to_frame()
 ```
 
-<!-- #region id="HvqJh6mEhWWr" colab_type="text" -->
+<!-- #region id="HvqJh6mEhWWr" -->
 # Normalization
 
 This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-axis, estimated in-room response, etc.) according to the `normalization_mode` variable, which can take the following values:
@@ -485,11 +485,11 @@ This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-
 The normalized data is stored in the `speakers_fr_splnorm` variable, which is used as the input of most graphs and calculations that follow. Note that this variable only contains the columns that actually underwent normalization, i.e. absolute SPL columns - in particular it doesn't include the directivity indices.
 <!-- #endregion -->
 
-```python id="7qCapMbNhZk6" colab_type="code" cellView="both" colab={}
+```python id="7qCapMbNhZk6"
 normalization_mode = 'Equal sensitivity' #@param ["None", "Equal sensitivity", "Flat on-axis"]
 ```
 
-```python id="Qf6dvIYEURdz" colab_type="code" colab={}
+```python id="Qf6dvIYEURdz"
 speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]  / [2.83V 1m] ']
 if normalization_mode == 'Equal sensitivity':
   speakers_fr_splnorm = speakers_fr_splnorm.sub(
@@ -500,13 +500,13 @@ if normalization_mode == 'Flat on-axis':
 speakers_fr_splnorm
 ```
 
-<!-- #region id="C12-wV0U7M-y" colab_type="text" -->
+<!-- #region id="C12-wV0U7M-y" -->
 # Plot settings
 
 Here you can customize some parameters related to the charts.
 <!-- #endregion -->
 
-```python id="FlfHUnsr7TCi" colab_type="code" cellView="form" colab={}
+```python id="FlfHUnsr7TCi"
 #@markdown Dimensions for standalone charts
 standalone_chart_width =  800#@param {type:"integer"}
 standalone_chart_height =  400#@param {type:"integer"}
@@ -515,7 +515,7 @@ sidebyside_chart_width = 600 #@param {type:"integer"}
 sidebyside_chart_height = 300 #@param {type:"integer"}
 ```
 
-```python id="ENSOjscP7Tui" colab_type="code" cellView="both" colab={}
+```python id="ENSOjscP7Tui"
 alt.data_transformers.disable_max_rows()
 
 # Prepares DataFrame `df` for charting using alt.Chart().
@@ -568,13 +568,13 @@ def convert_angles(df):
   return df.rename(columns=convert_label)
 ```
 
-<!-- #region id="k3AcxFuKZbwt" colab_type="text" -->
+<!-- #region id="k3AcxFuKZbwt" -->
 # Measurements
 
 Note that all the data shown in this section is a direct representation of the input data after normalization. No complex processing is done. In particular, data for derived metrics such as *Listening Window*, *Early Reflections*, *Sound Power*, Directivity Indices and even *Estimated In-Room Response* come directly from the input - they are not derived by this code.
 <!-- #endregion -->
 
-<!-- #region id="VcfgDHv2ZjxS" colab_type="text" -->
+<!-- #region id="VcfgDHv2ZjxS" -->
 ## Spinorama
 
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
@@ -584,7 +584,7 @@ Remember:
  - **Charts are not computed if the section they're under is folded while the code runs.** To manually load a chart, click the Run (Play) icon next to the code block above it.
 <!-- #endregion -->
 
-```python id="hdspzIUlFuWe" colab_type="code" colab={}
+```python id="hdspzIUlFuWe"
 spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=
   pd.concat([speakers_fr_splnorm, speakers_fr_raw.loc[:, '[dB] Directivity Index ']], axis='columns')
     .pipe(prepare_alt_chart, {
@@ -624,11 +624,11 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
     .resolve_scale(y='independent'))
 ```
 
-<!-- #region id="R_AuSbae0CE2" colab_type="text" -->
+<!-- #region id="R_AuSbae0CE2" -->
 ## On-axis response
 <!-- #endregion -->
 
-```python id="BIxJJclZ0Krk" colab_type="code" colab={}
+```python id="BIxJJclZ0Krk"
 (frequency_response_chart(speakers_fr_splnorm
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
@@ -641,15 +641,15 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
   .interactive())
 ```
 
-<!-- #region id="vgRM35OrpvW1" colab_type="text" -->
+<!-- #region id="vgRM35OrpvW1" -->
 ## Off-axis responses
 <!-- #endregion -->
 
-<!-- #region id="bjP3nPUZx_9w" colab_type="text" -->
+<!-- #region id="bjP3nPUZx_9w" -->
 Note that this chart can be particularly taxing on your browser due to the sheer number of points.
 <!-- #endregion -->
 
-```python id="fh4AJa4kuyMZ" colab_type="code" colab={}
+```python id="fh4AJa4kuyMZ"
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
     .loc[:, ['SPL Horizontal', 'SPL Vertical']]
     .pipe(convert_angles)
@@ -673,11 +673,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 )
 ```
 
-<!-- #region id="zS17Y0dMApUY" colab_type="text" -->
+<!-- #region id="zS17Y0dMApUY" -->
 ## Listening Window response
 <!-- #endregion -->
 
-```python id="48iUY8H-AsHI" colab_type="code" colab={}
+```python id="48iUY8H-AsHI"
 (frequency_response_chart(speakers_fr_splnorm
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
@@ -690,11 +690,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
   .interactive())
 ```
 
-<!-- #region id="4Xyimer4A1oJ" colab_type="text" -->
+<!-- #region id="4Xyimer4A1oJ" -->
 ## Early Reflections response
 <!-- #endregion -->
 
-```python id="yuPM6GmIA5q3" colab_type="code" colab={}
+```python id="yuPM6GmIA5q3"
 (frequency_response_chart(speakers_fr_splnorm
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
@@ -707,11 +707,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
   .interactive())
 ```
 
-<!-- #region id="0itIlvlIBBAv" colab_type="text" -->
+<!-- #region id="0itIlvlIBBAv" -->
 ## Sound Power response
 <!-- #endregion -->
 
-```python id="Javo9oSnBDsQ" colab_type="code" colab={}
+```python id="Javo9oSnBDsQ"
 (frequency_response_chart(speakers_fr_splnorm
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
@@ -724,11 +724,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
   .interactive())
 ```
 
-<!-- #region id="OmpSXvLwB9Zo" colab_type="text" -->
+<!-- #region id="OmpSXvLwB9Zo" -->
 ## Early Reflections Directivity Index
 <!-- #endregion -->
 
-```python id="JU5pMDYMCBwY" colab_type="code" colab={}
+```python id="JU5pMDYMCBwY"
 (frequency_response_chart(speakers_fr_raw
   .pipe(prepare_alt_chart, {
       ('Speaker', '', ''): 'speaker',
@@ -741,11 +741,11 @@ Note that this chart can be particularly taxing on your browser due to the sheer
   .interactive())
 ```
 
-<!-- #region id="ZIF8B_hCDSho" colab_type="text" -->
+<!-- #region id="ZIF8B_hCDSho" -->
 ## Sound Power Directivity Index
 <!-- #endregion -->
 
-```python id="ZPrJ2pOXDVL3" colab_type="code" colab={}
+```python id="ZPrJ2pOXDVL3"
 (frequency_response_chart(speakers_fr_raw
   .pipe(prepare_alt_chart, {
       ('Speaker', '', ''): 'speaker',
@@ -758,12 +758,12 @@ Note that this chart can be particularly taxing on your browser due to the sheer
   .interactive())
 ```
 
-<!-- #region id="xsMdN7q6D1NP" colab_type="text" -->
+<!-- #region id="xsMdN7q6D1NP" -->
 ## Estimated In-Room Response
 
 <!-- #endregion -->
 
-```python id="-RuTb_A7Ehgf" colab_type="code" colab={}
+```python id="-RuTb_A7Ehgf"
 (frequency_response_chart(speakers_fr_splnorm
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
