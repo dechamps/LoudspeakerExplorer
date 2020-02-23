@@ -43,7 +43,7 @@ Welcome to the Loudspeaker Explorer, a speaker measurement visualization, analys
 
 To run the code and (re)generate the data, go to the **Runtime** menu and click **Run all** (CTRL+F9). **You will need to repeat this every time you change any of the settings or code** (e.g. if you enable or disable speakers).
 
-**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Re-run the code block immediately above the graph ("play" icon) to reset the view.
+**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan.
 
 **Charts can take a few seconds to load when scrolling**, especially if you're using the notebook for the first time. Be patient.
 
@@ -564,7 +564,7 @@ Note that all the data shown in this section is a direct representation of the i
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
 
 Remember:
- - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Re-run the code block to reset the view.
+ - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan.
  - **Charts are not computed if the section they're under is folded while the code runs.** To manually load a chart, click the Run (Play) icon next to the code block above it.
 
 ```python
