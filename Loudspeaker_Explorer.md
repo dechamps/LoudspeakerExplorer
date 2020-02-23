@@ -652,6 +652,52 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 )
 ```
 
+## Horizontal reflection responses
+
+```python
+(frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
+    .loc[:, 'Horizontal Reflections']
+    .rename_axis(columns=['Direction'])
+    .rename(columns={'Total Horizontal Reflection': 'Total'})
+    .stack(level=['Direction'])
+    .reset_index()
+    .pipe(prepare_alt_chart, {
+        'Speaker': 'speaker',
+        'Direction': 'direction',
+        'Frequency [Hz]': 'frequency',
+        0: 'value',
+      }))
+    .encode(
+      alt.Column('speaker', title=None),
+      alt.Color('direction', title='Direction'),
+      sound_pressure_yaxis('value'))
+    .interactive()
+)
+```
+
+## Vertical reflection responses
+
+```python
+(frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
+    .loc[:, 'Vertical Reflections']
+    .rename_axis(columns=['Direction'])
+    .rename(columns={'Total Vertical Reflection': 'Total'})
+    .stack(level=['Direction'])
+    .reset_index()
+    .pipe(prepare_alt_chart, {
+        'Speaker': 'speaker',
+        'Direction': 'direction',
+        'Frequency [Hz]': 'frequency',
+        0: 'value',
+      }))
+    .encode(
+      alt.Column('speaker', title=None),
+      alt.Color('direction', title='Direction'),
+      sound_pressure_yaxis('value'))
+    .interactive()
+)
+```
+
 ## Listening Window response
 
 ```python
