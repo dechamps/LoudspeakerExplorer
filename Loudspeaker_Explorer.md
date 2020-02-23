@@ -53,6 +53,8 @@ To run the code and (re)generate the data, go to the **Runtime** menu and click 
 
 None of this would have been possible without [amirm](https://www.audiosciencereview.com/forum/index.php?members/amirm.2/)'s [tremendous work](https://www.audiosciencereview.com/forum/index.php?threads/announcement-asr-will-be-measuring-speakers.10725/) in measuring speakers. All the data used by this tool is from measurements made by amirm for [AudioScienceReview](https://www.audiosciencereview.com/). If you like what you see, [consider making a donation](https://www.audiosciencereview.com/forum/index.php?threads/how-to-support-audio-science-review.8150/).
 
+This notebook is powered by amazing software: [Google Colaboratory](https://colab.research.google.com/), [Jupyter](https://jupyter.org/), [Jupytext](https://github.com/mwouts/jupytext), [Pandas](https://pandas.pydata.org/), and [Altair](https://altair-viz.github.io/).
+
 ## License
 
 Loudspeaker Explorer is published under [MIT License](https://github.com/dechamps/LoudspeakerExplorer/blob/master/LICENSE.txt). Note that input data, including measurement data and pictures, is not part of Loudspeaker Explorer - it is published by third parties under potentially different licenses.
