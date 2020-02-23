@@ -619,7 +619,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
       ('CEA2034', 'On Axis'): 'on_axis',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('on_axis', title='On Axis Relative Sound Pressure (dB)'))
   .interactive())
 ```
@@ -708,7 +708,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('CEA2034', 'Listening Window'): 'listening_window',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('listening_window', title='Listening Window Relative Sound Pressure (dB)'))
   .interactive())
 ```
@@ -723,7 +723,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('CEA2034', 'Early Reflections'): 'early_reflections',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('early_reflections', title='Early Reflections Relative Sound Pressure (dB)'))
   .interactive())
 ```
@@ -738,7 +738,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('CEA2034', 'Sound Power'): 'sound_power',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('sound_power', title='Sound Power Relative Sound Pressure (dB)'))
   .interactive())
 ```
@@ -753,7 +753,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'): 'early_reflections_di',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('early_reflections_di', title='Early Reflections Directivity Index (dB)', scale_domain=(-5, 10)))
   .interactive())
 ```
@@ -768,7 +768,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI'): 'sound_power_di',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('sound_power_di', title='Sound Power Directivity Index (dB)', scale_domain=(-10, 20)))
   .interactive())
 ```
@@ -783,7 +783,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
       ('Estimated In-Room Response', 'Estimated In-Room Response'): 'estimated_inroom_response',
     }))
   .encode(
-    alt.Color('speaker', title='Speaker'),
+    alt.Color('speaker', title=None),
     sound_pressure_yaxis('estimated_inroom_response', title='Estimated In-Room Response Relative Sound Pressure (dB)'))
   .interactive())
 ```
