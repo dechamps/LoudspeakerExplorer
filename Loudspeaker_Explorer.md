@@ -75,7 +75,7 @@ Note that the following speakers, despite having been measured by amirm, are not
 
 Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
 
-**How to add a new speaker**: add a new variable in the "Enable/Disable speakers" code block, and repeat the pattern in the "Raw speaker specification" code block. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
+**How to add a new speaker**: in the "Enable/Disable speakers" code block, add a new variable, and repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
 
 ## Enable/Disable speakers
 
@@ -100,11 +100,7 @@ speaker_enable_Neumann_KH80_Sample2 = False #@param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False #@param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False #@param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False #@param {type:"boolean"}
-```
 
-## Raw speaker specification
-
-```python
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
     'Enabled': speaker_enable_AdamAudio_S2V,
@@ -269,6 +265,12 @@ speakers = pd.DataFrame([{
 ]).set_index('Speaker')
 ```
 
+## Speaker list
+
+```python
+speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
+```
+
 ```python
 def speaker_list_html():
   doc, tag, text, line = yattag.Doc().ttl()
@@ -290,15 +292,7 @@ def speaker_list_html():
     with tag('b'): text('Price: ')
     text('${:.0f} (single)'.format(speaker['Price (Single, USD)']))
   return doc.getvalue()
-```
 
-## Speaker list
-
-```python
-speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
-```
-
-```python
 IPython.display.HTML(speaker_list_html())
 ```
 
@@ -440,9 +434,7 @@ Note that in other contexts a band centered around 1 kHz is often used.
 ```python
 sensitivity_first_frequency_hz = 200 #@param
 sensitivity_last_frequency_hz = 400 #@param
-```
 
-```python
 sensitivity_input_column = ('Sound Pessure Level [dB]  / [2.83V 1m] ', 'CEA2034', 'On Axis')
 speakers_sensitivity = (speakers_fr_raw
   .loc[speakers_fr_raw.index.to_frame()['Frequency [Hz]'].between(sensitivity_first_frequency_hz, sensitivity_last_frequency_hz), sensitivity_input_column]
@@ -462,9 +454,7 @@ The normalized data is stored in the `speakers_fr_splnorm` variable, which is us
 
 ```python
 normalization_mode = 'Equal sensitivity' #@param ["None", "Equal sensitivity", "Flat on-axis"]
-```
 
-```python
 speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]  / [2.83V 1m] ']
 if normalization_mode == 'Equal sensitivity':
   speakers_fr_splnorm = speakers_fr_splnorm.sub(
@@ -486,9 +476,7 @@ standalone_chart_height =  400#@param {type:"integer"}
 #@markdown Dimensions for side-by-side charts
 sidebyside_chart_width = 600 #@param {type:"integer"}
 sidebyside_chart_height = 300 #@param {type:"integer"}
-```
 
-```python
 alt.data_transformers.disable_max_rows()
 
 # Prepares DataFrame `df` for charting using alt.Chart().
