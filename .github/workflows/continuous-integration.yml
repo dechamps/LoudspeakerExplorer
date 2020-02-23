@@ -42,6 +42,10 @@ jobs:
           {
             echo "Built from $GITHUB_SHA"
             echo
+            echo "Open this commit in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA/Loudspeaker_Explorer.ipynb"
+            echo "Source commit: https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+            echo "Workflow run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
             for var in GITHUB_WORKFLOW GITHUB_RUN_ID GITHUB_RUN_NUMBER GITHUB_ACTION GITHUB_ACTIONS GITHUB_ACTOR GITHUB_REPOSITORY GITHUB_EVENT_NAME GITHUB_SHA GITHUB_REF GITHUB_HEAD_REF GITHUB_BASE_REF
             do
               echo "${var}=${!var}"
