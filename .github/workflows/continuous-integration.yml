@@ -48,4 +48,4 @@ jobs:
             done
           } | git -C LoudspeakerExplorer-rendered commit --file=-
       # TODO: this doesn't handle concurrent workflows well, and is prone to race conditions where an older commit could overwrite a more recent one.
-      - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" --verbose
+      - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" "HEAD:refs/tags/ci-$GITHUB_SHA" --verbose
