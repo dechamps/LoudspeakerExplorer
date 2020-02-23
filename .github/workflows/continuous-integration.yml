@@ -53,3 +53,5 @@ jobs:
           } | git -C LoudspeakerExplorer-rendered commit --file=-
       # TODO: this doesn't handle concurrent workflows well, and is prone to race conditions where an older commit could overwrite a more recent one.
       - run: git -C LoudspeakerExplorer-rendered push origin "HEAD:$GITHUB_REF" "HEAD:refs/tags/ci-$GITHUB_SHA" --verbose
+      - run: |
+          echo "Open in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA/Loudspeaker_Explorer.ipynb"
