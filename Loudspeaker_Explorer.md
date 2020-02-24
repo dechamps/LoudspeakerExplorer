@@ -139,6 +139,7 @@ speakers = pd.DataFrame([{
     'Enabled': speaker_enable_Elac_AdanteAS61,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-adante-as-61-cea-2034-spin-data-zip.50439/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/elac-adante-as-61-speaker-review.11507/',
+    'Product URL': 'https://www.elac.com/series/adante/as-61/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-adante-as-61-bookshelf-speaker-audio-review-jpg.50415/',
     'Active': False,
     'Price (Single, USD)': 1250.00,
