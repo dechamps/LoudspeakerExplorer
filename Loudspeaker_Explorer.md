@@ -98,25 +98,25 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 **How to add a new speaker**: in the following code block, add a new variable, and repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
 
 ```python
-speaker_enable_AdamAudio_S2V = False #@param {type:"boolean"}
-speaker_enable_DaytonAudio_B652AIR = False #@param {type:"boolean"}
-speaker_enable_Elac_AdanteAS61 = True #@param {type:"boolean"}
-speaker_enable_Emotiva_Airmotiv6s = False #@param {type:"boolean"}
-speaker_enable_Genelec_8341A = True #@param {type:"boolean"}
-speaker_enable_Harbeth_Monitor30_LowOrder = False #@param {type:"boolean"}
-speaker_enable_Harbeth_Monitor30_HighOrder = False #@param {type:"boolean"}
-speaker_enable_JBL_305PMkII = False #@param {type:"boolean"}
-speaker_enable_JBL_Control1Pro = False #@param {type:"boolean"}
-speaker_enable_JBL_OneSeries104 = False #@param {type:"boolean"}
-speaker_enable_Kali_IN8 = False #@param {type:"boolean"}
-speaker_enable_KEF_LS50 = False #@param {type:"boolean"}
-speaker_enable_Klipsch_R41M = True #@param {type:"boolean"}
-speaker_enable_Micca_RB42 = False #@param {type:"boolean"}
-speaker_enable_Neumann_KH80_Sample1 = False #@param {type:"boolean"}
-speaker_enable_Neumann_KH80_Sample2 = False #@param {type:"boolean"}
-speaker_enable_Pioneer_SPBS22LR = False #@param {type:"boolean"}
-speaker_enable_Realistic_MC1000 = False #@param {type:"boolean"}
-speaker_enable_SelahAudio_RC3R = False #@param {type:"boolean"}
+speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
+speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
+speaker_enable_Elac_AdanteAS61 = True  # @param {type:"boolean"}
+speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
+speaker_enable_Genelec_8341A = True  # @param {type:"boolean"}
+speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
+speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
+speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
+speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
+speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
+speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
+speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
+speaker_enable_Klipsch_R41M = True  # @param {type:"boolean"}
+speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
+speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
+speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
+speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
+speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
+speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
@@ -417,7 +417,7 @@ def cleanup_spl_column(column):
     return column if match is None else match.group(1)
 
 def load_fr(file):
-    fr = pd.read_table(file, header=[0,1,2], thousands=',')
+    fr = pd.read_table(file, header=[0, 1, 2], thousands=',')
     fr.columns = fix_unnamed_columns(fr.columns)
     return (fr
       .rename(columns=cleanup_spl_column)
@@ -489,8 +489,8 @@ Note that in other contexts a band centered around 1 kHz is often used.
 **CAUTION:** take the numbers in the below table with a grain of salt. Indeed the raw measurement data is using the wrong absolute scale for some speakers, especially active ones.
 
 ```python
-sensitivity_first_frequency_hz = 200 #@param
-sensitivity_last_frequency_hz = 400 #@param
+sensitivity_first_frequency_hz = 200  # @param
+sensitivity_last_frequency_hz = 400  # @param
 
 sensitivity_input_column = ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')
 speakers_sensitivity = (speakers_fr_raw
@@ -516,7 +516,7 @@ The data is normalized according to the `normalization_mode` variable, which can
 The normalized data is stored in the `speakers_fr_splnorm` variable, which is used as the input of most graphs and calculations that follow. Note that this variable only contains the columns that actually underwent normalization, i.e. absolute SPL columns - in particular it doesn't include the directivity indices.
 
 ```python
-normalization_mode = 'Equal sensitivity' #@param ["None", "Equal sensitivity", "Flat on-axis"]
+normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis"]
 
 speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
 if normalization_mode == 'Equal sensitivity':
@@ -537,12 +537,12 @@ Here you can customize some parameters related to the charts.
 <!-- #endregion -->
 
 ```python
-#@markdown Dimensions for standalone charts
-standalone_chart_width =  800#@param {type:"integer"}
-standalone_chart_height =  400#@param {type:"integer"}
-#@markdown Dimensions for side-by-side charts
-sidebyside_chart_width = 600 #@param {type:"integer"}
-sidebyside_chart_height = 300 #@param {type:"integer"}
+# @markdown Dimensions for standalone charts
+standalone_chart_width = 800  # @param {type:"integer"}
+standalone_chart_height = 400  # @param {type:"integer"}
+# @markdown Dimensions for side-by-side charts
+sidebyside_chart_width = 600  # @param {type:"integer"}
+sidebyside_chart_height = 300  # @param {type:"integer"}
 
 alt.data_transformers.disable_max_rows()
 
