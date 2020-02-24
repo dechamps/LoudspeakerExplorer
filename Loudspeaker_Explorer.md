@@ -123,6 +123,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/adam-s2v-studio-monitor-review.11455/',
     'Product URL': 'https://www.adam-audio.com/en/s-series/s2v/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/adam-s2v-monitor-powered-studio-speaker-audio-review-jpg.50100/',
+    'Measurement Date': pd.Timestamp('2020-02-14'),
     'Active': True,
     'Price (Single, USD)': 875.00,
   }, {
@@ -132,6 +133,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/dayton-audio-b652-air-speaker-review.11410/',
     'Product URL': 'https://www.daytonaudio.com/product/1243/b652-air-6-1-2-2-way-bookshelf-speaker-with-amt-tweeter-pair',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/dayton-audio-b652-air-bookshelf-cheap-speakers-audio-review-jpg.49739/',
+    'Measurement Date': pd.Timestamp('2020-02-11'),
     'Active': False,
     'Price (Single, USD)': 39.00,
   }, {
@@ -141,6 +143,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/elac-adante-as-61-speaker-review.11507/',
     'Product URL': 'https://www.elac.com/series/adante/as-61/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-adante-as-61-bookshelf-speaker-audio-review-jpg.50415/',
+    'Measurement Date': pd.Timestamp('2020-02-16'),
     'Active': False,
     'Price (Single, USD)': 1250.00,
   }, {
@@ -149,6 +152,7 @@ speakers = pd.DataFrame([{
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/emotiva-airmotive-6s-spinorama-zip.48091/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/emotiva-airmotiv-6s-powered-speaker-review.11185/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/emotiva-airmotive-6s-powered-monitor-speaker-review-jpg.48017/',
+    'Measurement Date': pd.Timestamp('2020-01-31'),
     'Active': True,
     'Price (Single, USD)': 250.00,
   }, {
@@ -158,6 +162,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/',
     'Product URL': 'https://www.genelec.com/8341a',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/genelec-8341a-sam%E2%84%A2-studio-monitor-powered-speaker-audio-review-jpg.51396/',
+    'Measurement Date': pd.Timestamp('2020-02-23'),
     'Active': True,
     'Price (Single, USD)': 2950.00,
   }, {
@@ -166,6 +171,7 @@ speakers = pd.DataFrame([{
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-ces2034-spinorama-zip.47527/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/harbeth-monitor-30-speaker-review.11108/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-30-speaker-review-jpg.47512/',
+    'Measurement Date': pd.Timestamp('2020-01-26'),
     'Active': False,
     'Price (Single, USD)': 1600.00,
   }, {
@@ -174,6 +180,7 @@ speakers = pd.DataFrame([{
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-30-high-order-spin-data-zip.49385/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324345',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-30-speaker-review-jpg.47512/',
+    'Measurement Date': pd.Timestamp('2020-02-09'),
     'Active': False,
     'Price (Single, USD)': 1600.00,
   }, {
@@ -184,6 +191,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/',
     'Product URL': 'https://www.jbl.com/studio-monitors/305PMKII.html',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-305p-mkii-speaker-powered-monitor-review-jpg.45226/',
+    'Measurement Date': pd.Timestamp('2020-01-10'),
     'Active': True,
     'Price (Single, USD)': 150.00,
   }, {
@@ -194,6 +202,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/',
     'Product URL': 'https://jblpro.com/en/products/control-1-pro',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-control-1-pro-monitor-review-jpg.45228/',
+    'Measurement Date': pd.Timestamp('2020-01-10'),
     'Active': True,
     'Price (Single, USD)': 82.00,
   }, {
@@ -203,6 +212,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-one-series-104-powered-monitor-review.11076/',
     'Product URL': 'https://jblpro.com/en-US/products/104',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-one-series-104-powered-monitor-speaker-review-jpg.47273/',
+    'Measurement Date': pd.Timestamp('2020-01-25'),
     'Active': True,
     'Price (Single, USD)': 65.00,
   }, {
@@ -212,6 +222,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/page-29#post-318617',
     'Product URL': 'https://www.kaliaudio.com/independence',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kali-audio-in-8-studio-monitor-powered-speaker-review-jpg.45827/',
+    'Measurement Date': pd.Timestamp('2020-02-02'),
     'Active': True,
     'Price (Single, USD)': 400.00,
   }, {
@@ -221,6 +232,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-ls50-bookshelf-speaker-review.11144/',
     'Product URL': 'https://us.kef.com/catalog/product/view/id/1143/s/ls50-mini-monitor-speaker-pair/category/94/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-ls50-bookshelf-speaker-review-jpg.47768/',
+    'Measurement Date': pd.Timestamp('2020-01-28'),
     'Active': False,
     'Price (Single, USD)': 750.00,
   }, {
@@ -230,6 +242,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/',
     'Product URL': 'https://www.klipsch.com/products/r-41m-bookshelf-speaker-blk-gnm',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-r-41m-booksehlf-speaker-audio-review-jpg.50841/',
+    'Measurement Date': pd.Timestamp('2020-02-19'),
     'Active': False,
     'Price (Single, USD)': 75.00,
   }, {
@@ -239,6 +252,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/micca-rb42-bookshelf-speaker-review.11267/',
     'Product URL': 'https://www.miccatron.com/micca-rb42-reference-bookshelf-speakers/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/micca-rb42-bookshelf-budget-speaker-review-jpg.48623/',
+    'Measurement Date': pd.Timestamp('2020-02-04'),
     'Active': False,
     'Price (Single, USD)': 75.00,
   }, {
@@ -248,6 +262,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-monitor-review.11018/',
     'Product URL': 'https://www.neumann.com/homestudio/en/kh-80',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/neumann-kh-80-dsp-monitor-active-studio-pro-speaker-audio-review-jpg.46803/',
+    'Measurement Date': pd.Timestamp('2020-01-21'),
     'Active': True,
     'Price (Single, USD)': 500.00,
   }, {
@@ -258,6 +273,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/',
     'Product URL': 'https://www.neumann.com/homestudio/en/kh-80',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/neumann-kh-80-dsp-monitor-active-studio-pro-speaker-audio-review-jpg.46803/',
+    'Measurement Date': pd.Timestamp('2020-02-08'),
     'Active': True,
     'Price (Single, USD)': 500.00,
   }, {
@@ -267,6 +283,7 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-sp-bs22-lr-bookshelf-speaker-review.11303/',
     'Product URL': 'https://intl.pioneer-audiovisual.com/products/speakers/sp-bs22-lr/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-bs22-lr-budget-bookshelf-speaker-review-jpg.48945/',
+    'Measurement Date': pd.Timestamp('2020-02-07'),
     'Active': False,
     'Price (Single, USD)': 80.00,
   }, {
@@ -275,6 +292,7 @@ speakers = pd.DataFrame([{
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/realistic-mc-1000-spinorama-zip.48797/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/mc-1000-best-speaker-in-the-world.11283/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/realistic-mc-1000-radio-shack-2-way-vintage-speaker-listing-jpg.48786/',
+    'Measurement Date': pd.Timestamp('2020-02-06'),
     'Active': False,
     'Price (Single, USD)': 120.00,  # $30 in 1978, adjusted for inflation
   }, {
@@ -284,12 +302,13 @@ speakers = pd.DataFrame([{
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/selah-audio-rc3r-3-way-speaker-review.11218/',
     'Product URL': 'http://www.selahaudio.com/monitors',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/selah-audio-rc3r-3-way-speaker-review-jpg.48249/',
+    'Measurement Date': pd.Timestamp('2020-02-01'),
     'Active': False,
     'Price (Single, USD)': 650.00,
   },
 ]).set_index('Speaker')
 
-speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)']]
+speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)', 'Measurement Date']]
 ```
 
 ```python
