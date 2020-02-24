@@ -315,25 +315,25 @@ speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)', 'Measurement Date']
 
 ```python
 def speaker_list_html():
-  doc, tag, text, line = yattag.Doc().ttl()
-  for speaker_name in speakers.index:
-    speaker = speakers.loc[speaker_name, :]
-    with tag('h2', style='clear: left; padding-top: 20px'):
-      text(speaker_name + (' (ENABLED)' if speaker['Enabled'] else ''))
-    doc.stag('img', src=speaker['Picture URL'], width=200, style='float: left; margin-right: 20px')
-    product_url = speaker['Product URL']
-    if not pd.isna(product_url):
-      line('a', 'Product page', href=speaker['Product URL'])
-      text(' - ')
-    line('a', 'Review', href=speaker['Review URL'])
-    text(' - ')
-    line('a', 'Data package', href=speaker['Data URL'])
-    doc.stag('br')
-    with tag('b'): text('Active' if speaker['Active'] else 'Passive')
-    doc.stag('br')
-    with tag('b'): text('Price: ')
-    text('${:.0f} (single)'.format(speaker['Price (Single, USD)']))
-  return doc.getvalue()
+    doc, tag, text, line = yattag.Doc().ttl()
+    for speaker_name in speakers.index:
+        speaker = speakers.loc[speaker_name, :]
+        with tag('h2', style='clear: left; padding-top: 20px'):
+            text(speaker_name + (' (ENABLED)' if speaker['Enabled'] else ''))
+        doc.stag('img', src=speaker['Picture URL'], width=200, style='float: left; margin-right: 20px')
+        product_url = speaker['Product URL']
+        if not pd.isna(product_url):
+            line('a', 'Product page', href=speaker['Product URL'])
+            text(' - ')
+        line('a', 'Review', href=speaker['Review URL'])
+        text(' - ')
+        line('a', 'Data package', href=speaker['Data URL'])
+        doc.stag('br')
+        with tag('b'): text('Active' if speaker['Active'] else 'Passive')
+        doc.stag('br')
+        with tag('b'): text('Price: ')
+        text('${:.0f} (single)'.format(speaker['Price (Single, USD)']))
+    return doc.getvalue()
 
 IPython.display.HTML(speaker_list_html())
 ```
@@ -347,10 +347,10 @@ This downloads and unpacks speaker measurement data for each *enabled* speaker u
 ```python
 Path('speaker_data').mkdir(exist_ok=True)
 for speaker_name, speaker_data_url in speakers.loc[speakers['Enabled'], 'Data URL'].items():
-  if not (Path('speaker_data') / speaker_name).exists():
-    if not (Path('speaker_data') / (speaker_name + '.zip')).exists():
-      !wget -O "speaker_data/{speaker_name}.zip" "{speaker_data_url}"
-    !unzip "speaker_data/{speaker_name}.zip" -d "speaker_data/{speaker_name}"
+    if not (Path('speaker_data') / speaker_name).exists():
+        if not (Path('speaker_data') / (speaker_name + '.zip')).exists():
+            !wget -O "speaker_data/{speaker_name}.zip" "{speaker_data_url}"
+        !unzip "speaker_data/{speaker_name}.zip" -d "speaker_data/{speaker_name}"
 ```
 
 <!-- #region id="load" -->
@@ -379,13 +379,13 @@ data files for each speaker are merged to form the columns of the DataFrame.
 # This function restores the correct column names by replacing every "Unnamed"
 # column with the name of the last known column on that level.
 def fix_unnamed_columns(columns):
-  last_names = [None] * columns.nlevels
-  def fix_column(column):
-    for level, label in enumerate(column):
-      if not label.startswith('Unnamed: '):
-        last_names[level] = label
-    return tuple(last_names)
-  return pd.MultiIndex.from_tuples(fix_column(column) for column in columns.values)
+    last_names = [None] * columns.nlevels
+    def fix_column(column):
+        for level, label in enumerate(column):
+            if not label.startswith('Unnamed: '):
+                last_names[level] = label
+        return tuple(last_names)
+    return pd.MultiIndex.from_tuples(fix_column(column) for column in columns.values)
 
 # Expects input in the following form:
 #   (Additional top column levels)
@@ -400,35 +400,35 @@ def fix_unnamed_columns(columns):
 #   42.42  1.234  2.345
 #   43.43  3.456  5.678
 def index_by_frequency(data):
-  preserve_column_level = list(range(data.columns.nlevels - 1))
-  return (data
-    # Move all columns levels except the bottommost one into the index
-    .stack(level=preserve_column_level)
-    # Drop the topmost (default) index level as it's not useful anymore
-    .reset_index(level=0, drop=True)
-    # Use the frequency as the new bottommost index level
-    .set_index('Frequency [Hz]', append=True)
-    # Move all other index levels back to columns
-    .unstack(level=preserve_column_level))
+    preserve_column_level = list(range(data.columns.nlevels - 1))
+    return (data
+      # Move all columns levels except the bottommost one into the index
+      .stack(level=preserve_column_level)
+      # Drop the topmost (default) index level as it's not useful anymore
+      .reset_index(level=0, drop=True)
+      # Use the frequency as the new bottommost index level
+      .set_index('Frequency [Hz]', append=True)
+      # Move all other index levels back to columns
+      .unstack(level=preserve_column_level))
 
 # In "Sound Pessure Level [dB] / [2.83V 1m]", eliminates " / [2.83V 1m]", as it varies between measurements
 def cleanup_spl_column(column):
-  match = re.match(r'^(Sound Pessure Level \[dB\])', column)
-  return column if match is None else match.group(1)
+    match = re.match(r'^(Sound Pessure Level \[dB\])', column)
+    return column if match is None else match.group(1)
 
 def load_fr(file):
-  fr = pd.read_table(file, header=[0,1,2], thousands=',')
-  fr.columns = fix_unnamed_columns(fr.columns)
-  return (fr
-    .rename(columns=cleanup_spl_column)
-    .pipe(index_by_frequency))
+    fr = pd.read_table(file, header=[0,1,2], thousands=',')
+    fr.columns = fix_unnamed_columns(fr.columns)
+    return (fr
+      .rename(columns=cleanup_spl_column)
+      .pipe(index_by_frequency))
 
 # If the none_missing() assertion fires, it likely means something is wrong or
 # corrupted in the data files of the speaker (e.g. some frequencies present in
 # some columns/files but not others)
 @ed.none_missing()
 def load_speaker(dir):
-  return pd.concat((load_fr(file) for file in dir.iterdir()), axis='columns')
+    return pd.concat((load_fr(file) for file in dir.iterdir()), axis='columns')
 
 speakers_fr_raw = pd.concat(
   {speaker.Index: load_speaker(Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
@@ -520,11 +520,11 @@ normalization_mode = 'Equal sensitivity' #@param ["None", "Equal sensitivity", "
 
 speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
 if normalization_mode == 'Equal sensitivity':
-  speakers_fr_splnorm = speakers_fr_splnorm.sub(
-      speakers_sensitivity, axis='index', level='Speaker')
+    speakers_fr_splnorm = speakers_fr_splnorm.sub(
+        speakers_sensitivity, axis='index', level='Speaker')
 if normalization_mode == 'Flat on-axis':
-  speakers_fr_splnorm = speakers_fr_splnorm.sub(
-      speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
+    speakers_fr_splnorm = speakers_fr_splnorm.sub(
+        speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
 speakers_fr_splnorm
 ```
 
@@ -558,42 +558,42 @@ alt.data_transformers.disable_max_rows()
 # `columns_mapper` keys are matched against the full column name (i.e. a tuple),
 # not individual per-level labels. 
 def prepare_alt_chart(df, columns_mapper):
-  df = df.reset_index().loc[:, list(columns_mapper.keys())]
-  df.columns = df.columns.map(mapper=columns_mapper)
-  return df
+    df = df.reset_index().loc[:, list(columns_mapper.keys())]
+    df.columns = df.columns.map(mapper=columns_mapper)
+    return df
 
 def frequency_response_chart(data, sidebyside=False):
-  return (alt.Chart(data)
-    .properties(
-      width=sidebyside_chart_width if sidebyside else standalone_chart_width,
-      height=sidebyside_chart_height if sidebyside else standalone_chart_height)
-    .mark_line(clip=True, interpolate='monotone')
-    .encode(frequency_xaxis('frequency')))
+    return (alt.Chart(data)
+      .properties(
+        width=sidebyside_chart_width if sidebyside else standalone_chart_width,
+        height=sidebyside_chart_height if sidebyside else standalone_chart_height)
+      .mark_line(clip=True, interpolate='monotone')
+      .encode(frequency_xaxis('frequency')))
 
 def frequency_xaxis(shorthand):
-  return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
+    return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
 
 def sound_pressure_yaxis(shorthand, title='Relative Sound Pressure (dB)', scale_domain=None):
-  if scale_domain is None:
-    scale_domain = (55, 105) if normalization_mode == 'None' else (-40, 10)
-  return alt.Y(shorthand, title=title, scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+    if scale_domain is None:
+        scale_domain = (55, 105) if normalization_mode == 'None' else (-40, 10)
+    return alt.Y(shorthand, title=title, scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
 # Converts the above column labels to the following:
 #   0.0 10.0 20.0 -10.0
 def convert_angles(df):
-  def convert_label(label):
-    if label == 'On-Axis':
-      return 0.0
-    stripped_label = label.strip('°')
-    if stripped_label == label:
-      return label
-    try:
-      return float(stripped_label)
-    except ValueError:
-      return label
-  return df.rename(columns=convert_label)
+    def convert_label(label):
+        if label == 'On-Axis':
+            return 0.0
+        stripped_label = label.strip('°')
+        if stripped_label == label:
+            return label
+        try:
+            return float(stripped_label)
+        except ValueError:
+            return label
+    return df.rename(columns=convert_label)
 ```
 
 # Measurements
@@ -694,7 +694,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       alt.Color('angle', title='Angle (°)', scale=alt.Scale(scheme='sinebow')),
       sound_pressure_yaxis('value'))
     .interactive()
-)
+ )
 ```
 
 <!-- #region id="horizontal-reflection-responses" -->
@@ -721,7 +721,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       alt.Color('direction', title=None),
       sound_pressure_yaxis('value'))
     .interactive()
-)
+ )
 ```
 
 <!-- #region id="vertical-reflection-responses" -->
@@ -748,7 +748,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       alt.Color('direction', title=None),
       sound_pressure_yaxis('value'))
     .interactive()
-)
+ )
 ```
 
 ## Listening Window response
