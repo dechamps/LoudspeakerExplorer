@@ -671,6 +671,8 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 
 <!-- #endregion -->
 
+Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
+
 ```python
 (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
     .loc[:, ['SPL Horizontal', 'SPL Vertical']]
