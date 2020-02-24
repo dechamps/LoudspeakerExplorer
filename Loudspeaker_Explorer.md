@@ -37,7 +37,7 @@ jupyter:
 
 *By Etienne Dechamps (etienne@edechamps.fr)* - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer) - [Changelog](https://github.com/dechamps/LoudspeakerExplorer/commits/master)
 
-Welcome to the Loudspeaker Explorer, a speaker measurement visualization, analysis and comparison tool. This is an interactive [Colaboratory Notebook](https://colab.research.google.com/).
+Welcome to the [Loudspeaker Explorer](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb), a speaker measurement visualization, analysis and comparison tool. This is an interactive [Colaboratory Notebook](https://colab.research.google.com/).
 
 ## How to use this notebook
 
