@@ -46,7 +46,7 @@ jobs:
       - run: git -C LoudspeakerExplorer-rendered init
       - run: git -C LoudspeakerExplorer-rendered remote add origin git@github.com:dechamps/LoudspeakerExplorer-rendered.git
       - run: git -C LoudspeakerExplorer-rendered config core.sshCommand 'ssh -i ../rendered_repo_deploy_key -v'
-      - run: git -C LoudspeakerExplorer-rendered fetch origin "$GITHUB_REF" --verbose
+      - run: git -C LoudspeakerExplorer-rendered fetch origin "$GITHUB_REF" --verbose --depth=1
         continue-on-error: true
       - run: git -C LoudspeakerExplorer-rendered checkout FETCH_HEAD
         continue-on-error: true
