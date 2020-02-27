@@ -33,9 +33,11 @@ jupyter:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb)
 <!-- #endregion -->
 
+<!-- #region tags=["buildinfo"] -->
+
 # The Loudspeaker Explorer
 
-*By Etienne Dechamps (etienne@edechamps.fr)* - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer) - [Changelog](https://github.com/dechamps/LoudspeakerExplorer/commits/master)
+_By Etienne Dechamps (etienne@edechamps.fr)_ - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer)<!--BUILDINFO-->
 
 Welcome to the [Loudspeaker Explorer](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb), a speaker measurement visualization, analysis and comparison tool. This is an interactive [Colaboratory Notebook](https://colab.research.google.com/).
 
@@ -59,7 +61,7 @@ This notebook is powered by amazing software: [Google Colaboratory](https://cola
 
 Loudspeaker Explorer is published under [MIT License](https://github.com/dechamps/LoudspeakerExplorer/blob/master/LICENSE.txt). Note that input data, including measurement data and pictures, is not part of Loudspeaker Explorer - it is published by third parties under potentially different licenses.
 
-
+<!-- #endregion -->
 <!-- #region id="preliminary-boilerplate" -->
 # Preliminary boilerplate
 <!-- #endregion -->

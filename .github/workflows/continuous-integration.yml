@@ -21,11 +21,23 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: Loudspeaker_Explorer
+      # The jq script below requires jq >=1.6, which is only available in Ubuntu >=focal.
+      # (jq 1.5 will choke on the nested assignment with a "Invalid path expression with result…" error.)
+      - run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu/ focal main universe'
       - run: sudo apt-get install jq
-      # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
-      # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
-      # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
-      - run: jq '(.cells[] | select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@title\n"] + .)' Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb
+      - run: |
+          jq --from-file /dev/stdin Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb <<"EOF"
+          .cells[] |= ((
+            # Add build information.
+            (select(.metadata.tags[]? | contains("buildinfo")) | .source[]) |=
+              gsub("<!--BUILDINFO-->"; " - _[Changelog](https://github.com/\(env.GITHUB_REPOSITORY)/commits/\(env.GITHUB_SHA)) (built from [\(env.GITHUB_SHA[0:7])](https://github.com/\(env.GITHUB_REPOSITORY)/commit/\(env.GITHUB_SHA)) on [\(now | todateiso8601)](https://github.com/\(env.GITHUB_REPOSITORY)/actions/runs/\(env.GITHUB_RUN_ID)))_")
+          ) | (
+            # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
+            # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
+            # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
+            (select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@title\n"] + .)
+          ))
+          EOF
       - uses: actions/upload-artifact@v1
         with:
           name: Loudspeaker_Explorer-colab
