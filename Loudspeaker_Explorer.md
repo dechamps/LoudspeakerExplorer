@@ -521,12 +521,18 @@ The normalized data is stored in the `speakers_fr_splnorm` variable, which is us
 normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis"]
 
 speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
+db_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
+db_domain = (55, 105)
 if normalization_mode == 'Equal sensitivity':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_sensitivity, axis='index', level='Speaker')
+    db_axis_label = 'Relative Sound Pressure (dBr)'
+    db_domain = (-40, 10)
 if normalization_mode == 'Flat on-axis':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
+    db_axis_label = 'Sound Pressure relative to on-axis (dBr)'
+    db_domain = (-40, 10)
 speakers_fr_splnorm
 ```
 
@@ -575,10 +581,11 @@ def frequency_response_chart(data, sidebyside=False):
 def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
 
-def sound_pressure_yaxis(shorthand, title='Relative Sound Pressure (dB)', scale_domain=None):
-    if scale_domain is None:
-        scale_domain = (55, 105) if normalization_mode == 'None' else (-40, 10)
-    return alt.Y(shorthand, title=title, scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+def sound_pressure_yaxis(shorthand, title_prefix=None):
+    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + db_axis_label, scale=alt.Scale(domain=db_domain), axis=alt.Axis(grid=True))
+
+def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=(-5, 10)):
+    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + 'Directivity Index (dBr)', scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
@@ -642,7 +649,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
       .interactive(),
     spinorama_chart_common
-      .encode(sound_pressure_yaxis('value', title='Directivity Index (dB)', scale_domain=(-10, 40)))
+      .encode(directivity_index_yaxis('value', scale_domain=(-10, 40)))
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))
       .interactive())
     .resolve_scale(y='independent')
@@ -661,7 +668,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('on_axis', title='On Axis Relative Sound Pressure (dB)'))
+    sound_pressure_yaxis('on_axis', title_prefix='On Axis'))
   .interactive())
 ```
 
@@ -764,7 +771,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('listening_window', title='Listening Window Relative Sound Pressure (dB)'))
+    sound_pressure_yaxis('listening_window', title_prefix='Listening Window'))
   .interactive())
 ```
 
@@ -779,7 +786,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('early_reflections', title='Early Reflections Relative Sound Pressure (dB)'))
+    sound_pressure_yaxis('early_reflections', title_prefix='Early Reflections'))
   .interactive())
 ```
 
@@ -794,7 +801,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('sound_power', title='Sound Power Relative Sound Pressure (dB)'))
+    sound_pressure_yaxis('sound_power', title_prefix='Sound Power'))
   .interactive())
 ```
 
@@ -809,7 +816,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('early_reflections_di', title='Early Reflections Directivity Index (dB)', scale_domain=(-5, 10)))
+    directivity_index_yaxis('early_reflections_di', title_prefix='Early Reflections'))
   .interactive())
 ```
 
@@ -824,7 +831,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('sound_power_di', title='Sound Power Directivity Index (dB)', scale_domain=(-10, 20)))
+    directivity_index_yaxis('sound_power_di', title_prefix='Sound Power'))
   .interactive())
 ```
 
@@ -839,6 +846,6 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     }))
   .encode(
     alt.Color('speaker', title=None),
-    sound_pressure_yaxis('estimated_inroom_response', title='Estimated In-Room Response Relative Sound Pressure (dB)'))
+    sound_pressure_yaxis('estimated_inroom_response', title_prefix='Estimated In-Room Response'))
   .interactive())
 ```
