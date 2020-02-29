@@ -552,6 +552,11 @@ standalone_chart_height = 400  # @param {type:"integer"}
 sidebyside_chart_width = 600  # @param {type:"integer"}
 sidebyside_chart_height = 300  # @param {type:"integer"}
 
+speakers_fr_ready = pd.concat([
+    speakers_fr_splnorm,
+    speakers_fr_raw.loc[:, '[dB] Directivity Index ']
+], axis='columns')
+
 alt.data_transformers.disable_max_rows()
 
 # Prepares DataFrame `df` for charting using alt.Chart().
@@ -618,8 +623,8 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=
-  pd.concat([speakers_fr_splnorm, speakers_fr_raw.loc[:, '[dB] Directivity Index ']], axis='columns')
+spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=
+  speakers_fr_ready
     .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -660,7 +665,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_splnor
 ## On-axis response
 
 ```python
-(frequency_response_chart(speakers_fr_splnorm
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -683,7 +688,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
+(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
     .loc[:, ['SPL Horizontal', 'SPL Vertical']]
     .pipe(convert_angles)
     .rename_axis(columns=['Direction', 'Angle'])
@@ -713,7 +718,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
+(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
     .loc[:, 'Horizontal Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
@@ -740,7 +745,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_splnorm.index.unique('Speaker').size > 1, data=speakers_fr_splnorm
+(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
     .loc[:, 'Vertical Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
@@ -763,7 +768,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Listening Window response
 
 ```python
-(frequency_response_chart(speakers_fr_splnorm
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -778,7 +783,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Early Reflections response
 
 ```python
-(frequency_response_chart(speakers_fr_splnorm
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -793,7 +798,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Sound Power response
 
 ```python
-(frequency_response_chart(speakers_fr_splnorm
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -808,11 +813,11 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Early Reflections Directivity Index
 
 ```python
-(frequency_response_chart(speakers_fr_raw
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
-      ('Speaker', '', ''): 'speaker',
-      ('Frequency [Hz]', '', ''): 'frequency',
-      ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'): 'early_reflections_di',
+      ('Speaker', ''): 'speaker',
+      ('Frequency [Hz]', ''): 'frequency',
+      ('Directivity Index', 'Early Reflections DI'): 'early_reflections_di',
     }))
   .encode(
     alt.Color('speaker', title=None),
@@ -823,11 +828,11 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Sound Power Directivity Index
 
 ```python
-(frequency_response_chart(speakers_fr_raw
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
-      ('Speaker', '', ''): 'speaker',
-      ('Frequency [Hz]', '', ''): 'frequency',
-      ('[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI'): 'sound_power_di',
+      ('Speaker', ''): 'speaker',
+      ('Frequency [Hz]', ''): 'frequency',
+      ('Directivity Index', 'Sound Power DI'): 'sound_power_di',
     }))
   .encode(
     alt.Color('speaker', title=None),
@@ -838,7 +843,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Estimated In-Room Response
 
 ```python
-(frequency_response_chart(speakers_fr_splnorm
+(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -848,4 +853,8 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
     alt.Color('speaker', title=None),
     sound_pressure_yaxis('estimated_inroom_response', title_prefix='Estimated In-Room Response'))
   .interactive())
+```
+
+```python
+
 ```
