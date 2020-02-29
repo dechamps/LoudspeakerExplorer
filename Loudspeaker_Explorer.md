@@ -452,17 +452,17 @@ speakers_frequencies = (speakers_fr_raw
   .to_frame()
   .reset_index(drop=True)
   .groupby('Speaker'))
-speakers_frequency_count = speakers_frequencies.count()
-speakers_min_frequency = speakers_frequencies.min()
-speakers_max_frequency = speakers_frequencies.max()
-speakers_octaves = (speakers_max_frequency / speakers_min_frequency).apply(np.log2)
-speakers_points_per_octave = speakers_frequency_count / speakers_octaves
+speakers_frequency_count = speakers_frequencies.count().loc[:, 'Frequency [Hz]'].rename('Frequencies')
+speakers_min_frequency = speakers_frequencies.min().loc[:, 'Frequency [Hz]'].rename('Min Frequency (Hz)')
+speakers_max_frequency = speakers_frequencies.max().loc[:, 'Frequency [Hz]'].rename('Max Frequency (Hz)')
+speakers_octaves = (speakers_max_frequency / speakers_min_frequency).apply(np.log2).rename('Extent (octaves)')
+speakers_freqs_per_octave = (speakers_frequency_count / speakers_octaves).rename('Resolution (freqs/octave)')
 pd.concat([
-  speakers_frequency_count.rename(columns={'Frequency [Hz]': 'Frequencies'}),
-  speakers_min_frequency.rename(columns={'Frequency [Hz]': 'Min Frequency (Hz)'}),
-  speakers_max_frequency.rename(columns={'Frequency [Hz]': 'Max Frequency (Hz)'}),
-  speakers_octaves.rename(columns={'Frequency [Hz]': 'Extent (octaves)'}),
-  speakers_points_per_octave.rename(columns={'Frequency [Hz]': 'Resolution (freqs/octave)'})
+  speakers_frequency_count,
+  speakers_min_frequency,
+  speakers_max_frequency,
+  speakers_octaves,
+  speakers_freqs_per_octave
 ], axis='columns')
 ```
 
