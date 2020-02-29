@@ -7,6 +7,7 @@ jupyter:
     - raw-summary
     - sensitivity
     - normalization
+    - smoothing
     - plot-settings
     - off-axis-responses
     - horizontal-reflection-responses
@@ -536,6 +537,77 @@ if normalization_mode == 'Flat on-axis':
 speakers_fr_splnorm
 ```
 
+<!-- #region id="smoothing" -->
+
+# Smoothing
+
+All responses (including directivity indices) are smoothed according to the `smoothing_mode` variable. All subsequent processing and plotting will operate on the smoothed data.
+
+<!-- #endregion -->
+
+If you are not happy with the proposed choices, you can manually input the smoothing strength you want by manually editing the `smoothing_mode` variable below. For example you can set the variable to `'1/10-octave smoothing'` and the code will take care of the rest.
+
+Smoothing is done by applying an [exponential moving average (EMA)](https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average) with a "span" or "N" corresponding to the number of octaves chosen (since points in the input are already equally spaced in log-frequency). EMA was chosen over a simple moving average because it gracefully handles the case where N is not an integer, as is often the case here.
+
+```python
+smoothing_mode = 'No smoothing'  # @param ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
+
+smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
+smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
+
+speakers_fr_smoothed = pd.concat([
+    speakers_fr_splnorm,
+    speakers_fr_raw.loc[:, '[dB] Directivity Index ']
+], axis='columns')
+
+# Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
+# Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
+#
+# For example, given `df`:
+#   C0
+# A
+# i  1 
+#    2
+# j  3
+#    4
+#
+# And `labels`:
+#   C1 C2
+# A
+# i 1i 2i
+# j 1j 2j
+#
+# Then the result will be:
+#         C0
+# A C1 C2
+# i 1i 2i  1
+#          2
+# j 1j 2j  3
+#          4
+def join_index(df, labels):
+    return df.align(labels.set_index(list(labels.columns.values), append=True), axis='index')[0]
+
+def smooth(speaker_fr):
+    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
+    return (speaker_fr
+        # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
+        .sort_index()
+        # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
+        .ewm(span=freqs_per_octave*smoothing_octaves).mean()
+    )
+
+if smoothing_octaves is not None:
+    speakers_fr_smoothed = (speakers_fr_smoothed
+        .unstack()
+        .pipe(join_index, speakers_freqs_per_octave.to_frame())
+        .stack()
+        .groupby('Speaker').apply(smooth)
+        .reset_index('Resolution (freqs/octave)', drop=True)
+    )
+
+speakers_fr_smoothed
+```
+
 <!-- #region id="plot-settings" -->
 
 # Plot settings
@@ -552,10 +624,7 @@ standalone_chart_height = 400  # @param {type:"integer"}
 sidebyside_chart_width = 600  # @param {type:"integer"}
 sidebyside_chart_height = 300  # @param {type:"integer"}
 
-speakers_fr_ready = pd.concat([
-    speakers_fr_splnorm,
-    speakers_fr_raw.loc[:, '[dB] Directivity Index ']
-], axis='columns')
+speakers_fr_ready = speakers_fr_smoothed
 
 alt.data_transformers.disable_max_rows()
 
