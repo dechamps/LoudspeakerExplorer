@@ -576,6 +576,8 @@ def prepare_alt_chart(df, columns_mapper):
     return df
 
 def frequency_response_chart(data, sidebyside=False):
+    if speakers_fr_ready.index.unique('Speaker').size < 2:
+        sidebyside = False
     return (alt.Chart(data)
       .properties(
         width=sidebyside_chart_width if sidebyside else standalone_chart_width,
@@ -623,7 +625,7 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-spinorama_chart_common = (frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=
+spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
   speakers_fr_ready
     .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
@@ -688,7 +690,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
+(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, ['SPL Horizontal', 'SPL Vertical']]
     .pipe(convert_angles)
     .rename_axis(columns=['Direction', 'Angle'])
@@ -718,7 +720,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
+(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, 'Horizontal Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
@@ -745,7 +747,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=speakers_fr_ready.index.unique('Speaker').size > 1, data=speakers_fr_ready
+(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, 'Vertical Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
