@@ -541,15 +541,14 @@ speakers_fr_splnorm
 
 # Smoothing
 
-All responses (including directivity indices) are smoothed according to the `smoothing_mode` variable. All subsequent processing and plotting will operate on the smoothed data.
+All responses (including directivity indices) are smoothed according to the settings below. All subsequent processing and plotting will operate on the smoothed data.
 
 <!-- #endregion -->
-
-If you are not happy with the proposed choices, you can manually input the smoothing strength you want by manually editing the `smoothing_mode` variable below. For example you can set the variable to `'1/10-octave smoothing'` and the code will take care of the rest.
 
 Smoothing is done by applying an [exponential moving average (EMA)](https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average) with a "span" or "N" corresponding to the number of octaves chosen (since points in the input are already equally spaced in log-frequency). EMA was chosen over a simple moving average because it gracefully handles the case where N is not an integer, as is often the case here.
 
 ```python
+#@markdown Select the smoothing strength. If you are not happy with the proposed choices, you can manually input the smoothing strength you want by manually editing the `smoothing_mode` variable in this code block. For example you can set the variable to `'1/10-octave smoothing'` and the code will take care of the rest.
 smoothing_mode = 'No smoothing'  # @param ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
 
 smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
