@@ -626,21 +626,25 @@ sidebyside_chart_height = 300  # @param {type:"integer"}
 
 # Rearranges the index, folding metadata such as resolution and smoothing into the "Speaker" index level.
 def fold_speakers_info(speakers_fr):
-    def fold(speaker):
-        # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
-        return pd.Series({'Speaker': '{} ({:.2g} pts/octave; {})'.format(
-            speaker.loc['Speaker'],
-            speaker.loc['Resolution (freqs/octave)'],
-            speaker.loc['Smoothing'])})
     speakers_fr = speakers_fr.unstack(level='Frequency [Hz]')
     speakers_fr.index = pd.MultiIndex.from_frame(speakers_fr
         .index
         .to_frame()
         .reset_index(drop=True)
-        .apply(fold, axis='columns', result_type='reduce')
+        .apply(
+            # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
+            lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
+            axis='columns',
+            result_type='reduce')
     )
     return speakers_fr.stack()
-speakers_fr_ready = fold_speakers_info(speakers_fr_smoothed)
+speakers_fr_ready = (speakers_fr_smoothed
+    .rename(
+        level='Resolution (freqs/octave)',
+        index=lambda freqs_per_octave: '{:.2g} pts/octave'.format(freqs_per_octave))
+    .rename_axis(index={'Resolution (freqs/octave)': 'Resolution'})
+    .pipe(fold_speakers_info)
+)
 
 alt.data_transformers.disable_max_rows()
 
