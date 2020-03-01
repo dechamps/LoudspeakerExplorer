@@ -697,7 +697,9 @@ if single_speaker_mode:
     )
 else:
     speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
-common_title = '; '.join(common_title.to_list())
+common_title = alt.TitleParams(
+    text='; '.join(common_title.to_list()),
+    anchor='start')
 
 alt.data_transformers.disable_max_rows()
 
@@ -809,7 +811,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))
       .interactive())
     .resolve_scale(y='independent')
-    .facet(alt.Column('speaker', title=common_title))
+    .facet(alt.Column('speaker', title=None), title=common_title)
     .resolve_scale(y='independent'))
 ```
 
