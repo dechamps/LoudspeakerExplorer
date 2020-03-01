@@ -555,11 +555,6 @@ smoothing_mode = 'No smoothing'  # @param ["1/1-octave smoothing", "1/2-octave s
 smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
 smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
 
-speakers_fr_smoothed = pd.concat([
-    speakers_fr_splnorm,
-    speakers_fr_raw.loc[:, '[dB] Directivity Index ']
-], axis='columns')
-
 # Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
 # Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
 #
@@ -587,6 +582,20 @@ speakers_fr_smoothed = pd.concat([
 def join_index(df, labels):
     return df.align(labels.set_index(list(labels.columns.values), append=True), axis='index')[0]
 
+# Appends a new index level with all identical values.
+def append_constant_index(df, value, name=None):
+    return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
+
+speakers_fr_smoothed = (pd.concat([
+        speakers_fr_splnorm,
+        speakers_fr_raw.loc[:, '[dB] Directivity Index ']
+    ], axis='columns')
+    .unstack(level='Frequency [Hz]')
+    .pipe(join_index, speakers_freqs_per_octave.to_frame())
+    .pipe(append_constant_index, smoothing_mode, name='Smoothing')
+    .stack()
+)
+
 def smooth(speaker_fr):
     (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
     return (speaker_fr
@@ -595,16 +604,8 @@ def smooth(speaker_fr):
         # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
         .ewm(span=freqs_per_octave*smoothing_octaves).mean()
     )
-
 if smoothing_octaves is not None:
-    speakers_fr_smoothed = (speakers_fr_smoothed
-        .unstack()
-        .pipe(join_index, speakers_freqs_per_octave.to_frame())
-        .stack()
-        .groupby('Speaker').apply(smooth)
-        .reset_index('Resolution (freqs/octave)', drop=True)
-    )
-
+    speakers_fr_smoothed = speakers_fr_smoothed.groupby('Speaker').apply(smooth)
 speakers_fr_smoothed
 ```
 
@@ -624,7 +625,23 @@ standalone_chart_height = 400  # @param {type:"integer"}
 sidebyside_chart_width = 600  # @param {type:"integer"}
 sidebyside_chart_height = 300  # @param {type:"integer"}
 
-speakers_fr_ready = speakers_fr_smoothed
+# Rearranges the index, folding metadata such as resolution and smoothing into the "Speaker" index level.
+def fold_speakers_info(speakers_fr):
+    def fold(speaker):
+        # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
+        return pd.Series({'Speaker': '{} ({:.2g} pts/octave; {})'.format(
+            speaker.loc['Speaker'],
+            speaker.loc['Resolution (freqs/octave)'],
+            speaker.loc['Smoothing'])})
+    speakers_fr = speakers_fr.unstack(level='Frequency [Hz]')
+    speakers_fr.index = pd.MultiIndex.from_frame(speakers_fr
+        .index
+        .to_frame()
+        .reset_index(drop=True)
+        .apply(fold, axis='columns', result_type='reduce')
+    )
+    return speakers_fr.stack()
+speakers_fr_ready = fold_speakers_info(speakers_fr_smoothed)
 
 alt.data_transformers.disable_max_rows()
 
@@ -662,6 +679,10 @@ def sound_pressure_yaxis(shorthand, title_prefix=None):
 
 def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=(-5, 10)):
     return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + 'Directivity Index (dBr)', scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+
+def speaker_color(shorthand):
+    # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
+    return alt.Color(shorthand, title=None, legend=alt.Legend(orient='top', direction='vertical', labelLimit=600))
 
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
@@ -743,7 +764,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
       ('CEA2034', 'On Axis'): 'on_axis',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     sound_pressure_yaxis('on_axis', title_prefix='On Axis'))
   .interactive())
 ```
@@ -846,7 +867,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('CEA2034', 'Listening Window'): 'listening_window',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     sound_pressure_yaxis('listening_window', title_prefix='Listening Window'))
   .interactive())
 ```
@@ -861,7 +882,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('CEA2034', 'Early Reflections'): 'early_reflections',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     sound_pressure_yaxis('early_reflections', title_prefix='Early Reflections'))
   .interactive())
 ```
@@ -876,7 +897,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('CEA2034', 'Sound Power'): 'sound_power',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     sound_pressure_yaxis('sound_power', title_prefix='Sound Power'))
   .interactive())
 ```
@@ -891,7 +912,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('Directivity Index', 'Early Reflections DI'): 'early_reflections_di',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     directivity_index_yaxis('early_reflections_di', title_prefix='Early Reflections'))
   .interactive())
 ```
@@ -906,7 +927,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('Directivity Index', 'Sound Power DI'): 'sound_power_di',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     directivity_index_yaxis('sound_power_di', title_prefix='Sound Power'))
   .interactive())
 ```
@@ -921,7 +942,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
       ('Estimated In-Room Response', 'Estimated In-Room Response'): 'estimated_inroom_response',
     }))
   .encode(
-    alt.Color('speaker', title=None),
+    speaker_color('speaker'),
     sound_pressure_yaxis('estimated_inroom_response', title_prefix='Estimated In-Room Response'))
   .interactive())
 ```
