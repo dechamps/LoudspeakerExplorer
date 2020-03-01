@@ -651,6 +651,7 @@ if smoothing_octaves is not None:
     speakers_fr_smoothed = (
         pd.concat([speakers_fr_smoothed, speakers_fr_smoothed_only])
         if smoothing_preserve_original else speakers_fr_smoothed_only)
+speakers_fr_smoothed
 ```
 
 <!-- #region id="plot-settings" -->
