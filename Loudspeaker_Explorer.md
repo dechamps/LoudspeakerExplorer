@@ -673,12 +673,10 @@ def fold_speakers_info(speakers_fr):
     speakers_fr.index = pd.MultiIndex.from_frame(speakers_fr
         .index
         .to_frame()
-        .reset_index(drop=True)
         .apply(
             # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
             lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
-            axis='columns',
-            result_type='reduce')
+            axis='columns')
     )
     return speakers_fr.stack()
 
