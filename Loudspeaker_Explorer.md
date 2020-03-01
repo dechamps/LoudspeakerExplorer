@@ -687,7 +687,16 @@ def fold_speakers_info(speakers_fr):
     .rename_axis(index={'Resolution (freqs/octave)': 'Resolution'})
     .pipe(extract_common_index_levels)
 )
-speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
+single_speaker_mode = speakers_fr_ready.index.names == ['Frequency [Hz]']
+if single_speaker_mode:
+    # Re-add an empty Speaker index level.
+    # The alternative would be to handle this case specially in every single graph, which gets annoying fast.
+    speakers_fr_ready = (speakers_fr_ready
+        .pipe(append_constant_index, '', name='Speaker')
+        .swaplevel(0, -1)
+    )
+else:
+    speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
 common_title = '; '.join(common_title.to_list())
 
 alt.data_transformers.disable_max_rows()
@@ -709,7 +718,7 @@ def prepare_alt_chart(df, columns_mapper):
     return df
 
 def frequency_response_chart(data, sidebyside=False):
-    if speakers_fr_ready.index.unique('Speaker').size < 2:
+    if single_speaker_mode:
         sidebyside = False
     return (alt.Chart(data, title=common_title)
       .properties(
@@ -729,7 +738,10 @@ def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=(-5, 10))
 
 def speaker_color(shorthand):
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
-    return alt.Color(shorthand, title=None, legend=alt.Legend(orient='top', direction='vertical', labelLimit=600))
+    return alt.Color(
+        shorthand,
+        title=None,
+        legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600))
 
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
