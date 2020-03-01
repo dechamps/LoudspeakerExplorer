@@ -548,8 +548,8 @@ All responses (including directivity indices) are smoothed according to the sett
 Smoothing is done by applying an [exponential moving average (EMA)](https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average) with a "span" or "N" corresponding to the number of octaves chosen (since points in the input are already equally spaced in log-frequency). EMA was chosen over a simple moving average because it gracefully handles the case where N is not an integer, as is often the case here.
 
 ```python
-#@markdown Select the smoothing strength. If you are not happy with the proposed choices, you can manually input the smoothing strength you want by manually editing the `smoothing_mode` variable in this code block. For example you can set the variable to `'1/10-octave smoothing'` and the code will take care of the rest.
-smoothing_mode = 'No smoothing'  # @param ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
+#@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave smoothing`.
+smoothing_mode = 'No smoothing'  # @param {allow-input: true} ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
 
 smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
 smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
