@@ -816,6 +816,7 @@ def postprocess_chart(chart):
         alt.Chart(title=alt.TitleParams(
             'Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer',
             fontSize=10, fontWeight='lighter', color='gray', anchor='start')).mark_text())
+        .resolve_legend(color='independent')
         .configure_view(width=600, height=1, opacity=0))
 ```
 
