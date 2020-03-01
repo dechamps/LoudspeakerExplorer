@@ -624,9 +624,52 @@ standalone_chart_height = 400  # @param {type:"integer"}
 sidebyside_chart_width = 600  # @param {type:"integer"}
 sidebyside_chart_height = 300  # @param {type:"integer"}
 
+# Removes index levels from `df` that have identical values throughout.
+# Also returns a Series with the index levels that were removed, along with their common value.
+#
+# For example, given:
+#          COL
+#  A  B  C
+# a1  b  c   1
+# a2  b  c   2
+# a2  b  c   3
+#
+# Will return:
+#    COL
+#  A
+# a1   1
+# a2   2
+# a2   3
+#
+# And:
+# B b
+# C c
+def extract_common_index_levels(df):
+    index_df = (df
+        .index
+        .to_frame()
+        .reset_index(drop=True)
+    )
+    index_has_distinct_values = index_df.nunique() > 1
+    index_common_names = index_has_distinct_values.loc[~index_has_distinct_values].index
+    def extract_unique_index_value(index_name):
+        (unique_index_value,) = index_df.loc[:, index_name].unique()
+        return unique_index_value
+    common_info = (index_common_names
+        .to_series()
+        .apply(extract_unique_index_value)
+    )
+    df = df.copy()
+    df.index = pd.MultiIndex.from_frame(
+        index_df.drop(columns=index_common_names))
+    return df, common_info
+
 # Rearranges the index, folding metadata such as resolution and smoothing into the "Speaker" index level.
 def fold_speakers_info(speakers_fr):
-    speakers_fr = speakers_fr.unstack(level='Frequency [Hz]')
+    speakers_fr = (speakers_fr
+        .unstack(level='Frequency [Hz]')
+        .copy()
+    )
     speakers_fr.index = pd.MultiIndex.from_frame(speakers_fr
         .index
         .to_frame()
@@ -638,13 +681,16 @@ def fold_speakers_info(speakers_fr):
             result_type='reduce')
     )
     return speakers_fr.stack()
-speakers_fr_ready = (speakers_fr_smoothed
+
+(speakers_fr_ready, common_title) = (speakers_fr_smoothed
     .rename(
         level='Resolution (freqs/octave)',
         index=lambda freqs_per_octave: '{:.2g} pts/octave'.format(freqs_per_octave))
     .rename_axis(index={'Resolution (freqs/octave)': 'Resolution'})
-    .pipe(fold_speakers_info)
+    .pipe(extract_common_index_levels)
 )
+speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
+common_title = '; '.join(common_title.to_list())
 
 alt.data_transformers.disable_max_rows()
 
@@ -667,7 +713,7 @@ def prepare_alt_chart(df, columns_mapper):
 def frequency_response_chart(data, sidebyside=False):
     if speakers_fr_ready.index.unique('Speaker').size < 2:
         sidebyside = False
-    return (alt.Chart(data)
+    return (alt.Chart(data, title=common_title)
       .properties(
         width=sidebyside_chart_width if sidebyside else standalone_chart_width,
         height=sidebyside_chart_height if sidebyside else standalone_chart_height)
@@ -753,7 +799,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))
       .interactive())
     .resolve_scale(y='independent')
-    .facet(alt.Column('speaker', title=None))
+    .facet(alt.Column('speaker', title=common_title))
     .resolve_scale(y='independent'))
 ```
 
