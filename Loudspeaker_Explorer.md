@@ -104,6 +104,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 
 ```python
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_CMT340SECenter = True  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
@@ -115,7 +116,7 @@ speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
-speaker_enable_Klipsch_R41M = True  # @param {type:"boolean"}
+speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
@@ -134,6 +135,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-14'),
     'Active': True,
     'Price (Single, USD)': 875.00,
+  }, {
+    'Speaker': 'Ascend Acoustics CMT-340 SE Center',
+    'Enabled': speaker_enable_AscendAcoustics_CMT340SECenter,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-acoustics-cmt-340-spin-data-zip.52403/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-cmt-340-se-center-channel-speaker-review.11797/',
+    'Product URL': 'http://www.ascendacoustics.com/pages/products/speakers/cmt340c/cmt340c.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-acoustics-cmt-340-se-center-home-theater-speaker-baloon-audio-review-jpg.52239/',
+    'Measurement Date': pd.Timestamp('2020-02-29'),
+    'Active': False,
+    'Price (Single, USD)': 150.00,
   }, {
     'Speaker': 'Dayton Audio B652-AIR',
     'Enabled': speaker_enable_DaytonAudio_B652AIR,
