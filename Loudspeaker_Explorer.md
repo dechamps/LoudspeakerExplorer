@@ -806,6 +806,17 @@ def convert_angles(df):
         except ValueError:
             return label
     return df.rename(columns=convert_label)
+
+def postprocess_chart(chart):
+    # Altair/Vega-Lite doesn't provide a way to set multiple titles or just display arbitrary text.
+    # We hack around that limitation by concatenating with a dummy chart that has a title.
+    # See https://github.com/vega/vega-lite/issues/5997
+    return (alt.vconcat(
+        chart,
+        alt.Chart(title=alt.TitleParams(
+            'Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer',
+            fontSize=10, fontWeight='lighter', color='gray', anchor='start')).mark_text())
+        .configure_view(width=600, height=1, opacity=0))
 ```
 
 # Measurements
@@ -846,7 +857,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
 # - To make the two axes zoom and pan at the same time, `.interactive()` has to
 #   be used on each encoding, not on the overall view. Otherwise only the left
 #   axis will support zoom & pan.
-(alt.layer(
+postprocess_chart(alt.layer(
     spinorama_chart_common
       .encode(sound_pressure_yaxis('value'))
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
@@ -863,7 +874,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
 ## On-axis response
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -886,7 +897,7 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
-(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
+postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, ['SPL Horizontal', 'SPL Vertical']]
     .pipe(convert_angles)
     .rename_axis(columns=['Direction', 'Angle'])
@@ -916,7 +927,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
+postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, 'Horizontal Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
@@ -943,7 +954,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 <!-- #endregion -->
 
 ```python
-(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
+postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
     .loc[:, 'Vertical Reflections']
     .rename_axis(columns=['Direction'])
     .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
@@ -966,7 +977,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Listening Window response
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -981,7 +992,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Early Reflections response
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -996,7 +1007,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Sound Power response
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -1011,7 +1022,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Early Reflections Directivity Index
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -1026,7 +1037,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Sound Power Directivity Index
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
@@ -1041,7 +1052,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 ## Estimated In-Room Response
 
 ```python
-(frequency_response_chart(speakers_fr_ready
+postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
