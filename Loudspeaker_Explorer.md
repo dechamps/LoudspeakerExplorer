@@ -541,7 +541,7 @@ speakers_fr_splnorm
 
 # Smoothing
 
-All responses (including directivity indices) are smoothed according to the settings below. All subsequent processing and plotting will operate on the smoothed data.
+All responses (including directivity indices) are smoothed according to the settings below.
 
 <!-- #endregion -->
 
@@ -550,6 +550,8 @@ Smoothing is done by applying an [exponential moving average (EMA)](https://en.w
 ```python
 #@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave smoothing`.
 smoothing_mode = 'No smoothing'  # @param {allow-input: true} ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
+#@markdown If this is checked, smoothed data is displayed alongside the original, unsmoothed data. Otherwise, the unsmoothed data is dropped.
+smoothing_preserve_original = True  # @param {type:"boolean"}
 
 smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
 smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
@@ -585,13 +587,12 @@ def join_index(df, labels):
 def append_constant_index(df, value, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
-speakers_fr_smoothed = (pd.concat([
+speakers_fr_unsmoothed = (pd.concat([
         speakers_fr_splnorm,
         speakers_fr_raw.loc[:, '[dB] Directivity Index ']
     ], axis='columns')
     .unstack(level='Frequency [Hz]')
     .pipe(join_index, speakers_freqs_per_octave.to_frame())
-    .pipe(append_constant_index, smoothing_mode, name='Smoothing')
     .stack()
 )
 
@@ -603,9 +604,18 @@ def smooth(speaker_fr):
         # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
         .ewm(span=freqs_per_octave*smoothing_octaves).mean()
     )
+
+speakers_fr_smoothed = (speakers_fr_unsmoothed
+    .pipe(append_constant_index, 'No smoothing', name='Smoothing')
+)
 if smoothing_octaves is not None:
-    speakers_fr_smoothed = speakers_fr_smoothed.groupby('Speaker').apply(smooth)
-speakers_fr_smoothed
+    speakers_fr_smoothed_only = (speakers_fr_unsmoothed
+        .groupby('Speaker')
+        .apply(smooth)
+        .pipe(append_constant_index, smoothing_mode, name='Smoothing'))
+    speakers_fr_smoothed = (
+        pd.concat([speakers_fr_smoothed, speakers_fr_smoothed_only])
+        if smoothing_preserve_original else speakers_fr_smoothed_only)
 ```
 
 <!-- #region id="plot-settings" -->
