@@ -105,7 +105,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 ```python
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
-speaker_enable_Elac_AdanteAS61 = True  # @param {type:"boolean"}
+speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
 speaker_enable_Genelec_8341A = True  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
@@ -120,6 +120,7 @@ speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
+speaker_enable_Polk_T15 = True  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 
@@ -293,6 +294,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-07'),
     'Active': False,
     'Price (Single, USD)': 80.00,
+  }, {
+    'Speaker': 'Polk T15',
+    'Enabled': speaker_enable_Polk_T15,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/polk-t15-spin-data-zip.52404/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/polk-t15-bookshelf-speaker-review.11720/',
+    'Product URL': 'https://en.polkaudio.com/shop/polkaudio-tseries/t15',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/polk-t15-bookshelf-budget-speakers-audio-review-jpg.51865/',
+    'Measurement Date': pd.Timestamp('2020-02-27'),
+    'Active': False,
+    'Price (Single, USD)': 40.00,
   }, {
     'Speaker': 'Realistic MC-1000',
     'Enabled': speaker_enable_Realistic_MC1000,
