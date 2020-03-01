@@ -105,10 +105,11 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 ```python
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_CMT340SECenter = True  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_Sierra2 = True  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
-speaker_enable_Genelec_8341A = True  # @param {type:"boolean"}
+speaker_enable_Genelec_8341A = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
@@ -145,6 +146,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-29'),
     'Active': False,
     'Price (Single, USD)': 150.00,
+  }, {
+    'Speaker': 'Ascend Acoustics Sierra-2',
+    'Enabled': speaker_enable_AscendAcoustics_Sierra2,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-sierra-2-spin-data-zip.52401/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-sierra-2-speaker-review.11813/',
+    'Product URL': 'http://www.ascendacoustics.com/pages/products/speakers/SRM2/srm2.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-acoustics-sierra-2-bookshelf-stand-mount-speaker-audio-review-jpg.52386/',
+    'Measurement Date': pd.Timestamp('2020-03-01'),
+    'Active': False,
+    'Price (Single, USD)': 740.00,
   }, {
     'Speaker': 'Dayton Audio B652-AIR',
     'Enabled': speaker_enable_DaytonAudio_B652AIR,
