@@ -35,7 +35,7 @@ jobs:
             # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
             # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
             # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
-            (select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@title\n"] + .)
+            (select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@markdown\n"] + .)
           ))
           EOF
       - uses: actions/upload-artifact@v1
