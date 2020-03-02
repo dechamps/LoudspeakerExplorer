@@ -93,7 +93,6 @@ Note that the following speakers, despite having been measured by amirm, are not
  - [**Kali IN-8 (damaged sample)**](https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/): the raw data was not published. The data shown here is for the [good sample](https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/page-29#post-318617).
  - [**Neumann KH80 (sample 2, low order)**](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/): the raw data was not published. The data shown here is from the [high order measurement](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-12#post-324456).
  - [**NHT Pro M-00**](https://www.audiosciencereview.com/forum/index.php?threads/nht-pro-m-00-powered-monitor-review.10859/): the raw data was not published.
- - [**Revel C52**](https://www.audiosciencereview.com/forum/index.php?threads/revel-c52-speaker-review-and-measurements.10934/): the raw data published is incomplete and does not come in the standard zipfile format that the tool expects.
  - [**Yamaha HS5**](https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/): the raw data published is incomplete and does not come in the standard zipfile format that the tool expects.
 
 Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
@@ -122,8 +121,9 @@ speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
-speaker_enable_Polk_T15 = True  # @param {type:"boolean"}
+speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
+speaker_enable_Revel_C52 = True  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
@@ -335,6 +335,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-06'),
     'Active': False,
     'Price (Single, USD)': 120.00,  # $30 in 1978, adjusted for inflation
+  }, {
+    'Speaker': 'Revel C52',
+    'Enabled': speaker_enable_Revel_C52,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-c52-spinorama-zip.52515/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-c52-speaker-review-and-measurements.10934/',
+    'Product URL': 'https://www.revelspeakers.com/support/legacy/lsupport-center-channel/C52-.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-c52-center-speaker-3-way-review-jpg.46189/',
+    'Measurement Date': pd.Timestamp('2020-01-17'),
+    'Active': False,
+    'Price (Single, USD)': 2500.00,
   }, {
     'Speaker': 'Selah Audio RC3R',
     'Enabled': speaker_enable_SelahAudio_RC3R,
