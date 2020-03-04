@@ -105,7 +105,8 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 
 ```python
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
-speaker_enable_AscendAcoustics_CMT340SECenter = True  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_CBM170SE = True  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_CMT340SECenter = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_Sierra2 = True  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
@@ -138,6 +139,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-14'),
     'Active': True,
     'Price (Single, USD)': 875.00,
+  }, {
+    'Speaker': 'Ascend Acoustics CBM-170 SE',
+    'Enabled': speaker_enable_AscendAcoustics_CBM170SE,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-cbm170-spinorama-data-zip.52802/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-cbm-170-se-speaker-review.11839/',
+    'Product URL': 'http://www.ascendacoustics.com/pages/products/speakers/cbm170/cbm170.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-acoustics-cbm-170-bookshelf-speaker-audio-review-jpg.52606/',
+    'Measurement Date': pd.Timestamp('2020-03-02'),
+    'Active': False,
+    'Price (Single, USD)': 150.00,
   }, {
     'Speaker': 'Ascend Acoustics CMT-340 SE Center',
     'Enabled': speaker_enable_AscendAcoustics_CMT340SECenter,
