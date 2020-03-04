@@ -478,7 +478,9 @@ def load_fr(file):
 # some columns/files but not others)
 @ed.none_missing()
 def load_speaker(dir):
-    return pd.concat((load_fr(file) for file in dir.iterdir()), axis='columns')
+    return pd.concat(
+        (load_fr(file) for file in filter(lambda path: path.name != 'Read License Agreement.txt', dir.iterdir())),
+        axis='columns')
 
 speakers_fr_raw = pd.concat(
   {speaker.Index: load_speaker(Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
