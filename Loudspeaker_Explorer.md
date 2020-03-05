@@ -107,7 +107,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_CBM170SE = True  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_CMT340SECenter = False  # @param {type:"boolean"}
-speaker_enable_AscendAcoustics_Sierra2 = True  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_Sierra2 = False  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
@@ -127,6 +127,7 @@ speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = True  # @param {type:"boolean"}
+speaker_enable_Revel_M16 = True  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
@@ -359,6 +360,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-01-17'),
     'Active': False,
     'Price (Single, USD)': 2500.00,
+  }, {
+    'Speaker': 'Revel M16',
+    'Enabled': speaker_enable_Revel_M16,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m16-spin-zip.52914/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-m16-speaker-review.11884/',
+    'Product URL': 'https://www.revelspeakers.com/products/types/bookshelf/M16-.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m16-standmount-bookshelf-high-end-speaker-audio-review-jpg.52897/',
+    'Measurement Date': pd.Timestamp('2020-03-05'),
+    'Active': False,
+    'Price (Single, USD)': 450.00,
   }, {
     'Speaker': 'Selah Audio RC3R',
     'Enabled': speaker_enable_SelahAudio_RC3R,
