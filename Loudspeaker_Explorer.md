@@ -126,9 +126,10 @@ speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
-speaker_enable_Revel_C52 = True  # @param {type:"boolean"}
+speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = True  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
+speaker_enable_Tannoy_System600 = True  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
@@ -381,6 +382,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-01'),
     'Active': False,
     'Price (Single, USD)': 650.00,
+  }, {
+    'Speaker': 'Tannoy System 600',
+    'Enabled': speaker_enable_Tannoy_System600,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/tannoy-system-600-spinorama-zip.53279/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/tannoy-system-600-speaker-review.11919/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/tannoy-system-600-speaker-review-jpg.53268/',
+    'Measurement Date': pd.Timestamp('2020-03-08'),
+    'Active': False,
+    'Price (Single, USD)': 250.00,  # wild guess
   },
 ]).set_index('Speaker')
 
