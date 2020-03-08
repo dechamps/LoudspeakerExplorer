@@ -503,7 +503,7 @@ def load_fr(file):
 @ed.none_missing()
 def load_speaker(dir):
     return pd.concat(
-        (load_fr(file) for file in filter(lambda path: path.name != 'Read License Agreement.txt', dir.iterdir())),
+        (load_fr(file) for file in filter(lambda path: not path.name in ('LICENSE.txt', 'Read License Agreement.txt'), dir.iterdir())),
         axis='columns')
 
 speakers_fr_raw = pd.concat(
