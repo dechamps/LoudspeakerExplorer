@@ -454,11 +454,11 @@ def speaker_list_html():
         doc.stag('img', src=speaker['Picture URL'], width=200, style='float: left; margin-right: 20px')
         product_url = speaker['Product URL']
         if not pd.isna(product_url):
-            line('a', 'Product page', href=speaker['Product URL'])
+            line('a', 'Product page', href=speaker['Product URL'], target='_blank')
             text(' - ')
-        line('a', 'Review', href=speaker['Review URL'])
+        line('a', 'Review', href=speaker['Review URL'], target='_blank')
         text(' - ')
-        line('a', 'Data package', href=speaker['Data URL'])
+        line('a', 'Data package', href=speaker['Data URL'], target='_blank')
         doc.stag('br')
         with tag('b'): text('Active' if speaker['Active'] else 'Passive')
         doc.stag('br')
