@@ -736,7 +736,9 @@ def smooth(speaker_fr):
     )
 
 speakers_fr_smoothed = (speakers_fr_unsmoothed
+    .unstack(level='Frequency [Hz]')
     .pipe(append_constant_index, 'No smoothing', name='Smoothing')
+    .stack()
 )
 if smoothing_octaves is not None:
     speakers_fr_smoothed_only = (speakers_fr_unsmoothed
