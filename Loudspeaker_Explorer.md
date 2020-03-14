@@ -929,7 +929,7 @@ def postprocess_chart(chart):
         .configure_view(width=600, height=1, opacity=0))
 ```
 
-# Measurements
+# Standard measurements
 
 Note that all the data shown in this section is a direct representation of the input data after normalization. No complex processing is done. In particular, data for derived metrics such as *Listening Window*, *Early Reflections*, *Sound Power*, Directivity Indices and even *Estimated In-Room Response* come directly from the input - they are not derived by this code.
 
@@ -1174,6 +1174,52 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .interactive())
 ```
 
-```python
+# Other measurements
 
+
+
+## Listening Window detail
+
+The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° vertical responses, and ±10º, ±20º and ±30º horizontal responses. Averages can be misleading as they can hide significant variation between angles.
+
+This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
+
+```python
+listening_window_detail_common = (frequency_response_chart(sidebyside=True, data=speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+            ('Speaker', ''): 'speaker',
+            ('Frequency [Hz]', ''): 'frequency',
+            ('CEA2034', 'Listening Window'): 'Listening Window',
+            ('CEA2034', 'On Axis'): 'On Axis',
+            ('SPL Vertical', '-10°'): '-10° Vertical',
+            ('SPL Vertical',  '10°'): '+10° Vertical',
+            ('SPL Horizontal', '-10°'): '-10° Horizontal',
+            ('SPL Horizontal',  '10°'): '+10° Horizontal',
+            ('SPL Horizontal', '-20°'): '-20° Horizontal',
+            ('SPL Horizontal',  '20°'): '+20° Horizontal',
+            ('SPL Horizontal', '-30°'): '-30° Horizontal',
+            ('SPL Horizontal',  '30°'): '+30° Horizontal',
+        })
+        .melt(['speaker', 'frequency'])))
+listening_window_detail_highlight = alt.FieldOneOfPredicate(
+    field='variable',
+    oneOf=['Listening Window', 'On Axis'])
+
+postprocess_chart(alt.layer(
+    listening_window_detail_common
+        .transform_filter({'not': listening_window_detail_highlight})
+        .encode(
+            alt.Color('variable', title=None, sort=None, scale=alt.Scale(
+                # Somewhat surprisingly, this applies to the other layer too.
+                range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
+            )),
+            sound_pressure_yaxis('value'),
+            strokeWidth=alt.value(1.5)),
+    listening_window_detail_common
+        .transform_filter(listening_window_detail_highlight)
+        .encode(
+            alt.Color('variable', title=None, sort=None),
+            sound_pressure_yaxis('value')))
+        .facet(alt.Column('speaker', title=None), title=common_title)
+        .interactive())
 ```
