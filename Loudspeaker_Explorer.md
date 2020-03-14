@@ -121,6 +121,7 @@ speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
+speaker_enable_KEF_Q100 = True  # @param {type:"boolean"}
 speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
@@ -129,7 +130,7 @@ speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
-speaker_enable_Revel_M16 = True  # @param {type:"boolean"}
+speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
 
@@ -305,6 +306,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-01-28'),
     'Active': False,
     'Price (Single, USD)': 750.00,
+  }, {
+    'Speaker': 'KEF Q100',
+    'Enabled': speaker_enable_KEF_Q100,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-q100-spinorama-zip.53776/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-q100-speaker-review.11987/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-q100-bookshelf-speaker-coaxial-driver-audio-review-jpg.53759/',
+    'Measurement Date': pd.Timestamp('2020-03-11'),
+    'Active': False,
+    'Price (Single, USD)': 225.00,
   }, {
     'Speaker': 'Klipsch R-41M',
     'Enabled': speaker_enable_Klipsch_R41M,
