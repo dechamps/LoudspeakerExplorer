@@ -115,13 +115,14 @@ speaker_enable_Genelec_8341A = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
-speaker_enable_JBL_705P_Sample1 = True  # @param {type:"boolean"}
+speaker_enable_JBL_705P_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_JBL_705P_Sample2 = True  # @param {type:"boolean"}
 speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
 speaker_enable_KEF_Q100 = True  # @param {type:"boolean"}
+speaker_enable_KEF_R3 = True  # @param {type:"boolean"}
 speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
@@ -316,6 +317,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-03-11'),
     'Active': False,
     'Price (Single, USD)': 225.00,
+  }, {
+    'Speaker': 'KEF R3',
+    'Enabled': speaker_enable_KEF_R3,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-r3-spinorama-zip.54005/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-r3-speaker-review.12021/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-r3-three-way-stand-mount-speaker-audio-review-jpg.53994/',
+    'Measurement Date': pd.Timestamp('2020-03-12'),
+    'Active': False,
+    'Price (Single, USD)': 1000.00,
   }, {
     'Speaker': 'Klipsch R-41M',
     'Enabled': speaker_enable_Klipsch_R41M,
