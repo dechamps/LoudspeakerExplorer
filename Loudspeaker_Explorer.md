@@ -105,7 +105,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 
 ```python
 speaker_enable_AdamAudio_S2V = False  # @param {type:"boolean"}
-speaker_enable_AscendAcoustics_CBM170SE = True  # @param {type:"boolean"}
+speaker_enable_AscendAcoustics_CBM170SE = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_CMT340SECenter = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_Sierra2 = False  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
@@ -115,6 +115,8 @@ speaker_enable_Genelec_8341A = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
+speaker_enable_JBL_705P_Sample1 = True  # @param {type:"boolean"}
+speaker_enable_JBL_705P_Sample2 = True  # @param {type:"boolean"}
 speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
@@ -129,7 +131,7 @@ speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = True  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
-speaker_enable_Tannoy_System600 = True  # @param {type:"boolean"}
+speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
@@ -240,6 +242,28 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-01-10'),
     'Active': True,
     'Price (Single, USD)': 150.00,
+  }, {
+    'Speaker': 'JBL 705P (sample 1)',
+    'Enabled': speaker_enable_JBL_705P_Sample1,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-spinorama-zip.53447/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-705p-studio-monitor-review.11944/',
+    'Product URL': 'https://jblpro.com/products/705p',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-studio-powered-monitor-distortion-and-spl-speaker-review-jpg.53429/',
+    'Measurement Date': pd.Timestamp('2020-03-09'),
+    'Active': True,
+    'Price (Single, USD)': 1000.00,
+  }, {
+    'Speaker': 'JBL 705P (sample 2)',
+    'Enabled': speaker_enable_JBL_705P_Sample2,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-sample-2-zip.53543/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-705p-studio-monitor-review.11944/page-8#post-346907',
+    'Product URL': 'https://jblpro.com/products/705p',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-studio-powered-monitor-distortion-and-spl-speaker-review-jpg.53429/',
+    'Measurement Date': pd.Timestamp('2020-03-10'),
+    'Active': True,
+    'Price (Single, USD)': 1000.00,
   }, {
     'Speaker': 'JBL Control 1 Pro',
     'Enabled': speaker_enable_JBL_Control1Pro,
