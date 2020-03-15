@@ -964,12 +964,15 @@ def sound_pressure_yaxis(title_prefix=None):
 def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
     return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
+def variable_color(*kargs, **kwargs):
+     return alt.Color('variable', title=None, sort=None, legend=alt.Legend(symbolType='stroke'), *kargs, **kwargs)
+
 def speaker_color(shorthand):
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
     return alt.Color(
         shorthand,
         title=None,
-        legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600))
+        legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'))
 
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
@@ -1025,7 +1028,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
       ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
       ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
     }).melt(['speaker', 'frequency']), additional_tooltips=[alt.Tooltip('variable', title='Response')])
-  .encode(alt.Color('variable', title=None, sort=None)))
+  .encode(variable_color()))
 
 # Note that there are few subtleties here because of Altair/Vega quirks:
 # - To make the Y axes independent, `.resolve_scale()` has to be used *before
@@ -1123,14 +1126,12 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
         .reset_index()
         .pipe(prepare_alt_chart, {
             'Speaker': 'speaker',
-            'Direction': 'direction',
+            'Direction': 'variable',
             'Frequency [Hz]': 'frequency',
             0: 'value',
         }),
-        additional_tooltips=[alt.Tooltip('direction', title='Direction')])
-    .encode(
-        alt.Color('direction', title=None),
-        sound_pressure_yaxis()))
+        additional_tooltips=[alt.Tooltip('variable', title='Direction')])
+    .encode(variable_color(), sound_pressure_yaxis()))
     .facet(alt.Column('speaker', title=None)),
 )
 ```
@@ -1152,14 +1153,12 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
         .reset_index()
         .pipe(prepare_alt_chart, {
             'Speaker': 'speaker',
-            'Direction': 'direction',
+            'Direction': 'variable',
             'Frequency [Hz]': 'frequency',
             0: 'value',
         }),
-        additional_tooltips=[alt.Tooltip('direction', title='Direction')])
-    .encode(
-        alt.Color('direction', title=None),
-        sound_pressure_yaxis()))
+        additional_tooltips=[alt.Tooltip('variable', title='Direction')])
+    .encode(variable_color(), sound_pressure_yaxis()))
     .facet(alt.Column('speaker', title=None)),
 )
 ```
@@ -1292,7 +1291,7 @@ listening_window_detail_common = (frequency_response_chart(
     additional_tooltips=[alt.Tooltip('variable', title='Response')])
     .encode(
         sound_pressure_yaxis(),
-        alt.Color('variable', title=None, sort=None, scale=alt.Scale(
+        variable_color(scale=alt.Scale(
             range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
         ))))
 listening_window_detail_highlight = alt.FieldOneOfPredicate(
