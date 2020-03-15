@@ -1082,7 +1082,10 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
   .encode(
       alt.Column('speaker', title=None),
       alt.Row('direction', title=None),
-      alt.Color('angle', title='Angle (°)', scale=alt.Scale(scheme='sinebow')),
+      alt.Color(
+          'angle', title='Angle (°)',
+          scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
+          legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
       sound_pressure_yaxis('value'))
     .interactive()
  )
