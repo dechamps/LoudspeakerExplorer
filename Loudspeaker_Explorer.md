@@ -945,11 +945,11 @@ def frequency_response_chart(data, sidebyside=False):
 def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
 
-def sound_pressure_yaxis(shorthand, title_prefix=None):
-    return alt.Y(shorthand, title=[(title_prefix + ' ' if title_prefix else '') + spl_axis_label[0]] + spl_axis_label[1:], scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
+def sound_pressure_yaxis(title_prefix=None):
+    return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + spl_axis_label[0]] + spl_axis_label[1:], scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
 
-def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=di_domain):
-    return alt.Y(shorthand, title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
+    return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 def speaker_color(shorthand):
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
@@ -1027,11 +1027,11 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
 #   axis will support zoom & pan.
 postprocess_chart(alt.layer(
     spinorama_chart_common
-      .encode(sound_pressure_yaxis('value'))
+      .encode(sound_pressure_yaxis())
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
       .interactive(),
     spinorama_chart_common
-      .encode(directivity_index_yaxis('value', scale_domain=(-10, 40)))
+      .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
       .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))
       .interactive())
     .resolve_scale(y='independent')
@@ -1046,11 +1046,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'On Axis'): 'on_axis',
+      ('CEA2034', 'On Axis'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    sound_pressure_yaxis('on_axis', title_prefix='On Axis'))
+    sound_pressure_yaxis(title_prefix='On Axis'))
   .interactive())
 ```
 
@@ -1086,7 +1086,7 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
           'angle', title='Angle (°)',
           scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
           legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
-      sound_pressure_yaxis('value'))
+      sound_pressure_yaxis())
     .interactive()
  )
 ```
@@ -1113,7 +1113,7 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
     .encode(
       alt.Column('speaker', title=None),
       alt.Color('direction', title=None),
-      sound_pressure_yaxis('value'))
+      sound_pressure_yaxis())
     .interactive()
  )
 ```
@@ -1140,7 +1140,7 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
     .encode(
       alt.Column('speaker', title=None),
       alt.Color('direction', title=None),
-      sound_pressure_yaxis('value'))
+      sound_pressure_yaxis())
     .interactive()
  )
 ```
@@ -1152,11 +1152,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Listening Window'): 'listening_window',
+      ('CEA2034', 'Listening Window'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    sound_pressure_yaxis('listening_window', title_prefix='Listening Window'))
+    sound_pressure_yaxis(title_prefix='Listening Window'))
   .interactive())
 ```
 
@@ -1167,11 +1167,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Early Reflections'): 'early_reflections',
+      ('CEA2034', 'Early Reflections'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    sound_pressure_yaxis('early_reflections', title_prefix='Early Reflections'))
+    sound_pressure_yaxis(title_prefix='Early Reflections'))
   .interactive())
 ```
 
@@ -1182,11 +1182,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Sound Power'): 'sound_power',
+      ('CEA2034', 'Sound Power'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    sound_pressure_yaxis('sound_power', title_prefix='Sound Power'))
+    sound_pressure_yaxis(title_prefix='Sound Power'))
   .interactive())
 ```
 
@@ -1197,11 +1197,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('Directivity Index', 'Early Reflections DI'): 'early_reflections_di',
+      ('Directivity Index', 'Early Reflections DI'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    directivity_index_yaxis('early_reflections_di', title_prefix='Early Reflections'))
+    directivity_index_yaxis(title_prefix='Early Reflections'))
   .interactive())
 ```
 
@@ -1212,11 +1212,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('Directivity Index', 'Sound Power DI'): 'sound_power_di',
+      ('Directivity Index', 'Sound Power DI'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    directivity_index_yaxis('sound_power_di', title_prefix='Sound Power'))
+    directivity_index_yaxis(title_prefix='Sound Power'))
   .interactive())
 ```
 
@@ -1227,11 +1227,11 @@ postprocess_chart(frequency_response_chart(speakers_fr_ready
   .pipe(prepare_alt_chart, {
       ('Speaker', ''): 'speaker',
       ('Frequency [Hz]', ''): 'frequency',
-      ('Estimated In-Room Response', 'Estimated In-Room Response'): 'estimated_inroom_response',
+      ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
     }))
   .encode(
     speaker_color('speaker'),
-    sound_pressure_yaxis('estimated_inroom_response', title_prefix='Estimated In-Room Response'))
+    sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))
   .interactive())
 ```
 
@@ -1261,7 +1261,8 @@ listening_window_detail_common = (frequency_response_chart(sidebyside=True, data
             ('SPL Horizontal', '-30°'): '-30° Horizontal',
             ('SPL Horizontal',  '30°'): '+30° Horizontal',
         })
-        .melt(['speaker', 'frequency'])))
+        .melt(['speaker', 'frequency']))
+    .encode(sound_pressure_yaxis()))
 listening_window_detail_highlight = alt.FieldOneOfPredicate(
     field='variable',
     oneOf=['Listening Window', 'On Axis'])
@@ -1274,13 +1275,10 @@ postprocess_chart(alt.layer(
                 # Somewhat surprisingly, this applies to the other layer too.
                 range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
             )),
-            sound_pressure_yaxis('value'),
             strokeWidth=alt.value(1.5)),
     listening_window_detail_common
         .transform_filter(listening_window_detail_highlight)
-        .encode(
-            alt.Color('variable', title=None, sort=None),
-            sound_pressure_yaxis('value')))
-        .facet(alt.Column('speaker', title=None), title=common_title)
-        .interactive())
+        .encode(alt.Color('variable', title=None, sort=None)))
+    .facet(alt.Column('speaker', title=None), title=common_title)
+    .interactive())
 ```
