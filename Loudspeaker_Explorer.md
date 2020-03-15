@@ -1098,9 +1098,15 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 
 <!-- #endregion -->
 
+Use the slider at the bottom to focus on a specific angle. Note that the slider can be slow to respond, especially if there are many speakers. Double-click the chart to reset.
+
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
+off_axis_angle_selection = alt.selection_single(
+    fields=['angle'],
+    bind=alt.binding_range(min=-170, max=180, step=10, name='Angle selector (°)'),
+    clear='dblclick')
 alt.pipe(
     speakers_fr_ready
         .loc[:, ['SPL Horizontal', 'SPL Vertical']]
@@ -1119,6 +1125,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('angle', title='Angle (°)')])
+        .transform_filter(off_axis_angle_selection)
         .encode(
             alt.Color(
               'angle', title='Angle (°)',
@@ -1126,9 +1133,11 @@ alt.pipe(
               legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
             sound_pressure_yaxis()),
     mark_line_with_points,
-    lambda chart: chart.facet(
-        column=alt.Column('speaker', title=None),
-        row=alt.Row('direction', title=None)),
+    lambda chart: chart
+        .add_selection(off_axis_angle_selection)
+        .facet(
+            column=alt.Column('speaker', title=None),
+            row=alt.Row('direction', title=None)),
     postprocess_chart)
 ```
 
