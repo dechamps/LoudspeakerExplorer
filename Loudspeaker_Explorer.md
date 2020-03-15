@@ -38,7 +38,7 @@ jupyter:
 
 # The Loudspeaker Explorer
 
-_By Etienne Dechamps (etienne@edechamps.fr)_ - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer)<!--BUILDINFO-->
+_By [Etienne Dechamps](https://www.audiosciencereview.com/forum/index.php?members/edechamps.4453/) (etienne@edechamps.fr)_ - [ASR thread](https://www.audiosciencereview.com/forum/index.php?threads/loudspeaker-explorer-analyze-visualize-compare-speaker-data.11503/) - [GitHub](https://github.com/dechamps/LoudspeakerExplorer)<!--BUILDINFO-->
 
 **All data provided by [amirm](https://www.audiosciencereview.com/forum/index.php?members/amirm.2/) from [AudioScienceReview](https://www.audiosciencereview.com/). Consider [making a donation](https://www.audiosciencereview.com/forum/index.php?threads/how-to-support-audio-science-review.8150/) if you enjoy the use of this data.**
 
