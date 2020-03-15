@@ -609,6 +609,41 @@ pd.concat([
 ], axis='columns')
 ```
 
+```python
+# Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
+# Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
+#
+# For example, given `df`:
+#   C0
+# A
+# i  1 
+#    2
+# j  3
+#    4
+#
+# And `labels`:
+#   C1 C2
+# A
+# i 1i 2i
+# j 1j 2j
+#
+# Then the result will be:
+#         C0
+# A C1 C2
+# i 1i 2i  1
+#          2
+# j 1j 2j  3
+#          4
+def join_index(df, labels):
+    return df.align(labels.set_index(list(labels.columns.values), append=True), axis='index')[0]
+
+speakers_fr_annotated = (speakers_fr_raw
+    .unstack(level='Frequency [Hz]')
+    .pipe(join_index, speakers_freqs_per_octave.to_frame())
+    .stack()
+)
+```
+
 <!-- #region id="sensitivity" -->
 
 # Sensitivity
@@ -664,7 +699,7 @@ The normalized data is stored in the `speakers_fr_splnorm` variable, which is us
 ```python
 normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis", "Flat listening window"]
 
-speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
+speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
 db_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
 db_domain = (55, 105)
 if normalization_mode == 'Equal sensitivity':
@@ -704,45 +739,14 @@ smoothing_preserve_original = True  # @param {type:"boolean"}
 smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
 smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
 
-# Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
-# Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
-#
-# For example, given `df`:
-#   C0
-# A
-# i  1 
-#    2
-# j  3
-#    4
-#
-# And `labels`:
-#   C1 C2
-# A
-# i 1i 2i
-# j 1j 2j
-#
-# Then the result will be:
-#         C0
-# A C1 C2
-# i 1i 2i  1
-#          2
-# j 1j 2j  3
-#          4
-def join_index(df, labels):
-    return df.align(labels.set_index(list(labels.columns.values), append=True), axis='index')[0]
-
 # Appends a new index level with all identical values.
 def append_constant_index(df, value, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
-speakers_fr_unsmoothed = (pd.concat([
+speakers_fr_unsmoothed = pd.concat([
         speakers_fr_splnorm,
-        speakers_fr_raw.loc[:, '[dB] Directivity Index ']
+        speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
     ], axis='columns')
-    .unstack(level='Frequency [Hz]')
-    .pipe(join_index, speakers_freqs_per_octave.to_frame())
-    .stack()
-)
 
 def smooth(speaker_fr):
     (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
