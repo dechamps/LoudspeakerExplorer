@@ -763,7 +763,7 @@ if normalization_mode == 'Detrend':
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference)]
             .groupby('Speaker')                     
             .apply(smooth, detrend_octaves_number), axis='index')
-        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} detrended {} (dBr)'.format(detrend_octaves, detrend_reference)]
+        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves, detrend_reference)]
         spl_domain = (-40, 10)
         
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
