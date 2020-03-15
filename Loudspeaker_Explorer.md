@@ -932,15 +932,28 @@ def prepare_alt_chart(df, columns_mapper):
     df.columns = df.columns.map(mapper=columns_mapper)
     return df
 
-def frequency_response_chart(data, sidebyside=False):
+def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
     if single_speaker_mode:
         sidebyside = False
     return (alt.Chart(data, title=common_title)
       .properties(
         width=sidebyside_chart_width if sidebyside else standalone_chart_width,
         height=sidebyside_chart_height if sidebyside else standalone_chart_height)
-      .mark_line(clip=True, interpolate='monotone')
-      .encode(frequency_xaxis('frequency')))
+      .encode(
+          frequency_xaxis('frequency'),
+          tooltip=additional_tooltips + [
+              alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s'),
+              alt.Tooltip('value', title='Value (dB)', format='.2f')]))
+
+# This is equivalent to using the `point` line mark property.
+# The reason why we don't simply do that tooltips wouldn't work as well due to this Vega-lite bug: https://github.com/vega/vega-lite/issues/6107
+def mark_line_with_points(chart):
+    return alt.layer(
+        chart
+            .mark_point(clip=True, size=100, stroke='transparent')
+            .interactive(),
+        chart.mark_line(clip=True, interpolate='monotone')
+    )
 
 def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
@@ -1011,7 +1024,7 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
       ('CEA2034', 'Sound Power'): 'Sound Power',
       ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
       ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
-    }).melt(['speaker', 'frequency']))
+    }).melt(['speaker', 'frequency']), additional_tooltips=[alt.Tooltip('variable', title='Response')])
   .encode(alt.Color('variable', title=None, sort=None)))
 
 # Note that there are few subtleties here because of Altair/Vega quirks:
@@ -1026,14 +1039,12 @@ spinorama_chart_common = (frequency_response_chart(sidebyside=True, data=
 #   be used on each encoding, not on the overall view. Otherwise only the left
 #   axis will support zoom & pan.
 postprocess_chart(alt.layer(
-    spinorama_chart_common
+    mark_line_with_points(spinorama_chart_common
       .encode(sound_pressure_yaxis())
-      .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
-      .interactive(),
-    spinorama_chart_common
+      .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))),
+    mark_line_with_points(spinorama_chart_common
       .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
-      .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))
-      .interactive())
+      .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI']))))
     .resolve_scale(y='independent')
     .facet(alt.Column('speaker', title=None), title=common_title)
     .resolve_scale(y='independent'))
@@ -1042,16 +1053,17 @@ postprocess_chart(alt.layer(
 ## On-axis response
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'On Axis'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    sound_pressure_yaxis(title_prefix='On Axis'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+        speakers_fr_ready
+            .pipe(prepare_alt_chart, {
+                ('Speaker', ''): 'speaker',
+                ('Frequency [Hz]', ''): 'frequency',
+                ('CEA2034', 'On Axis'): 'value',
+            }),
+        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        sound_pressure_yaxis(title_prefix='On Axis'))))
 ```
 
 <!-- #region id="off-axis-responses" -->
@@ -1065,30 +1077,33 @@ Note that this chart can be particularly taxing on your browser due to the sheer
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
-postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
-    .loc[:, ['SPL Horizontal', 'SPL Vertical']]
-    .pipe(convert_angles)
-    .rename_axis(columns=['Direction', 'Angle'])
-    .rename(columns={'SPL Horizontal': 'Horizontal', 'SPL Vertical': 'Vertical'}, level='Direction')
-    .stack(level=['Direction', 'Angle'])
-    .reset_index()
-    .pipe(prepare_alt_chart, {
-        'Speaker': 'speaker',
-        'Direction': 'direction',
-        'Angle': 'angle',
-        'Frequency [Hz]': 'frequency',
-        0: 'value',
-      }))
-  .encode(
-      alt.Column('speaker', title=None),
-      alt.Row('direction', title=None),
-      alt.Color(
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+        sidebyside=True,
+        data=speakers_fr_ready
+            .loc[:, ['SPL Horizontal', 'SPL Vertical']]
+            .pipe(convert_angles)
+            .rename_axis(columns=['Direction', 'Angle'])
+            .rename(columns={'SPL Horizontal': 'Horizontal', 'SPL Vertical': 'Vertical'}, level='Direction')
+            .stack(level=['Direction', 'Angle'])
+            .reset_index()
+            .pipe(prepare_alt_chart, {
+                'Speaker': 'speaker',
+                'Direction': 'direction',
+                'Angle': 'angle',
+                'Frequency [Hz]': 'frequency',
+                0: 'value',
+              }),
+        additional_tooltips=[alt.Tooltip('angle', title='Angle (°)')])
+    .encode(
+        alt.Color(
           'angle', title='Angle (°)',
           scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
           legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
-      sound_pressure_yaxis())
-    .interactive()
- )
+        sound_pressure_yaxis())
+    ).facet(
+        column=alt.Column('speaker', title=None),
+        row=alt.Row('direction', title=None))
+)
 ```
 
 <!-- #region id="horizontal-reflection-responses" -->
@@ -1098,24 +1113,26 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
 <!-- #endregion -->
 
 ```python
-postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
-    .loc[:, 'Horizontal Reflections']
-    .rename_axis(columns=['Direction'])
-    .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
-    .stack(level=['Direction'])
-    .reset_index()
-    .pipe(prepare_alt_chart, {
-        'Speaker': 'speaker',
-        'Direction': 'direction',
-        'Frequency [Hz]': 'frequency',
-        0: 'value',
-      }))
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    sidebyside=True,
+    data=speakers_fr_ready
+        .loc[:, 'Horizontal Reflections']
+        .rename_axis(columns=['Direction'])
+        .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
+        .stack(level=['Direction'])
+        .reset_index()
+        .pipe(prepare_alt_chart, {
+            'Speaker': 'speaker',
+            'Direction': 'direction',
+            'Frequency [Hz]': 'frequency',
+            0: 'value',
+        }),
+        additional_tooltips=[alt.Tooltip('direction', title='Direction')])
     .encode(
-      alt.Column('speaker', title=None),
-      alt.Color('direction', title=None),
-      sound_pressure_yaxis())
-    .interactive()
- )
+        alt.Color('direction', title=None),
+        sound_pressure_yaxis()))
+    .facet(alt.Column('speaker', title=None)),
+)
 ```
 
 <!-- #region id="vertical-reflection-responses" -->
@@ -1125,114 +1142,122 @@ postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_rea
 <!-- #endregion -->
 
 ```python
-postprocess_chart(frequency_response_chart(sidebyside=True, data=speakers_fr_ready
-    .loc[:, 'Vertical Reflections']
-    .rename_axis(columns=['Direction'])
-    .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
-    .stack(level=['Direction'])
-    .reset_index()
-    .pipe(prepare_alt_chart, {
-        'Speaker': 'speaker',
-        'Direction': 'direction',
-        'Frequency [Hz]': 'frequency',
-        0: 'value',
-      }))
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    sidebyside=True,
+    data=speakers_fr_ready
+        .loc[:, 'Vertical Reflections']
+        .rename_axis(columns=['Direction'])
+        .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
+        .stack(level=['Direction'])
+        .reset_index()
+        .pipe(prepare_alt_chart, {
+            'Speaker': 'speaker',
+            'Direction': 'direction',
+            'Frequency [Hz]': 'frequency',
+            0: 'value',
+        }),
+        additional_tooltips=[alt.Tooltip('direction', title='Direction')])
     .encode(
-      alt.Column('speaker', title=None),
-      alt.Color('direction', title=None),
-      sound_pressure_yaxis())
-    .interactive()
- )
+        alt.Color('direction', title=None),
+        sound_pressure_yaxis()))
+    .facet(alt.Column('speaker', title=None)),
+)
 ```
 
 ## Listening Window response
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Listening Window'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    sound_pressure_yaxis(title_prefix='Listening Window'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+        speakers_fr_ready
+            .pipe(prepare_alt_chart, {
+              ('Speaker', ''): 'speaker',
+              ('Frequency [Hz]', ''): 'frequency',
+              ('CEA2034', 'Listening Window'): 'value',
+            }),
+        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        sound_pressure_yaxis(title_prefix='Listening Window'))))
 ```
 
 ## Early Reflections response
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Early Reflections'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    sound_pressure_yaxis(title_prefix='Early Reflections'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+          ('Speaker', ''): 'speaker',
+          ('Frequency [Hz]', ''): 'frequency',
+          ('CEA2034', 'Early Reflections'): 'value',
+        }),
+    additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        sound_pressure_yaxis(title_prefix='Early Reflections'))))
 ```
 
 ## Sound Power response
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('CEA2034', 'Sound Power'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    sound_pressure_yaxis(title_prefix='Sound Power'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+          ('Speaker', ''): 'speaker',
+          ('Frequency [Hz]', ''): 'frequency',
+          ('CEA2034', 'Sound Power'): 'value',
+        }),
+    additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        sound_pressure_yaxis(title_prefix='Sound Power'))))
 ```
 
 ## Early Reflections Directivity Index
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('Directivity Index', 'Early Reflections DI'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    directivity_index_yaxis(title_prefix='Early Reflections'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+          ('Speaker', ''): 'speaker',
+          ('Frequency [Hz]', ''): 'frequency',
+          ('Directivity Index', 'Early Reflections DI'): 'value',
+        }),
+    additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        directivity_index_yaxis(title_prefix='Early Reflections'))))
 ```
 
 ## Sound Power Directivity Index
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('Directivity Index', 'Sound Power DI'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    directivity_index_yaxis(title_prefix='Sound Power'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+          ('Speaker', ''): 'speaker',
+          ('Frequency [Hz]', ''): 'frequency',
+          ('Directivity Index', 'Sound Power DI'): 'value',
+        }),
+    additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        directivity_index_yaxis(title_prefix='Sound Power'))))
 ```
 
 ## Estimated In-Room Response
 
 ```python
-postprocess_chart(frequency_response_chart(speakers_fr_ready
-  .pipe(prepare_alt_chart, {
-      ('Speaker', ''): 'speaker',
-      ('Frequency [Hz]', ''): 'frequency',
-      ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
-    }))
-  .encode(
-    speaker_color('speaker'),
-    sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))
-  .interactive())
+postprocess_chart(mark_line_with_points(frequency_response_chart(
+    speakers_fr_ready
+        .pipe(prepare_alt_chart, {
+          ('Speaker', ''): 'speaker',
+          ('Frequency [Hz]', ''): 'frequency',
+          ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
+        }),
+    additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
+    .encode(
+        speaker_color('speaker'),
+        sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))))
 ```
 
 # Other measurements
@@ -1246,7 +1271,9 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-listening_window_detail_common = (frequency_response_chart(sidebyside=True, data=speakers_fr_ready
+listening_window_detail_common = (frequency_response_chart(
+    sidebyside=True,
+    data=speakers_fr_ready
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
             ('Frequency [Hz]', ''): 'frequency',
@@ -1261,7 +1288,8 @@ listening_window_detail_common = (frequency_response_chart(sidebyside=True, data
             ('SPL Horizontal', '-30°'): '-30° Horizontal',
             ('SPL Horizontal',  '30°'): '+30° Horizontal',
         })
-        .melt(['speaker', 'frequency']))
+        .melt(['speaker', 'frequency']),
+    additional_tooltips=[alt.Tooltip('variable', title='Response')])
     .encode(
         sound_pressure_yaxis(),
         alt.Color('variable', title=None, sort=None, scale=alt.Scale(
@@ -1272,11 +1300,11 @@ listening_window_detail_highlight = alt.FieldOneOfPredicate(
     oneOf=['Listening Window', 'On Axis'])
 
 postprocess_chart(alt.layer(
-    listening_window_detail_common
+    mark_line_with_points(listening_window_detail_common
         .transform_filter({'not': listening_window_detail_highlight})
-        .encode(strokeWidth=alt.value(1.5)),
-    listening_window_detail_common
-        .transform_filter(listening_window_detail_highlight))
+        .encode(strokeWidth=alt.value(1.5))),
+    mark_line_with_points(listening_window_detail_common
+        .transform_filter(listening_window_detail_highlight)))
     .facet(alt.Column('speaker', title=None), title=common_title)
     .interactive())
 ```
