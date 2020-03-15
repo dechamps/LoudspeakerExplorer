@@ -967,10 +967,10 @@ def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
 def variable_color(*kargs, **kwargs):
      return alt.Color('variable', title=None, sort=None, legend=alt.Legend(symbolType='stroke'), *kargs, **kwargs)
 
-def speaker_color(shorthand):
+def speaker_color():
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
     return alt.Color(
-        shorthand,
+        'speaker',
         title=None,
         legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'))
 
@@ -1064,9 +1064,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
                 ('CEA2034', 'On Axis'): 'value',
             }),
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        sound_pressure_yaxis(title_prefix='On Axis'))))
+    .encode(speaker_color(), sound_pressure_yaxis(title_prefix='On Axis'))))
 ```
 
 <!-- #region id="off-axis-responses" -->
@@ -1174,9 +1172,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
               ('CEA2034', 'Listening Window'): 'value',
             }),
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        sound_pressure_yaxis(title_prefix='Listening Window'))))
+    .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Listening Window'))))
 ```
 
 ## Early Reflections response
@@ -1190,9 +1186,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
           ('CEA2034', 'Early Reflections'): 'value',
         }),
     additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        sound_pressure_yaxis(title_prefix='Early Reflections'))))
+    .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Early Reflections'))))
 ```
 
 ## Sound Power response
@@ -1206,9 +1200,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
           ('CEA2034', 'Sound Power'): 'value',
         }),
     additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        sound_pressure_yaxis(title_prefix='Sound Power'))))
+    .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Sound Power'))))
 ```
 
 ## Early Reflections Directivity Index
@@ -1222,9 +1214,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
           ('Directivity Index', 'Early Reflections DI'): 'value',
         }),
     additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        directivity_index_yaxis(title_prefix='Early Reflections'))))
+    .encode(speaker_color(), directivity_index_yaxis(title_prefix='Early Reflections'))))
 ```
 
 ## Sound Power Directivity Index
@@ -1238,9 +1228,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
           ('Directivity Index', 'Sound Power DI'): 'value',
         }),
     additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        directivity_index_yaxis(title_prefix='Sound Power'))))
+    .encode(speaker_color(), directivity_index_yaxis(title_prefix='Sound Power'))))
 ```
 
 ## Estimated In-Room Response
@@ -1254,9 +1242,7 @@ postprocess_chart(mark_line_with_points(frequency_response_chart(
           ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
         }),
     additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-    .encode(
-        speaker_color('speaker'),
-        sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))))
+    .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))))
 ```
 
 # Other measurements
