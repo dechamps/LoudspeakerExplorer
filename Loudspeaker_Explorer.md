@@ -694,12 +694,11 @@ The data is normalized according to the `normalization_mode` variable, which can
  - **Flat on-axis**: the on-axis SPL value is subtracted to itself as well as every other SPL variable at each frequency. In other words this simulates EQ'ing every speaker to be perfectly flat on-axis. Use this mode to focus solely on directivity data.
  - **Flat listening window**: same as above, using the Listening Window average instead of On-Axis.
 
-The normalized data is stored in the `speakers_fr_splnorm` variable, which is used as the input of most graphs and calculations that follow. Note that this variable only contains the columns that actually underwent normalization, i.e. absolute SPL columns - in particular it doesn't include the directivity indices.
-
 ```python
 normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis", "Flat listening window"]
 
 speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
+speakers_fr_dinorm = speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
 db_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
 db_domain = (55, 105)
 if normalization_mode == 'Equal sensitivity':
@@ -717,7 +716,9 @@ if normalization_mode == 'Flat listening window':
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window')], axis='index')
     db_axis_label = 'Sound Pressure relative to listening window (dBr)'
     db_domain = (-40, 10)
-speakers_fr_splnorm
+        
+speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
+speakers_fr_norm
 ```
 
 <!-- #region id="smoothing" -->
@@ -743,10 +744,6 @@ smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_ma
 def append_constant_index(df, value, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
-speakers_fr_unsmoothed = pd.concat([
-        speakers_fr_splnorm,
-        speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
-    ], axis='columns')
 
 def smooth(speaker_fr):
     (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
@@ -757,13 +754,13 @@ def smooth(speaker_fr):
         .ewm(span=freqs_per_octave*smoothing_octaves).mean()
     )
 
-speakers_fr_smoothed = (speakers_fr_unsmoothed
+speakers_fr_smoothed = (speakers_fr_norm
     .unstack(level='Frequency [Hz]')
     .pipe(append_constant_index, 'No smoothing', name='Smoothing')
     .stack()
 )
 if smoothing_octaves is not None:
-    speakers_fr_smoothed_only = (speakers_fr_unsmoothed
+    speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
         .apply(smooth)
         .pipe(append_constant_index, smoothing_mode, name='Smoothing'))
