@@ -948,9 +948,12 @@ def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
 # This is equivalent to using the `point` line mark property.
 # The reason why we don't simply do that tooltips wouldn't work as well due to this Vega-lite bug: https://github.com/vega/vega-lite/issues/6107
 def mark_line_with_points(chart):
+    mouseover = alt.selection_single(on='mouseover', empty='none')
     return alt.layer(
         chart
-            .mark_point(clip=True, size=100, stroke='transparent')
+            .mark_circle(clip=True, size=100)
+            .add_selection(mouseover)
+            .encode(fillOpacity=alt.condition(mouseover, alt.value(0.3), alt.value(0)))
             .interactive(),
         chart.mark_line(clip=True, interpolate='monotone')
     )
