@@ -720,42 +720,42 @@ def smooth(speaker_fr, octaves):
 
 speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
 speakers_fr_dinorm = speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
-spl_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
-di_axis_label = 'Directivity Index (dBr)'
+spl_axis_label = ['Absolute Sound Pressure Level (dB SPL)']
+di_axis_label = ['Directivity Index (dBr)']
 spl_domain = (55, 105)
 di_domain = (-5, 10)
 if normalization_mode == 'Equal sensitivity':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_sensitivity, axis='index', level='Speaker')
-    spl_axis_label = 'Relative Sound Pressure (dBr)'
+    spl_axis_label = ['Relative Sound Pressure (dBr)']
     spl_domain = (-40, 10)
 if normalization_mode == 'Flat on-axis':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
-    spl_axis_label = 'Sound Pressure relative to on-axis (dBr)'
+    spl_axis_label = ['Sound Pressure (dBr)', 'relative to on-axis']
     spl_domain = (-40, 10)
 if normalization_mode == 'Flat listening window':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window')], axis='index')
-    spl_axis_label = 'Sound Pressure relative to listening window (dBr)'
+    spl_axis_label = ['Sound Pressure (dBr)', 'relative to listening window']
     spl_domain = (-40, 10)
 if normalization_mode == 'Detrend':
     if detrend_reference == 'Detrend each response individually':
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
             .apply(smooth, detrend_octaves_number))
-        spl_axis_label = '{} detrended Sound Pressure (dBr)'.format(detrend_octaves)
+        spl_axis_label = ['Sound Pressure (dBr)', '{} detrended'.format(detrend_octaves)]
         spl_domain = (-25, 25)
         speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
             .groupby('Speaker')
             .apply(smooth, detrend_octaves_number))
-        di_axis_label = '{} detrended Directivity Index (dBr)'.format(detrend_octaves)
+        di_axis_label = ['Directivity Index (dBr)', '{} detrended'.format(detrend_octaves)]
         di_domain = (-7.5, 7.5)
     else:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference)]
             .groupby('Speaker')                     
             .apply(smooth, detrend_octaves_number), axis='index')
-        spl_axis_label = 'Sound Pressure relative to {} detrended {} (dBr)'.format(detrend_octaves, detrend_reference)
+        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} detrended {} (dBr)'.format(detrend_octaves, detrend_reference)]
         spl_domain = (-40, 10)
         
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
@@ -938,10 +938,10 @@ def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
 
 def sound_pressure_yaxis(shorthand, title_prefix=None):
-    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + spl_axis_label, scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
+    return alt.Y(shorthand, title=[(title_prefix + ' ' if title_prefix else '') + spl_axis_label[0]] + spl_axis_label[1:], scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
 
 def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=di_domain):
-    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + di_axis_label, scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+    return alt.Y(shorthand, title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 def speaker_color(shorthand):
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
