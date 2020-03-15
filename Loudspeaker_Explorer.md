@@ -48,7 +48,7 @@ Welcome to the [Loudspeaker Explorer](https://colab.research.google.com/github/d
 
 To run the code and (re)generate the data, go to the **Runtime** menu and click **Run all** (CTRL+F9). **You will need to repeat this every time you change any of the settings or code** (e.g. if you enable or disable speakers).
 
-**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Double-click to reset the view.
+**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view.
 
 **Charts can take a few seconds to load when scrolling**, especially if you're using the notebook for the first time. Be patient.
 
@@ -974,6 +974,15 @@ def speaker_color():
         title=None,
         legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'))
 
+def interactive_legend(chart, encoding_channel):
+    selection = alt.selection_multi(fields=[encoding_channel.shorthand], bind='legend')
+    return (chart
+        .add_selection(selection)
+        .encode(
+            encoding_channel,
+            opacity=alt.condition(selection, alt.value(1), alt.value(0.2)))
+    )
+
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
 # Converts the above column labels to the following:
@@ -1012,10 +1021,11 @@ Note that all the data shown in this section is a direct representation of the i
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
 
 Remember:
- - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Double-click to reset the view.
+ - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view.
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
+spinorama_chart_legend_selection = alt.selection_multi(fields=['variable'], bind='legend')
 spinorama_chart_common = alt.pipe(
     speakers_fr_ready
         .pipe(prepare_alt_chart, {
@@ -1030,8 +1040,7 @@ spinorama_chart_common = alt.pipe(
         }).melt(['speaker', 'frequency']),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', title='Response')]),
-    lambda chart: chart.encode(variable_color()))
+        additional_tooltips=[alt.Tooltip('variable', title='Response')]))
 
 # Note that there are few subtleties here because of Altair/Vega quirks:
 # - To make the Y axes independent, `.resolve_scale()` has to be used *before
@@ -1056,7 +1065,8 @@ alt.pipe(
                 .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
             mark_line_with_points))
-        .resolve_scale(y='independent')
+        .resolve_scale(y='independent'),
+    lambda chart: interactive_legend(chart, variable_color())
         .facet(alt.Column('speaker', title=None), title=common_title)
         .resolve_scale(y='independent'),
     postprocess_chart)
@@ -1074,8 +1084,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), sound_pressure_yaxis(title_prefix='On Axis')),
+        .encode(sound_pressure_yaxis(title_prefix='On Axis')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1144,9 +1155,10 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
-        .encode(variable_color(), sound_pressure_yaxis()),
+        .encode(sound_pressure_yaxis()),
     mark_line_with_points,
-    lambda chart: chart.facet(alt.Column('speaker', title=None)),
+    lambda chart: interactive_legend(chart, variable_color())
+        .facet(alt.Column('speaker', title=None)),
     postprocess_chart)
 ```
 
@@ -1173,9 +1185,10 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
-        .encode(variable_color(), sound_pressure_yaxis()),
+        .encode(sound_pressure_yaxis()),
     mark_line_with_points,
-    lambda chart: chart.facet(alt.Column('speaker', title=None)),
+    lambda chart: interactive_legend(chart, variable_color())
+        .facet(alt.Column('speaker', title=None)),
     postprocess_chart)
 ```
 
@@ -1191,8 +1204,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Listening Window')),
+        .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1208,8 +1222,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Early Reflections')),
+        .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1225,8 +1240,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Sound Power')),
+        .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1242,8 +1258,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), directivity_index_yaxis(title_prefix='Early Reflections')),
+        .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1259,8 +1276,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), directivity_index_yaxis(title_prefix='Sound Power')),
+        .encode(directivity_index_yaxis(title_prefix='Sound Power')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1276,8 +1294,9 @@ alt.pipe(
         }),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(speaker_color(), sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
+        .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
     mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
     postprocess_chart)
 ```
 
@@ -1312,11 +1331,7 @@ listening_window_detail_common = alt.pipe(
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Response')])
-        .encode(
-            sound_pressure_yaxis(),
-            variable_color(scale=alt.Scale(
-                range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
-            ))))
+        .encode(sound_pressure_yaxis()))
 
 listening_window_detail_highlight = alt.FieldOneOfPredicate(
     field='variable',
@@ -1333,7 +1348,10 @@ alt.pipe(
             listening_window_detail_common
                 .transform_filter(listening_window_detail_highlight),
             mark_line_with_points)),
-    lambda chart: chart
+    lambda chart: interactive_legend(chart,
+        variable_color(scale=alt.Scale(
+            range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
+        )))
         .facet(alt.Column('speaker', title=None), title=common_title)
         .interactive(),
     postprocess_chart
