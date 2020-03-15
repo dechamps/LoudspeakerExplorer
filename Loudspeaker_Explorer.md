@@ -1262,7 +1262,11 @@ listening_window_detail_common = (frequency_response_chart(sidebyside=True, data
             ('SPL Horizontal',  '30°'): '+30° Horizontal',
         })
         .melt(['speaker', 'frequency']))
-    .encode(sound_pressure_yaxis()))
+    .encode(
+        sound_pressure_yaxis(),
+        alt.Color('variable', title=None, sort=None, scale=alt.Scale(
+            range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
+        ))))
 listening_window_detail_highlight = alt.FieldOneOfPredicate(
     field='variable',
     oneOf=['Listening Window', 'On Axis'])
@@ -1270,15 +1274,9 @@ listening_window_detail_highlight = alt.FieldOneOfPredicate(
 postprocess_chart(alt.layer(
     listening_window_detail_common
         .transform_filter({'not': listening_window_detail_highlight})
-        .encode(
-            alt.Color('variable', title=None, sort=None, scale=alt.Scale(
-                # Somewhat surprisingly, this applies to the other layer too.
-                range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
-            )),
-            strokeWidth=alt.value(1.5)),
+        .encode(strokeWidth=alt.value(1.5)),
     listening_window_detail_common
-        .transform_filter(listening_window_detail_highlight)
-        .encode(alt.Color('variable', title=None, sort=None)))
+        .transform_filter(listening_window_detail_highlight))
     .facet(alt.Column('speaker', title=None), title=common_title)
     .interactive())
 ```
