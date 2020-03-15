@@ -48,7 +48,7 @@ Welcome to the [Loudspeaker Explorer](https://colab.research.google.com/github/d
 
 To run the code and (re)generate the data, go to the **Runtime** menu and click **Run all** (CTRL+F9). **You will need to repeat this every time you change any of the settings or code** (e.g. if you enable or disable speakers).
 
-**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan.
+**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Double-click to reset the view.
 
 **Charts can take a few seconds to load when scrolling**, especially if you're using the notebook for the first time. Be patient.
 
@@ -996,7 +996,7 @@ Note that all the data shown in this section is a direct representation of the i
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
 
 Remember:
- - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan.
+ - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Double-click to reset the view.
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
