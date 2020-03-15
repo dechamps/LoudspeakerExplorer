@@ -681,7 +681,7 @@ speakers_sensitivity.to_frame()
 
 <!-- #region id="normalization" -->
 
-# Normalization
+# Normalization & detrending
 
 This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-axis, estimated in-room response, etc.).
 
@@ -693,29 +693,70 @@ The data is normalized according to the `normalization_mode` variable, which can
  - **Equal sensitivity** (recommended): sensitivity values calculated in the previous section are subtracted from all SPL values of each speaker, such that all speakers have 0 dB sensitivity. Improves readability and makes it easier to compare speakers.
  - **Flat on-axis**: the on-axis SPL value is subtracted to itself as well as every other SPL variable at each frequency. In other words this simulates EQ'ing every speaker to be perfectly flat on-axis. Use this mode to focus solely on directivity data.
  - **Flat listening window**: same as above, using the Listening Window average instead of On-Axis.
+ - **Detrend**: for each speaker, computes a smoothed response (using the same mechanism as described in the *Smoothing* section below), then subtracts it from the original responses. In other words, this is the opposite of smoothing. Useful for removing trends (e.g. overall bass/treble balance) to focus solely on local variations.
 
 ```python
-normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis", "Flat listening window"]
+normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis", "Flat listening window", "Detrend"]
+#@markdown ## Detrending settings
+#@markdown These settings only have an effect if `normalization_mode` is set to "Detrend".
+#@markdown
+#@markdown A smoothed version of the selected response will be subtracted to all responses for that speaker, *excluding* directivity indices.
+#@markdown If *Detrend each response individually* is selected, individual responses are smoothed and subtracted independently of each other, *including* directivity indices.
+detrend_reference = 'On Axis'  # @param ["On Axis", "Listening Window", "Early Reflections", "Sound Power", "Detrend each response individually"]
+#@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave`.
+detrend_octaves = '1/1-octave'  # @param {allow-input: true} ["2/1-octave", "1/1-octave", "1/2-octave", "1/3-octave", "1/6-octave"]
+
+detrend_octaves_match = re.search('(\d+)/(\d+)', detrend_octaves)
+detrend_octaves_number = float(detrend_octaves_match.group(1))/float(detrend_octaves_match.group(2))
+
+def smooth(speaker_fr, octaves):
+    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
+    return (speaker_fr
+        # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
+        .sort_index()
+        # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
+        .ewm(span=freqs_per_octave*octaves).mean()
+    )
 
 speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
 speakers_fr_dinorm = speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
-db_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
-db_domain = (55, 105)
+spl_axis_label = 'Absolute Sound Pressure Level (dB SPL)'
+di_axis_label = 'Directivity Index (dBr)'
+spl_domain = (55, 105)
+di_domain = (-5, 10)
 if normalization_mode == 'Equal sensitivity':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_sensitivity, axis='index', level='Speaker')
-    db_axis_label = 'Relative Sound Pressure (dBr)'
-    db_domain = (-40, 10)
+    spl_axis_label = 'Relative Sound Pressure (dBr)'
+    spl_domain = (-40, 10)
 if normalization_mode == 'Flat on-axis':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
-    db_axis_label = 'Sound Pressure relative to on-axis (dBr)'
-    db_domain = (-40, 10)
+    spl_axis_label = 'Sound Pressure relative to on-axis (dBr)'
+    spl_domain = (-40, 10)
 if normalization_mode == 'Flat listening window':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window')], axis='index')
-    db_axis_label = 'Sound Pressure relative to listening window (dBr)'
-    db_domain = (-40, 10)
+    spl_axis_label = 'Sound Pressure relative to listening window (dBr)'
+    spl_domain = (-40, 10)
+if normalization_mode == 'Detrend':
+    if detrend_reference == 'Detrend each response individually':
+        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
+            .groupby('Speaker')
+            .apply(smooth, detrend_octaves_number))
+        spl_axis_label = '{} detrended Sound Pressure (dBr)'.format(detrend_octaves)
+        spl_domain = (-25, 25)
+        speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
+            .groupby('Speaker')
+            .apply(smooth, detrend_octaves_number))
+        di_axis_label = '{} detrended Directivity Index (dBr)'.format(detrend_octaves)
+        di_domain = (-7.5, 7.5)
+    else:
+        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference)]
+            .groupby('Speaker')                     
+            .apply(smooth, detrend_octaves_number), axis='index')
+        spl_axis_label = 'Sound Pressure relative to {} detrended {} (dBr)'.format(detrend_octaves, detrend_reference)
+        spl_domain = (-40, 10)
         
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
 speakers_fr_norm
@@ -744,16 +785,6 @@ smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_ma
 def append_constant_index(df, value, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
-
-def smooth(speaker_fr):
-    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
-    return (speaker_fr
-        # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
-        .sort_index()
-        # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
-        .ewm(span=freqs_per_octave*smoothing_octaves).mean()
-    )
-
 speakers_fr_smoothed = (speakers_fr_norm
     .unstack(level='Frequency [Hz]')
     .pipe(append_constant_index, 'No smoothing', name='Smoothing')
@@ -762,7 +793,7 @@ speakers_fr_smoothed = (speakers_fr_norm
 if smoothing_octaves is not None:
     speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
-        .apply(smooth)
+        .apply(smooth, smoothing_octaves)
         .pipe(append_constant_index, smoothing_mode, name='Smoothing'))
     speakers_fr_smoothed = (
         pd.concat([speakers_fr_smoothed, speakers_fr_smoothed_only])
@@ -907,10 +938,10 @@ def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
 
 def sound_pressure_yaxis(shorthand, title_prefix=None):
-    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + db_axis_label, scale=alt.Scale(domain=db_domain), axis=alt.Axis(grid=True))
+    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + spl_axis_label, scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
 
-def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=(-5, 10)):
-    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + 'Directivity Index (dBr)', scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+def directivity_index_yaxis(shorthand, title_prefix=None, scale_domain=di_domain):
+    return alt.Y(shorthand, title=(title_prefix + ' ' if title_prefix else '') + di_axis_label, scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 def speaker_color(shorthand):
     # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
