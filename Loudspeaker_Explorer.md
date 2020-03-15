@@ -116,7 +116,7 @@ speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
 speaker_enable_JBL_705P_Sample1 = False  # @param {type:"boolean"}
-speaker_enable_JBL_705P_Sample2 = True  # @param {type:"boolean"}
+speaker_enable_JBL_705P_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
@@ -131,6 +131,7 @@ speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
+speaker_enable_Revel_F35 = True  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
@@ -407,6 +408,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-01-17'),
     'Active': False,
     'Price (Single, USD)': 2500.00,
+  }, {
+    'Speaker': 'Revel F35',
+    'Enabled': speaker_enable_Revel_F35,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-f35-spinorama-zip.54290/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/',
+    'Product URL': 'https://www.revelspeakers.com/products/types/floorstanding/F35-.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-f35-speaker-audio-review-jpg.54271/',
+    'Measurement Date': pd.Timestamp('2020-03-15'),
+    'Active': False,
+    'Price (Single, USD)': 800.00,
   }, {
     'Speaker': 'Revel M16',
     'Enabled': speaker_enable_Revel_M16,
