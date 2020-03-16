@@ -129,7 +129,7 @@ speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
-speaker_enable_KEF_Q100 = True  # @param {type:"boolean"}
+speaker_enable_KEF_Q100 = False  # @param {type:"boolean"}
 speaker_enable_KEF_R3 = True  # @param {type:"boolean"}
 speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
@@ -143,6 +143,7 @@ speaker_enable_Revel_F35 = True  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
+speaker_enable_ZaphAudio_ZA52TM_Winkleswizard = True  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
@@ -458,6 +459,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-03-08'),
     'Active': False,
     'Price (Single, USD)': 250.00,  # wild guess
+  }, {
+    'Speaker': 'Zaph Audio ZA5.2 TM (built by Winkleswizard)',
+    'Enabled': speaker_enable_ZaphAudio_ZA52TM_Winkleswizard,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/zaph-audio-za5-zip.54633/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/zaph-audio-za5-diy-kit-speaker-review.12086/',
+    'Product URL': 'https://www.audiosciencereview.com/forum/index.php?threads/zaph-audio-za5-2-tm-build-progress.11426/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/zaph-audio-za5-diy-speaker-kit-audio-review-jpg.54611/',
+    'Measurement Date': pd.Timestamp('2020-03-16'),
+    'Active': False,
+    'Price (Single, USD)': 170.00,
   },
 ]).set_index('Speaker')
 
