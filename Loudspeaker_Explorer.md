@@ -130,8 +130,9 @@ speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
 speaker_enable_KEF_Q100 = False  # @param {type:"boolean"}
-speaker_enable_KEF_R3 = True  # @param {type:"boolean"}
+speaker_enable_KEF_R3 = False  # @param {type:"boolean"}
 speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
+speaker_enable_Klipsch_RP600M = True  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
@@ -347,6 +348,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-19'),
     'Active': False,
     'Price (Single, USD)': 75.00,
+  }, {
+    'Speaker': 'Klipsch RP-600M',
+    'Enabled': speaker_enable_Klipsch_RP600M,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-rp-600m-spinorama-zip.55056/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/klipsch-rp-600m-speaker-review.12138/',
+    'Product URL': 'https://www.klipsch.com/products/rp-600m-bookshelf-speaker',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-rp-600m-bookshelf-speaker-audio-review-jpg.55039/',
+    'Measurement Date': pd.Timestamp('2020-03-19'),
+    'Active': False,
+    'Price (Single, USD)': 315.00,
   }, {
     'Speaker': 'Micca RB42',
     'Enabled': speaker_enable_Micca_RB42,
