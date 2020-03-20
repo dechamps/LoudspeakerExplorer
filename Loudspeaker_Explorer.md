@@ -352,6 +352,7 @@ speakers = pd.DataFrame([{
     'Speaker': 'Klipsch RP-600M',
     'Enabled': speaker_enable_Klipsch_RP600M,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-rp-600m-spinorama-zip.55056/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/klipsch-rp-600m-speaker-review.12138/',
     'Product URL': 'https://www.klipsch.com/products/rp-600m-bookshelf-speaker',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-rp-600m-bookshelf-speaker-audio-review-jpg.55039/',
