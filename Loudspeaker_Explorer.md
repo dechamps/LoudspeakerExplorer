@@ -995,11 +995,9 @@ def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
                   frequency_tooltip(),
                   alt.Tooltip('value', title='Value (dB)', format='.2f')]))
 
-def interactive_line(chart, line_legend_channel, points_legend_channel=None):
-    if points_legend_channel is None:
-        points_legend_channel = line_legend_channel
+def interactive_line(chart, legend_channel_fn):
     mouseover_selection = alt.selection_single(on='mouseover', empty='none')
-    legend_selection = alt.selection_multi(fields=[line_legend_channel.shorthand], bind='legend')
+    legend_selection = alt.selection_multi(encodings=['color'], bind='legend')
     # This is equivalent to using the `point` line mark property.
     # The reason why we don't simply do that is because tooltips wouldn't work as well due to this Vega-lite bug: https://github.com/vega/vega-lite/issues/6107
     return alt.layer(
@@ -1008,15 +1006,16 @@ def interactive_line(chart, line_legend_channel, points_legend_channel=None):
             .mark_line(clip=True, interpolate='monotone')
             .add_selection(legend_selection)
             .encode(
-                line_legend_channel,
+                legend_channel_fn(True),
                 opacity=alt.condition(legend_selection, alt.value(1), alt.value(0.2))
             ),
         chart
             .mark_circle(clip=True, size=100)
             .add_selection(mouseover_selection)
             .encode(
-                # Note: we don't use legend_selection for points. If we do, it seems to break legend interactivity in weird ways on non-faceted charts.
-                points_legend_channel,
+                # Disable the legends for points to ensure the legend uses the line shape and a continuous scale if applicable.
+                # We don't use legend_selection for points. If we do, it seems to break legend interactivity in weird ways on non-faceted charts.
+                legend_channel_fn(False),
                 fillOpacity=alt.condition(mouseover_selection, alt.value(0.3), alt.value(0)))
             .interactive())
 
@@ -1029,15 +1028,17 @@ def sound_pressure_yaxis(title_prefix=None):
 def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
     return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
-def variable_color(*kargs, **kwargs):
-     return alt.Color('variable', title=None, sort=None, legend=alt.Legend(symbolType='stroke'), *kargs, **kwargs)
-
-def speaker_color():
-    # Configure the legend so that it shows long labels correctly. This is necessary because of the resolution/smoothing/etc. metadata.
-    return alt.Color(
-        'speaker',
+def variable_color_fn(**kwargs):
+    return lambda show_legend: alt.Color(
+        'variable', title=None, sort=None,
+        legend=alt.Legend() if show_legend else None,
+        **kwargs)
+ 
+def speaker_color_fn(**kwargs):
+    return lambda show_legend: alt.Color('speaker',
         title=None,
-        legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'))
+        legend=alt.Legend(orient='top', direction='vertical', labelLimit=600) if show_legend and not single_speaker_mode else None,
+        **kwargs)
 
 def speaker_facet(chart):
     return chart.facet(
@@ -1113,7 +1114,7 @@ alt.pipe(
                 alt.Tooltip('speaker', title='Speaker'),
                 frequency_tooltip(),
                 alt.Tooltip('value', title='Resolution (points/octave)', format='.2f')]),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1165,12 +1166,12 @@ alt.pipe(
             spinorama_chart_common
                 .encode(sound_pressure_yaxis())
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'])),
-            lambda chart: interactive_line(chart, variable_color())),
+            lambda chart: interactive_line(chart, variable_color_fn())),
         alt.pipe(
             spinorama_chart_common
                 .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
-            lambda chart: interactive_line(chart, variable_color())))
+            lambda chart: interactive_line(chart, variable_color_fn())))
         .resolve_scale(y='independent'),
     speaker_facet,
     lambda chart: chart.resolve_scale(y='independent'),
@@ -1190,7 +1191,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='On Axis')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1212,10 +1213,6 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    def color(legend):
-        return alt.Color(
-            'angle', title=direction + ' angle (°)', legend=legend,
-            scale=alt.Scale(scheme='sinebow', domain=(-180, 180)))
     return alt.pipe(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
@@ -1235,10 +1232,10 @@ def off_axis_angles_chart(direction):
             .transform_filter(off_axis_angle_selection)
             .encode(sound_pressure_yaxis()),
         lambda chart: interactive_line(
-            chart,
-            # We explicitly disable the legend on the points layer, otherwise it makes the legend discrete instead of continuous.
-            line_legend_channel=color(alt.Legend(gradientLength=300, values=list(range(-180, 180+10, 10)))),
-            points_legend_channel=color(None))
+            chart, legend_channel_fn=lambda show_legend: alt.Color(
+                'angle', title=direction + ' angle (°)',
+                scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
+                legend=alt.Legend(gradientLength=300, values=list(range(-180, 180+10, 10))) if show_legend else None))
             .add_selection(off_axis_angle_selection),
         speaker_facet,
         postprocess_chart)
@@ -1274,7 +1271,7 @@ alt.pipe(
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
-    lambda chart: interactive_line(chart, variable_color()),
+    lambda chart: interactive_line(chart, variable_color_fn()),
     speaker_facet,
     postprocess_chart)
 ```
@@ -1303,7 +1300,7 @@ alt.pipe(
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
-    lambda chart: interactive_line(chart, variable_color()),
+    lambda chart: interactive_line(chart, variable_color_fn()),
     speaker_facet,
     postprocess_chart)
 ```
@@ -1321,7 +1318,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1338,7 +1335,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1355,7 +1352,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1372,7 +1369,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1389,7 +1386,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Sound Power')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1406,7 +1403,7 @@ alt.pipe(
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
-    lambda chart: interactive_line(chart, speaker_color()),
+    lambda chart: interactive_line(chart, speaker_color_fn()),
     postprocess_chart)
 ```
 
@@ -1447,7 +1444,7 @@ listening_window_detail_highlight = alt.FieldOneOfPredicate(
     field='variable',
     oneOf=['Listening Window', 'On Axis'])
 
-listening_window_color = variable_color(scale=alt.Scale(
+listening_window_color_fn = variable_color_fn(scale=alt.Scale(
     range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']))
 
 alt.pipe(
@@ -1456,11 +1453,11 @@ alt.pipe(
             listening_window_detail_common
                 .transform_filter({'not': listening_window_detail_highlight})
                 .encode(strokeWidth=alt.value(1.5)),
-             lambda chart: interactive_line(chart, listening_window_color)),
+             lambda chart: interactive_line(chart, listening_window_color_fn)),
         alt.pipe(
             listening_window_detail_common
                 .transform_filter(listening_window_detail_highlight),
-            lambda chart: interactive_line(chart, listening_window_color))),
+            lambda chart: interactive_line(chart, listening_window_color_fn))),
     speaker_facet,
     postprocess_chart
 )
