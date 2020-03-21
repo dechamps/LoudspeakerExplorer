@@ -9,6 +9,7 @@ jupyter:
     - normalization
     - smoothing
     - plot-settings
+    - data-check
     - off-axis-responses
     - horizontal-reflection-responses
     - vertical-reflection-responses
@@ -958,18 +959,26 @@ def prepare_alt_chart(df, columns_mapper):
     df.columns = df.columns.map(mapper=columns_mapper)
     return df
 
-def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
+def set_chart_dimensions(chart, sidebyside=False):
     if single_speaker_mode:
         sidebyside = False
-    return (alt.Chart(data, title=common_title)
-      .properties(
+    return chart.properties(
         width=sidebyside_chart_width if sidebyside else standalone_chart_width,
         height=sidebyside_chart_height if sidebyside else standalone_chart_height)
-      .encode(
-          frequency_xaxis('frequency'),
-          tooltip=additional_tooltips + [
-              alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s'),
-              alt.Tooltip('value', title='Value (dB)', format='.2f')]))
+
+def frequency_tooltip():
+    return alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s')
+
+def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
+    return alt.pipe(
+        alt.Chart(data, title=common_title),
+        lambda chart:
+            set_chart_dimensions(chart, sidebyside)
+            .encode(
+              frequency_xaxis('frequency'),
+              tooltip=additional_tooltips + [
+                  frequency_tooltip(),
+                  alt.Tooltip('value', title='Value (dB)', format='.2f')]))
 
 # This is equivalent to using the `point` line mark property.
 # The reason why we don't simply do that tooltips wouldn't work as well due to this Vega-lite bug: https://github.com/vega/vega-lite/issues/6107
@@ -1047,6 +1056,51 @@ def postprocess_chart(chart):
             credits, fontSize=10, fontWeight='lighter', color='gray', anchor='start')).mark_text())
         .resolve_legend(color='independent')
         .configure_view(width=600, height=1, opacity=0))
+```
+
+<!-- #region id="data-check" -->
+
+# Data check
+
+The charts in these section can be used to sanity check the input data. They are not particularly useful unless you suspect a problem with the data.
+
+<!-- #endregion -->
+
+## Resolution
+
+This chart shows the resolution of the input data at each frequency. For each point, resolution is calculated by looking at the distance from the previous point. The larger the distance, the lower the resolution.
+
+A straight, horizontal line means that resolution is constant throughout the spectrum, or in other words, points are equally spaced in log-frequency. Some Loudspeaker Explorer features, especially smoothing and detrending, implicitly assume that this is the case, and might produce inaccurate results otherwise.
+
+```python
+alt.pipe(
+    speakers_fr_ready
+        .index.to_frame()
+        .reset_index(drop=True)
+        .set_index('Speaker')
+        .set_index('Frequency [Hz]', append=True, drop=False)
+        .groupby('Speaker').apply(lambda frequencies: frequencies / frequencies.shift(1))
+        .pipe(np.log2)
+        .pow(-1)
+        .rename(columns={'Frequency [Hz]': 'Resolution (points/octave)'})
+        .pipe(prepare_alt_chart, {
+            'Speaker': 'speaker',
+            'Frequency [Hz]': 'frequency',
+            'Resolution (points/octave)': 'value',
+        }),
+    lambda data: alt.Chart(data, title=common_title),
+    lambda chart:
+        set_chart_dimensions(chart)
+        .encode(
+            frequency_xaxis('frequency'),
+            alt.Y('value', title='Resolution (points/octave)', axis=alt.Axis(grid=True)),
+            tooltip=[
+                alt.Tooltip('speaker', title='Speaker'),
+                frequency_tooltip(),
+                alt.Tooltip('value', title='Resolution (points/octave)', format='.2f')]),
+    mark_line_with_points,
+    lambda chart: interactive_legend(chart, speaker_color()),
+    postprocess_chart)
 ```
 
 # Standard measurements
