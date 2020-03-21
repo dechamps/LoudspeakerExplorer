@@ -829,7 +829,9 @@ if smoothing_octaves is not None:
     speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
         .apply(smooth, smoothing_octaves)
-        .pipe(append_constant_index, smoothing_mode, name='Smoothing'))
+        .unstack(level='Frequency [Hz]')
+        .pipe(append_constant_index, smoothing_mode, name='Smoothing')
+        .stack())
     speakers_fr_smoothed = (
         pd.concat([speakers_fr_smoothed, speakers_fr_smoothed_only])
         if smoothing_preserve_original else speakers_fr_smoothed_only)
