@@ -140,10 +140,11 @@ speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
+speaker_enable_Pioneer_SPEBS73LR = True  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
-speaker_enable_Revel_F35 = True  # @param {type:"boolean"}
+speaker_enable_Revel_F35 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
@@ -403,6 +404,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-07'),
     'Active': False,
     'Price (Single, USD)': 80.00,
+  }, {
+    'Speaker': 'Pioneer Elite SP-EBS73-LR',
+    'Enabled': speaker_enable_Pioneer_SPEBS73LR,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-elite-sp-eb73lr-spinorama-zip.55313/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-elite-sp-ebs73-lr-atmos-speaker-review.12163/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-elite-sp-eb73lr-atmos-bookshelf-speaker-audio-review-jpg.55312/',
+    'Measurement Date': pd.Timestamp('2020-03-21'),
+    'Active': False,
+    'Price (Single, USD)': 375.00,
   }, {
     'Speaker': 'Polk T15',
     'Enabled': speaker_enable_Polk_T15,
