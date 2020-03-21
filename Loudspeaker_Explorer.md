@@ -971,15 +971,18 @@ def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
 
 # This is equivalent to using the `point` line mark property.
 # The reason why we don't simply do that tooltips wouldn't work as well due to this Vega-lite bug: https://github.com/vega/vega-lite/issues/6107
-def mark_line_with_points(chart):
+def mark_line_with_points(line_chart, points_chart=None):
+    if points_chart is None:
+        points_chart = line_chart
     mouseover = alt.selection_single(on='mouseover', empty='none')
     return alt.layer(
-        chart
+        points_chart
             .mark_circle(clip=True, size=100)
             .add_selection(mouseover)
             .encode(fillOpacity=alt.condition(mouseover, alt.value(0.3), alt.value(0)))
             .interactive(),
-        chart.mark_line(clip=True, interpolate='monotone')
+        line_chart
+            .mark_line(clip=True, interpolate='monotone')
     )
 
 def frequency_xaxis(shorthand):
@@ -1140,7 +1143,7 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    return alt.pipe(
+    base_chart = alt.pipe(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(convert_angles)
@@ -1157,14 +1160,16 @@ def off_axis_angles_chart(direction):
             sidebyside=True,
             additional_tooltips=[alt.Tooltip('angle', title=direction + ' angle (°)')])
             .transform_filter(off_axis_angle_selection)
-            .encode(
-                alt.Color(
-                  'angle', title=direction + ' angle (°)',
-                  scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
-                  legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
-                sound_pressure_yaxis()),
-        mark_line_with_points,
-        lambda chart: chart.add_selection(off_axis_angle_selection),
+            .encode(sound_pressure_yaxis()))
+    def layer(legend):
+        return base_chart.encode(alt.Color(
+              'angle', title=direction + ' angle (°)', legend=legend,
+              scale=alt.Scale(scheme='sinebow', domain=(-180, 180))))
+    return alt.pipe(
+        mark_line_with_points(
+            line_chart=layer(legend=alt.Legend(gradientLength=300, values=list(range(-180, 180+10, 10)))),
+            points_chart=layer(legend=None))
+            .add_selection(off_axis_angle_selection),
         speaker_facet,
         postprocess_chart)
 
