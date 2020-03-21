@@ -1001,6 +1001,11 @@ def speaker_color():
         title=None,
         legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'))
 
+def speaker_facet(chart):
+    return chart.facet(
+        alt.Column('speaker', title=None),
+        title=common_title)
+
 def interactive_legend(chart, encoding_channel):
     selection = alt.selection_multi(fields=[encoding_channel.shorthand], bind='legend')
     return (chart
@@ -1093,9 +1098,9 @@ alt.pipe(
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
             mark_line_with_points))
         .resolve_scale(y='independent'),
-    lambda chart: interactive_legend(chart, variable_color())
-        .facet(alt.Column('speaker', title=None), title=common_title)
-        .resolve_scale(y='independent'),
+    lambda chart: interactive_legend(chart, variable_color()),
+    speaker_facet,
+    lambda chart: chart.resolve_scale(y='independent'),
     postprocess_chart)
 ```
 
@@ -1159,9 +1164,8 @@ def off_axis_angles_chart(direction):
                   legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
                 sound_pressure_yaxis()),
         mark_line_with_points,
-        lambda chart: chart
-            .add_selection(off_axis_angle_selection)
-            .facet(column=alt.Column('speaker', title=None)),
+        lambda chart: chart.add_selection(off_axis_angle_selection),
+        speaker_facet,
         postprocess_chart)
 
 off_axis_angles_chart('Horizontal')
@@ -1196,8 +1200,8 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
     mark_line_with_points,
-    lambda chart: interactive_legend(chart, variable_color())
-        .facet(alt.Column('speaker', title=None)),
+    lambda chart: interactive_legend(chart, variable_color()),
+    speaker_facet,
     postprocess_chart)
 ```
 
@@ -1226,8 +1230,8 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
     mark_line_with_points,
-    lambda chart: interactive_legend(chart, variable_color())
-        .facet(alt.Column('speaker', title=None)),
+    lambda chart: interactive_legend(chart, variable_color()),
+    speaker_facet,
     postprocess_chart)
 ```
 
@@ -1391,8 +1395,8 @@ alt.pipe(
         variable_color(scale=alt.Scale(
             range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']
         )))
-        .facet(alt.Column('speaker', title=None), title=common_title)
         .interactive(),
+    speaker_facet,
     postprocess_chart
 )
 ```
