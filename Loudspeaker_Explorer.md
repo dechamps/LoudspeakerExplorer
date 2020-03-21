@@ -633,7 +633,7 @@ speakers_frequency_count = speakers_frequencies.count().loc[:, 'Frequency [Hz]']
 speakers_min_frequency = speakers_frequencies.min().loc[:, 'Frequency [Hz]'].rename('Min Frequency (Hz)')
 speakers_max_frequency = speakers_frequencies.max().loc[:, 'Frequency [Hz]'].rename('Max Frequency (Hz)')
 speakers_octaves = (speakers_max_frequency / speakers_min_frequency).apply(np.log2).rename('Extent (octaves)')
-speakers_freqs_per_octave = (speakers_frequency_count / speakers_octaves).rename('Resolution (freqs/octave)')
+speakers_freqs_per_octave = (speakers_frequency_count / speakers_octaves).rename('Mean resolution (freqs/octave)')
 pd.concat([
   speakers_frequency_count,
   speakers_min_frequency,
@@ -744,7 +744,7 @@ detrend_octaves_match = re.search('(\d+)/(\d+)', detrend_octaves)
 detrend_octaves_number = float(detrend_octaves_match.group(1))/float(detrend_octaves_match.group(2))
 
 def smooth(speaker_fr, octaves):
-    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Resolution (freqs/octave)'].unique()
+    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Mean resolution (freqs/octave)'].unique()
     return (speaker_fr
         # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
         .sort_index()
@@ -909,9 +909,9 @@ def fold_speakers_info(speakers_fr):
 
 (speakers_fr_ready, common_title) = (speakers_fr_smoothed
     .rename(
-        level='Resolution (freqs/octave)',
-        index=lambda freqs_per_octave: '{:.2g} pts/octave'.format(freqs_per_octave))
-    .rename_axis(index={'Resolution (freqs/octave)': 'Resolution'})
+        level='Mean resolution (freqs/octave)',
+        index=lambda freqs_per_octave: 'Mean {:.2g} pts/octave'.format(freqs_per_octave))
+    .rename_axis(index={'Mean resolution (freqs/octave)': 'Resolution'})
     .pipe(extract_common_index_levels)
 )
 single_speaker_mode = speakers_fr_ready.index.names == ['Frequency [Hz]']
