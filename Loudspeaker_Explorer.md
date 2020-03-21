@@ -1130,42 +1130,45 @@ Use the slider at the bottom to focus on a specific angle. Note that the slider 
 Keep in mind that these graphs can be shown normalized to flat on-axis by changing the settings in the *Normalization* section above.
 
 ```python
-off_axis_angle_selection = alt.selection_single(
-    fields=['angle'],
-    bind=alt.binding_range(min=-170, max=180, step=10, name='Angle selector (°)'),
-    clear='dblclick')
-alt.pipe(
-    speakers_fr_ready
-        .loc[:, ['SPL Horizontal', 'SPL Vertical']]
-        .pipe(convert_angles)
-        .rename_axis(columns=['Direction', 'Angle'])
-        .rename(columns={'SPL Horizontal': 'Horizontal', 'SPL Vertical': 'Vertical'}, level='Direction')
-        .stack(level=['Direction', 'Angle'])
-        .reset_index()
-        .pipe(prepare_alt_chart, {
-            'Speaker': 'speaker',
-            'Direction': 'direction',
-            'Angle': 'angle',
-            'Frequency [Hz]': 'frequency',
-            0: 'value',
-          }),
-    lambda data: frequency_response_chart(data,
-        sidebyside=True,
-        additional_tooltips=[alt.Tooltip('angle', title='Angle (°)')])
-        .transform_filter(off_axis_angle_selection)
-        .encode(
-            alt.Color(
-              'angle', title='Angle (°)',
-              scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
-              legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
-            sound_pressure_yaxis()),
-    mark_line_with_points,
-    lambda chart: chart
-        .add_selection(off_axis_angle_selection)
-        .facet(
-            column=alt.Column('speaker', title=None),
-            row=alt.Row('direction', title=None)),
-    postprocess_chart)
+def off_axis_angles_chart(direction):
+    off_axis_angle_selection = alt.selection_single(
+        fields=['angle'],
+        bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
+        clear='dblclick')
+    return alt.pipe(
+        speakers_fr_ready
+            .loc[:, 'SPL ' + direction]
+            .pipe(convert_angles)
+            .rename_axis(columns='Angle')
+            .stack()
+            .reset_index()
+            .pipe(prepare_alt_chart, {
+                'Speaker': 'speaker',
+                'Angle': 'angle',
+                'Frequency [Hz]': 'frequency',
+                0: 'value',
+              }),
+        lambda data: frequency_response_chart(data,
+            sidebyside=True,
+            additional_tooltips=[alt.Tooltip('angle', title=direction + ' angle (°)')])
+            .transform_filter(off_axis_angle_selection)
+            .encode(
+                alt.Color(
+                  'angle', title=direction + ' angle (°)',
+                  scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
+                  legend=alt.Legend(gradientLength=600, values=list(range(-180, 180+10, 10)))),
+                sound_pressure_yaxis()),
+        mark_line_with_points,
+        lambda chart: chart
+            .add_selection(off_axis_angle_selection)
+            .facet(column=alt.Column('speaker', title=None)),
+        postprocess_chart)
+
+off_axis_angles_chart('Horizontal')
+```
+
+```python
+off_axis_angles_chart('Vertical')
 ```
 
 <!-- #region id="horizontal-reflection-responses" -->
