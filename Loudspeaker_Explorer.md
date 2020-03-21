@@ -749,7 +749,7 @@ def smooth(speaker_fr, octaves):
     return (speaker_fr
         # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
         .sort_index()
-        # Note that this assumes points are equally spaced in log-frequency. This assumption holds for all our current datasets.
+        # Note that this assumes points are equally spaced in log-frequency.
         .ewm(span=freqs_per_octave*octaves).mean()
     )
 
@@ -806,6 +806,8 @@ All responses (including directivity indices) are smoothed according to the sett
 <!-- #endregion -->
 
 Smoothing is done by applying an [exponential moving average (EMA)](https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average) with a "span" or "N" corresponding to the number of octaves chosen (since points in the input are already equally spaced in log-frequency). EMA was chosen over a simple moving average because it gracefully handles the case where N is not an integer, as is often the case here.
+
+Note that the current algorithm makes the implicit assumption that the input data is equally log-spaced in frequency (see "Data Check", "Resolution" below). With recent datasets this assumption tends to break down below ~100 Hz, where points are further apart than expected, leading to excessive smoothing.
 
 ```python
 #@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave smoothing`.
