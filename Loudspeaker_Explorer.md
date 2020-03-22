@@ -49,7 +49,7 @@ Welcome to the [Loudspeaker Explorer](https://colab.research.google.com/github/d
 
 To run the code and (re)generate the data, go to the **Runtime** menu and click **Run all** (CTRL+F9). **You will need to repeat this every time you change any of the settings or code** (e.g. if you enable or disable speakers).
 
-**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view.
+**All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view. (PROTIP: to quickly switch back and forth between speakers, select the speaker dropdown, then use the left-right arrow keys on your keyboard.)
 
 **Charts can take a few seconds to load when scrolling**, especially if you're using the notebook for the first time. Be patient.
 
@@ -1045,6 +1045,15 @@ def speaker_facet(chart):
         alt.Column('speaker', title=None),
         title=common_title)
 
+def speaker_input(chart):
+    speakers = list(speakers_fr_ready.index.get_level_values('Speaker').drop_duplicates().values)
+    if len(speakers) < 2: return chart
+    selection = alt.selection_single(
+            fields=['speaker'],
+            bind=alt.binding_select(
+                name='Speaker: ', options=[None] + speakers, labels=['All'] + speakers))
+    return chart.transform_filter(selection).add_selection(selection)
+
 # Given a DataFrame with some of the columns in the following format:
 #   'On-Axis' '10°' '20°' '-10°' ...
 # Converts the above column labels to the following:
@@ -1128,7 +1137,7 @@ Note that all the data shown in this section is a direct representation of the i
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
 
 Remember:
- - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view.
+ - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view. (PROTIP: to quickly switch back and forth between speakers, select the speaker dropdown, then use the left-right arrow keys on your keyboard.)
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
@@ -1173,7 +1182,7 @@ alt.pipe(
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
             lambda chart: interactive_line(chart, variable_color_fn())))
         .resolve_scale(y='independent'),
-    speaker_facet,
+    speaker_facet, speaker_input,
     lambda chart: chart.resolve_scale(y='independent'),
     postprocess_chart)
 ```
@@ -1192,6 +1201,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='On Axis')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1237,7 +1247,7 @@ def off_axis_angles_chart(direction):
                 scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
                 legend=alt.Legend(gradientLength=300, values=list(range(-180, 180+10, 10))) if show_legend else None))
             .add_selection(off_axis_angle_selection),
-        speaker_facet,
+        speaker_facet, speaker_input,
         postprocess_chart)
 
 off_axis_angles_chart('Horizontal')
@@ -1272,7 +1282,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
     lambda chart: interactive_line(chart, variable_color_fn()),
-    speaker_facet,
+    speaker_facet, speaker_input,
     postprocess_chart)
 ```
 
@@ -1301,7 +1311,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('variable', title='Direction')])
         .encode(sound_pressure_yaxis()),
     lambda chart: interactive_line(chart, variable_color_fn()),
-    speaker_facet,
+    speaker_facet, speaker_input,
     postprocess_chart)
 ```
 
@@ -1319,6 +1329,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1336,6 +1347,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1353,6 +1365,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1370,6 +1383,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1387,6 +1401,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Sound Power')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1404,6 +1419,7 @@ alt.pipe(
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
     lambda chart: interactive_line(chart, speaker_color_fn()),
+    speaker_input,
     postprocess_chart)
 ```
 
@@ -1458,7 +1474,7 @@ alt.pipe(
             listening_window_detail_common
                 .transform_filter(listening_window_detail_highlight),
             lambda chart: interactive_line(chart, listening_window_color_fn))),
-    speaker_facet,
+    speaker_facet, speaker_input,
     postprocess_chart
 )
 ```
