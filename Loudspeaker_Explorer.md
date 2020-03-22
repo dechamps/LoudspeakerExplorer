@@ -860,6 +860,8 @@ Here you can customize some parameters related to the charts.
 <!-- #endregion -->
 
 ```python
+# @markdown In standalone charts, offset speaker traces by this many dB. (`-10` is a good starting point.)
+speaker_offset_db = 0  # @param {type:"number"}
 # @markdown Dimensions for standalone charts
 standalone_chart_width = 800  # @param {type:"integer"}
 standalone_chart_height = 400  # @param {type:"integer"}
@@ -943,6 +945,16 @@ else:
 common_title = alt.TitleParams(
     text='; '.join(common_title.to_list()),
     anchor='start')
+
+speaker_offsets = speakers_fr_ready.index.get_level_values('Speaker').drop_duplicates().to_frame().reset_index(drop=True).reset_index().set_index('Speaker').loc[:, 'index']*speaker_offset_db
+def relabel_speaker_with_offset(speaker_name):
+    speaker_offset = speaker_offsets.loc[speaker_name]
+    return speaker_name + ('' if speaker_offset == 0 else ' [{:+.0f} dB]'.format(speaker_offsets.loc[speaker_name]))
+speakers_fr_ready_offset = (speakers_fr_ready
+    # Arguably it would cleaner to use some kind of "Y offset" encoding channel in charts, but that doesn't seem to be supported yet: https://github.com/vega/vega-lite/issues/4703
+    .add(speaker_offsets, axis='index', level='Speaker')
+    .rename(relabel_speaker_with_offset, level='Speaker')
+)
 
 speakers_license = speakers.loc[
     speakers_fr_smoothed.index.get_level_values('Speaker').drop_duplicates(),
@@ -1191,7 +1203,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
             ('Frequency [Hz]', ''): 'frequency',
@@ -1319,7 +1331,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
@@ -1337,7 +1349,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
@@ -1355,7 +1367,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
@@ -1373,7 +1385,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
@@ -1391,7 +1403,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
@@ -1409,7 +1421,7 @@ alt.pipe(
 
 ```python
 alt.pipe(
-    speakers_fr_ready
+    speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
