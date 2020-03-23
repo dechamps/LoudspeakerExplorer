@@ -141,6 +141,7 @@ speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPEBS73LR = True  # @param {type:"boolean"}
+speaker_enable_Pioneer_SPEC73 =  True  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
@@ -148,7 +149,7 @@ speaker_enable_Revel_F35 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
-speaker_enable_ZaphAudio_ZA52TM_Winkleswizard = True  # @param {type:"boolean"}
+speaker_enable_ZaphAudio_ZA52TM_Winkleswizard = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
@@ -414,6 +415,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-03-21'),
     'Active': False,
     'Price (Single, USD)': 375.00,
+  }, {
+    'Speaker': 'Pioneer Elite SP-EC73',
+    'Enabled': speaker_enable_Pioneer_SPEC73,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-speaker-spinorama-zip.55559/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-elite-sp-ec73-center-speaker-review.12197/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-elite-center-speaker-audio-review-jpg.55550/',
+    'Measurement Date': pd.Timestamp('2020-03-23'),
+    'Active': False,
+    'Price (Single, USD)': 400.00,
   }, {
     'Speaker': 'Polk T15',
     'Enabled': speaker_enable_Polk_T15,
