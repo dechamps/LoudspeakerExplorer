@@ -418,7 +418,7 @@ speakers = pd.DataFrame([{
   }, {
     'Speaker': 'Pioneer Elite SP-EC73',
     'Enabled': speaker_enable_Pioneer_SPEC73,
-    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-speaker-spinorama-zip.55559/',
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-speaker-spinorama-zip.55573/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-elite-sp-ec73-center-speaker-review.12197/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-elite-center-speaker-audio-review-jpg.55550/',
