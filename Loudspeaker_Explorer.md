@@ -121,6 +121,7 @@ speaker_enable_AscendAcoustics_CMT340SECenter = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_Sierra2 = False  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
+speaker_enable_Elac_DebutReferenceDBR62 = True  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
 speaker_enable_Genelec_8341A = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
@@ -135,7 +136,7 @@ speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
 speaker_enable_KEF_Q100 = False  # @param {type:"boolean"}
 speaker_enable_KEF_R3 = False  # @param {type:"boolean"}
 speaker_enable_Klipsch_R41M = False  # @param {type:"boolean"}
-speaker_enable_Klipsch_RP600M = True  # @param {type:"boolean"}
+speaker_enable_Klipsch_RP600M = False  # @param {type:"boolean"}
 speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
@@ -212,6 +213,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-16'),
     'Active': False,
     'Price (Single, USD)': 1250.00,
+  }, {
+    'Speaker': 'Elac Debut Reference DBR-62',
+    'Enabled': speaker_enable_Elac_DebutReferenceDBR62,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-dbr62-zip.55724/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/elac-debut-reference-dbr-62-speaker-review.12232/',
+    'Product URL': 'https://www.elac.com/series/debut-reference/dbr-62/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-debut-reference-dbr-62-bookshelf-speaker-review-jpg.55712/',
+    'Measurement Date': pd.Timestamp('2020-03-25'),
+    'Active': False,
+    'Price (Single, USD)': 300.00,
   }, {
     'Speaker': 'Emotiva Airmotiv 6s',
     'Enabled': speaker_enable_Emotiva_Airmotiv6s,
