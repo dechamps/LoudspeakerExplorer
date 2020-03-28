@@ -141,13 +141,14 @@ speaker_enable_Micca_RB42 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
-speaker_enable_Pioneer_SPEBS73LR = True  # @param {type:"boolean"}
+speaker_enable_Pioneer_SPEBS73LR = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPEC73 =  True  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
 speaker_enable_Revel_F35 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
+speaker_enable_Revel_M22 = True  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
 speaker_enable_ZaphAudio_ZA52TM_Winkleswizard = False  # @param {type:"boolean"}
@@ -488,6 +489,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-03-05'),
     'Active': False,
     'Price (Single, USD)': 450.00,
+  }, {
+    'Speaker': 'Revel M22',
+    'Enabled': speaker_enable_Revel_M22,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m22-spinorama-zip.56078/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-m22-speaker-review.12279/',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m22-standmount-speaker-review-jpg.56066/',
+    'Measurement Date': pd.Timestamp('2020-03-28'),
+    'Active': False,
+    'Price (Single, USD)': 300.00,  # used
   }, {
     'Speaker': 'Selah Audio RC3R',
     'Enabled': speaker_enable_SelahAudio_RC3R,
