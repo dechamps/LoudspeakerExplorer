@@ -119,9 +119,17 @@ def setting(path, widget, on_new_value):
     widget.observe(on_change, names='value')
     return widget
 
+def recurse_attr(obj, attr, fn):
+    for child in getattr(obj, attr, []):
+        recurse_attr(child, attr, fn)
+    fn(obj)
+
 def form(widget):
     if not environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False):
         return widget
+    def disable_widget(widget):
+        widget.disabled = True
+    recurse_attr(widget, 'children', disable_widget)
     return widgets.VBox([
         widgets.HTML('<div style="text-align: center; border: 2px solid red; background-color: #eee"><strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.</div>'),
         widget])
