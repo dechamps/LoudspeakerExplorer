@@ -964,14 +964,39 @@ Smoothing is done by applying an [exponential moving average (EMA)](https://en.w
 Note that the current algorithm makes the implicit assumption that the input data is equally log-spaced in frequency (see "Data Check", "Resolution" below). With recent datasets this assumption tends to break down below ~100 Hz, where points are further apart than expected, leading to excessive smoothing.
 
 ```python
-#@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave smoothing`.
-smoothing_mode = 'No smoothing'  # @param {allow-input: true} ["1/1-octave smoothing", "1/2-octave smoothing", "1/3-octave smoothing", "1/6-octave smoothing", "1/12-octave smoothing", "No smoothing"]
-#@markdown If this is checked, smoothed data is displayed alongside the original, unsmoothed data. Otherwise, the unsmoothed data is dropped.
-smoothing_preserve_original = True  # @param {type:"boolean"}
+smoothing_octaves = setting(
+    'smoothing/octaves',
+    widgets.SelectionSlider(
+        description='Smoothing strength',
+        options=[
+            ('1/1-octave', 1/1),
+            ('1/2-octave', 1/2),
+            ('1/3-octave', 1/3),
+            ('1/6-octave', 1/6),
+            ('1/12-octave', 1/12),
+        ], value=1/1,
+        style={'description_width': 'initial'}))
+smoothing_preserve_original = setting(
+    'smoothing/preserve_original',
+    widgets.RadioButtons(
+        options=[
+            ('Display smoothed data alongside unsmoothed data', True),
+            ('Drop unsmoothed data', False),
+        ], value=True,
+        layout={'width': 'max-content'}))
+smoothing_params = widgets.VBox([smoothing_octaves, smoothing_preserve_original])
+smoothing_enabled = setting(
+    'smoothing/enabled',
+    widgets.Checkbox(
+        description='Enable smoothing',
+        value=False,
+        style={'description_width': 'initial'}),
+    on_new_value=lambda value: display_widget(smoothing_params, value))
 
-smoothing_mode_match = re.search('(\d+)/(\d+)', smoothing_mode)
-smoothing_octaves = float(smoothing_mode_match.group(1))/float(smoothing_mode_match.group(2)) if smoothing_mode_match else None
+form(widgets.HBox([smoothing_enabled, smoothing_params]))
+```
 
+```python
 # Appends a new index level with all identical values.
 def append_constant_index(df, value, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
@@ -981,16 +1006,18 @@ speakers_fr_smoothed = (speakers_fr_norm
     .pipe(append_constant_index, 'No smoothing', name='Smoothing')
     .stack()
 )
-if smoothing_octaves is not None:
+if smoothing_enabled.value:
     speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
-        .apply(smooth, smoothing_octaves)
+        .apply(smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
-        .pipe(append_constant_index, smoothing_mode, name='Smoothing')
+        .pipe(append_constant_index,
+              {value: label for label, value in smoothing_octaves.options}[smoothing_octaves.value] + ' smoothing',
+              name='Smoothing')
         .stack())
     speakers_fr_smoothed = (
         pd.concat([speakers_fr_smoothed, speakers_fr_smoothed_only])
-        if smoothing_preserve_original else speakers_fr_smoothed_only)
+        if smoothing_preserve_original.value else speakers_fr_smoothed_only)
 speakers_fr_smoothed
 ```
 
