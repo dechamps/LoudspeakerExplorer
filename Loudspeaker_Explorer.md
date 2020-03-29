@@ -128,6 +128,9 @@ prerender_mode = bool(environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=Fals
 
 def display_widget(widget, value):
     widget.layout.display = None if value else 'none'
+    
+def lookup_widget_option_label(widget):
+    return {value: label for label, value in widget.options}[widget.value]
 
 def form(widget):
     form_banner = widgets.HTML()
@@ -928,7 +931,7 @@ if normalization_mode.value == 'listening_window':
     spl_axis_label = ['Sound Pressure (dBr)', 'relative to listening window']
     spl_domain = (-40, 10)
 if normalization_mode.value == 'detrend':
-    detrend_octaves_label = {value: label for label, value in detrend_octaves.options}[detrend_octaves.value] + ' detrended'
+    detrend_octaves_label = lookup_widget_option_label(detrend_octaves) + ' detrended'
     if detrend_individually.value:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
@@ -1012,7 +1015,7 @@ if smoothing_enabled.value:
         .apply(smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
         .pipe(append_constant_index,
-              {value: label for label, value in smoothing_octaves.options}[smoothing_octaves.value] + ' smoothing',
+              lookup_widget_option_label(smoothing_octaves) + ' smoothing',
               name='Smoothing')
         .stack())
     speakers_fr_smoothed = (
