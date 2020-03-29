@@ -131,6 +131,9 @@ def set_form_banner(contents):
     form_banner.value = '<div style="text-align: center; border: 2px solid red; background-color: #eee">' + contents + '</div>'
 if prerender_mode:
     set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
+    
+def display_widget(widget, value):
+    widget.layout.display = None if value else 'none'
 
 def form(widget):
     if prerender_mode:
@@ -842,21 +845,60 @@ The data is normalized according to the `normalization_mode` variable, which can
  - **Flat on-axis**: the on-axis SPL value is subtracted to itself as well as every other SPL variable at each frequency. In other words this simulates EQ'ing every speaker to be perfectly flat on-axis. Use this mode to focus solely on directivity data.
  - **Flat listening window**: same as above, using the Listening Window average instead of On-Axis.
  - **Detrend**: for each speaker, computes a smoothed response (using the same mechanism as described in the *Smoothing* section below), then subtracts it from the original responses. In other words, this is the opposite of smoothing. Useful for removing trends (e.g. overall bass/treble balance) to focus solely on local variations.
+ 
+## Detrending settings
+ 
+If **Detrend each response individually** is checked, individual responses are smoothed and subtracted independently of each other, *including* directivity indices. Otherwise, a smoothed version of the **Detrending reference** will be subtracted to all responses for that speaker, *excluding* directivity indices.
+
+The **Detrending strength** is the strength of the smoothing applied to the subtracted response.
 
 ```python
-normalization_mode = 'Equal sensitivity'  # @param ["None", "Equal sensitivity", "Flat on-axis", "Flat listening window", "Detrend"]
-#@markdown ## Detrending settings
-#@markdown These settings only have an effect if `normalization_mode` is set to "Detrend".
-#@markdown
-#@markdown A smoothed version of the selected response will be subtracted to all responses for that speaker, *excluding* directivity indices.
-#@markdown If *Detrend each response individually* is selected, individual responses are smoothed and subtracted independently of each other, *including* directivity indices.
-detrend_reference = 'On Axis'  # @param ["On Axis", "Listening Window", "Early Reflections", "Sound Power", "Detrend each response individually"]
-#@markdown Select the smoothing strength. You can also input a custom value as long as you follow the same pattern, e.g. `1/10-octave`.
-detrend_octaves = '1/1-octave'  # @param {allow-input: true} ["2/1-octave", "1/1-octave", "1/2-octave", "1/3-octave", "1/6-octave"]
+detrend_reference = setting(
+    'normalization/detrend_reference',
+    widgets.RadioButtons(
+        description='Detrending reference',
+        options=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'], value='On Axis',
+        style={'description_width': 'initial'},
+        layout={'width': 'max-content'}))
+detrend_individually = setting(
+    'normalization/detrend_individually',
+    widgets.Checkbox(
+        description='Detrend each response individually',
+        value=False,
+        style={'description_width': 'initial'}),
+    on_new_value=lambda value: display_widget(detrend_reference, not value))
+detrend_octaves = setting(
+    'normalization/detrend_octaves',
+    widgets.SelectionSlider(
+        description='Detrending strength',
+        options=[
+            ('2/1-octave', 2/1),
+            ('1/1-octave', 1/1),
+            ('1/2-octave', 1/2),
+            ('1/3-octave', 1/3),
+            ('1/6-octave', 1/6),
+        ], value=1/1,
+        style={'description_width': 'initial'}))
+detrend = widgets.VBox([detrend_individually, detrend_reference, detrend_octaves])
 
-detrend_octaves_match = re.search('(\d+)/(\d+)', detrend_octaves)
-detrend_octaves_number = float(detrend_octaves_match.group(1))/float(detrend_octaves_match.group(2))
+normalization_mode = setting(
+    'normalization/mode',
+    widgets.RadioButtons(
+        description='Normalization mode',
+        options=[
+            ('None', 'none'),
+            ('Equal sensitivity', 'sensitivity'),
+            ('Flat on-axis', 'on_axis'),
+            ('Flat listening window', 'listening_window'),
+            ('Detrend', 'detrend'),
+        ], value='sensitivity',
+        style={'description_width': 'initial'}),
+    on_new_value=lambda value: display_widget(detrend, value == 'detrend'))
 
+form(widgets.HBox([normalization_mode, detrend]))
+```
+
+```python
 def smooth(speaker_fr, octaves):
     (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Mean resolution (freqs/octave)'].unique()
     return (speaker_fr
@@ -872,37 +914,38 @@ spl_axis_label = ['Absolute Sound Pressure Level (dB SPL)']
 di_axis_label = ['Directivity Index (dBr)']
 spl_domain = (55, 105)
 di_domain = (-5, 10)
-if normalization_mode == 'Equal sensitivity':
+if normalization_mode.value == 'sensitivity':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_sensitivity, axis='index', level='Speaker')
     spl_axis_label = ['Relative Sound Pressure (dBr)']
     spl_domain = (-40, 10)
-if normalization_mode == 'Flat on-axis':
+if normalization_mode.value == 'on_axis':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')], axis='index')
     spl_axis_label = ['Sound Pressure (dBr)', 'relative to on-axis']
     spl_domain = (-40, 10)
-if normalization_mode == 'Flat listening window':
+if normalization_mode.value == 'listening_window':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_fr_raw.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window')], axis='index')
     spl_axis_label = ['Sound Pressure (dBr)', 'relative to listening window']
     spl_domain = (-40, 10)
-if normalization_mode == 'Detrend':
-    if detrend_reference == 'Detrend each response individually':
+if normalization_mode.value == 'detrend':
+    detrend_octaves_label = {value: label for label, value in detrend_octaves.options}[detrend_octaves.value] + ' detrended'
+    if detrend_individually.value:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
-            .apply(smooth, detrend_octaves_number))
-        spl_axis_label = ['Sound Pressure (dBr)', '{} detrended'.format(detrend_octaves)]
+            .apply(smooth, detrend_octaves.value))
+        spl_axis_label = ['Sound Pressure (dBr)', detrend_octaves_label]
         spl_domain = (-25, 25)
         speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
             .groupby('Speaker')
-            .apply(smooth, detrend_octaves_number))
-        di_axis_label = ['Directivity Index (dBr)', '{} detrended'.format(detrend_octaves)]
+            .apply(smooth, detrend_octaves.value))
+        di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label]
         di_domain = (-7.5, 7.5)
     else:
-        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference)]
+        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]
             .groupby('Speaker')                     
-            .apply(smooth, detrend_octaves_number), axis='index')
+            .apply(smooth, detrend_octaves.value), axis='index')
         spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves, detrend_reference)]
         spl_domain = (-40, 10)
         
