@@ -97,7 +97,7 @@ import json
 ```
 
 ```python
-def setting(path, widget, on_new_value):
+def setting(path, widget, on_new_value=lambda x: None):
     path = (Path('settings') / path)
     path = path.with_name(path.name + '.json')
     try:
@@ -806,12 +806,23 @@ Note that in other contexts a band centered around 1 kHz is often used.
 **CAUTION:** take the numbers in the below table with a grain of salt. Indeed the raw measurement data is using the wrong absolute scale for some speakers, especially active ones.
 
 ```python
-sensitivity_first_frequency_hz = 200  # @param
-sensitivity_last_frequency_hz = 400  # @param
+def frequency_slider(**kwargs):
+    return widgets.FloatLogSlider(base=10, min=np.log10(20), max=np.log10(20000), step=0.1, readout_format='.2s', layout=widgets.Layout(width='90%'), **kwargs)
 
+sensitivity_first_frequency_hz = setting(
+    'sensitivity/first_frequency_hz',
+    frequency_slider(value=200, description='First frequency (Hz)', style={'description_width': 'initial'}))
+sensitivity_last_frequency_hz = setting(
+    'sensitivity/last_frequency_hz',
+    frequency_slider(value=400, description='Last frequency (Hz)', style={'description_width': 'initial'}))
+
+form(widgets.VBox([sensitivity_first_frequency_hz, sensitivity_last_frequency_hz]))
+```
+
+```python
 sensitivity_input_column = ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis')
 speakers_sensitivity = (speakers_fr_raw
-  .loc[speakers_fr_raw.index.to_frame()['Frequency [Hz]'].between(sensitivity_first_frequency_hz, sensitivity_last_frequency_hz), sensitivity_input_column]
+  .loc[speakers_fr_raw.index.to_frame()['Frequency [Hz]'].between(sensitivity_first_frequency_hz.value, sensitivity_last_frequency_hz.value), sensitivity_input_column]
   .mean(level='Speaker'))
 speakers_sensitivity.to_frame()
 ```
