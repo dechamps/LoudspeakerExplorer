@@ -931,23 +931,23 @@ if normalization_mode.value == 'listening_window':
     spl_axis_label = ['Sound Pressure (dBr)', 'relative to listening window']
     spl_domain = (-40, 10)
 if normalization_mode.value == 'detrend':
-    detrend_octaves_label = lookup_widget_option_label(detrend_octaves) + ' detrended'
+    detrend_octaves_label = lookup_widget_option_label(detrend_octaves)
     if detrend_individually.value:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
             .apply(smooth, detrend_octaves.value))
-        spl_axis_label = ['Sound Pressure (dBr)', detrend_octaves_label]
+        spl_axis_label = ['Sound Pressure (dBr)', detrend_octaves_label + ' detrended']
         spl_domain = (-25, 25)
         speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
             .groupby('Speaker')
             .apply(smooth, detrend_octaves.value))
-        di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label]
+        di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label + ' detrended']
         di_domain = (-7.5, 7.5)
     else:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]
             .groupby('Speaker')                     
             .apply(smooth, detrend_octaves.value), axis='index')
-        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves, detrend_reference)]
+        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves_label, detrend_reference.value)]
         spl_domain = (-40, 10)
         
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
