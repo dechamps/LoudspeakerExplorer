@@ -83,6 +83,7 @@ You might also be interested in:
 import sys
 !{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
 
+from os import environ
 from pathlib import Path
 import re
 import numpy as np
@@ -117,6 +118,13 @@ def setting(path, widget, on_new_value):
     on_new_value(widget.value)
     widget.observe(on_change, names='value')
     return widget
+
+def form(widget):
+    if not environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False):
+        return widget
+    return widgets.VBox([
+        widgets.HTML('<div style="text-align: center; border: 2px solid red; background-color: #eee"><strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.</div>'),
+        widget])
 ```
 
 # Speaker selection
@@ -562,7 +570,7 @@ def speaker_checkbox(speaker):
         speaker_change)
     return checkbox
 
-widgets.VBox(list(speakers.apply(speaker_checkbox, axis='columns')))
+form(widgets.VBox(list(speakers.apply(speaker_checkbox, axis='columns'))))
 ```
 
 ```python

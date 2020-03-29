@@ -9,6 +9,8 @@ jobs:
       - uses: actions/setup-python@v1
       - run: pip3 install jupyter jupytext
       - run: jupytext --to notebook --execute Loudspeaker_Explorer.md
+        env:
+          LOUDSPEAKER_EXPLORER_PRERENDER: true
       - uses: actions/upload-artifact@v1
         with:
           name: Loudspeaker_Explorer
