@@ -126,17 +126,15 @@ def recurse_attr(obj, attr, fn):
 
 prerender_mode = bool(environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
 
-form_banner = widgets.HTML()
-def set_form_banner(contents):
-    form_banner.value = '<div style="text-align: center; border: 2px solid red; background-color: #eee">' + contents + '</div>'
-if prerender_mode:
-    set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
-    
 def display_widget(widget, value):
     widget.layout.display = None if value else 'none'
 
 def form(widget):
+    form_banner = widgets.HTML()
+    def set_form_banner(contents):
+        form_banner.value = '<div style="text-align: center; border: 2px solid red; background-color: #eee">' + contents + '</div>'
     if prerender_mode:
+        set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
         def disable_widget(widget):
             widget.disabled = True
         recurse_attr(widget, 'children', disable_widget)
