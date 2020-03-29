@@ -135,7 +135,7 @@ def lookup_widget_option_label(widget):
 def form(widget):
     form_banner = widgets.HTML()
     def set_form_banner(contents):
-        form_banner.value = '<div style="text-align: center; border: 2px solid red; background-color: #eee">' + contents + '</div>'
+        form_banner.value = '<div style="text-align: left; padding-left: 1ex; border: 2px solid red; background-color: #eee">' + contents + '</div>'
     if prerender_mode:
         set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
         def disable_widget(widget):
