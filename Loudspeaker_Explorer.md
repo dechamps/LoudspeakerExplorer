@@ -16,12 +16,11 @@ jupyter:
     name: Loudspeaker Explorer
     toc_visible: true
   jupytext:
-    notebook_metadata_filter: colab
+    notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version
     text_representation:
       extension: .md
       format_name: markdown
       format_version: '1.2'
-      jupytext_version: 1.3.4
   kernelspec:
     display_name: Python 3
     language: python
