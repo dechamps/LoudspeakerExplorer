@@ -124,15 +124,23 @@ def recurse_attr(obj, attr, fn):
         recurse_attr(child, attr, fn)
     fn(obj)
 
+prerender_mode = bool(environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
+
+form_banner = widgets.HTML()
+def set_form_banner(contents):
+    form_banner.value = '<div style="text-align: center; border: 2px solid red; background-color: #eee">' + contents + '</div>'
+if prerender_mode:
+    set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
+
 def form(widget):
-    if not environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False):
-        return widget
-    def disable_widget(widget):
-        widget.disabled = True
-    recurse_attr(widget, 'children', disable_widget)
-    return widgets.VBox([
-        widgets.HTML('<div style="text-align: center; border: 2px solid red; background-color: #eee"><strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.</div>'),
-        widget])
+    if prerender_mode:
+        def disable_widget(widget):
+            widget.disabled = True
+        recurse_attr(widget, 'children', disable_widget)
+    recurse_attr(widget, 'children',
+        lambda widget: widget.observe(
+            lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
+    return widgets.VBox([form_banner, widget])
 ```
 
 # Speaker selection
