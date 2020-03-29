@@ -92,6 +92,31 @@ import IPython
 import ipywidgets as widgets
 import yattag
 import altair as alt
+import json
+```
+
+```python
+def setting(path, widget, on_new_value):
+    path = (Path('settings') / path)
+    path = path.with_name(path.name + '.json')
+    try:
+        with path.open(mode='r') as file:
+            widget.value = json.load(file)
+    except FileNotFoundError:
+        pass
+    def on_change(change):
+        try:
+            path.parent.mkdir(parents=True)
+        except FileExistsError:
+            pass
+        new_path = path.with_name(path.name + '.new')
+        with new_path.open(mode='w') as file:
+            json.dump(change['new'], file)
+        new_path.rename(path)
+        return on_new_value(change['new'])
+    on_new_value(widget.value)
+    widget.observe(on_change, names='value')
+    return widget
 ```
 
 # Speaker selection
@@ -529,10 +554,12 @@ speakers = pd.DataFrame([{
 
 def speaker_checkbox(speaker):
     speaker = speaker.copy()
-    checkbox = widgets.Checkbox(value=speaker.loc['Enabled'], description=speaker.name, style={'description_width': 'initial'})
-    def speaker_change(change):
-        speakers.loc[speaker.name, 'Enabled'] = change['new']
-    checkbox.observe(speaker_change, names='value')
+    def speaker_change(new):
+        speakers.loc[speaker.name, 'Enabled'] = new
+    return setting(
+        Path('speakers') / 'enabled' / speaker.name,
+        widgets.Checkbox(value=speaker.loc['Enabled'], description=speaker.name, style={'description_width': 'initial'}),
+        speaker_change)
     return checkbox
 
 widgets.VBox(list(speakers.apply(speaker_checkbox, axis='columns')))
