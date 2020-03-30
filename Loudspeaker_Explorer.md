@@ -83,7 +83,7 @@ You might also be interested in:
 import sys
 !{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
 
-from os import environ
+from os import environ, rename
 from pathlib import Path
 import re
 import numpy as np
@@ -97,23 +97,35 @@ import json
 ```
 
 ```python
-def setting(path, widget, on_new_value=lambda x: None):
-    path = (Path('settings') / path)
-    path = path.with_name(path.name + '.json')
+# Shamelessly stolen from https://stackoverflow.com/a/37704379/172594
+def get_nested(dic, path):    
+    for key in path: dic = dic[key]
+    return dic
+def set_nested(dic, path, value):
+    for key in path[:-1]:
+        dic = dic.setdefault(key, {})
+    dic[path[-1]] = value
+
+def load_settings():
     try:
-        with path.open(mode='r') as file:
-            widget.value = json.load(file)
+        with open('settings.json', mode='r') as settings_file:
+            return json.load(settings_file)
     except FileNotFoundError:
+        return {}
+def save_settings():
+    with open('settings.json.new', mode='w') as settings_file:
+        json.dump(settings, settings_file, indent=4, sort_keys=True)
+    rename('settings.json.new', 'settings.json')
+    
+settings = load_settings()
+def setting(path, widget, on_new_value=lambda x: None):
+    try:
+        widget.value = get_nested(settings, path)
+    except KeyError:
         pass
     def on_change(change):
-        try:
-            path.parent.mkdir(parents=True)
-        except FileExistsError:
-            pass
-        new_path = path.with_name(path.name + '.new')
-        with new_path.open(mode='w') as file:
-            json.dump(change['new'], file)
-        new_path.rename(path)
+        set_nested(settings, path, change['new'])
+        save_settings()
         return on_new_value(change['new'])
     on_new_value(widget.value)
     widget.observe(on_change, names='value')
@@ -585,7 +597,7 @@ def speaker_checkbox(speaker):
     def speaker_change(new):
         speakers.loc[speaker.name, 'Enabled'] = new
     return setting(
-        Path('speakers') / 'enabled' / speaker.name,
+        ('speakers', 'enabled', speaker.name),
         widgets.Checkbox(value=speaker.loc['Enabled'], description=speaker.name, style={'description_width': 'initial'}),
         speaker_change)
     return checkbox
@@ -814,10 +826,10 @@ def frequency_slider(**kwargs):
     return widgets.FloatLogSlider(base=10, min=np.log10(20), max=np.log10(20000), step=0.1, readout_format='.2s', layout=widgets.Layout(width='90%'), **kwargs)
 
 sensitivity_first_frequency_hz = setting(
-    'sensitivity/first_frequency_hz',
+    ('sensitivity', 'first_frequency_hz'),
     frequency_slider(value=200, description='First frequency (Hz)', style={'description_width': 'initial'}))
 sensitivity_last_frequency_hz = setting(
-    'sensitivity/last_frequency_hz',
+    ('sensitivity', 'last_frequency_hz'),
     frequency_slider(value=400, description='Last frequency (Hz)', style={'description_width': 'initial'}))
 
 form(widgets.VBox([sensitivity_first_frequency_hz, sensitivity_last_frequency_hz]))
@@ -855,21 +867,21 @@ The **Detrending strength** is the strength of the smoothing applied to the subt
 
 ```python
 detrend_reference = setting(
-    'normalization/detrend_reference',
+    ('normalization', 'detrend', 'reference'),
     widgets.RadioButtons(
         description='Detrending reference',
         options=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'], value='On Axis',
         style={'description_width': 'initial'},
         layout={'width': 'max-content'}))
 detrend_individually = setting(
-    'normalization/detrend_individually',
+    ('normalization', 'detrend', 'individually'),
     widgets.Checkbox(
         description='Detrend each response individually',
         value=False,
         style={'description_width': 'initial'}),
     on_new_value=lambda value: display_widget(detrend_reference, not value))
 detrend_octaves = setting(
-    'normalization/detrend_octaves',
+    ('normalization', 'detrend', 'octaves'),
     widgets.SelectionSlider(
         description='Detrending strength',
         options=[
@@ -883,7 +895,7 @@ detrend_octaves = setting(
 detrend = widgets.VBox([detrend_individually, detrend_reference, detrend_octaves])
 
 normalization_mode = setting(
-    'normalization/mode',
+    ('normalization', 'mode'),
     widgets.RadioButtons(
         description='Normalization mode',
         options=[
@@ -968,7 +980,7 @@ Note that the current algorithm makes the implicit assumption that the input dat
 
 ```python
 smoothing_octaves = setting(
-    'smoothing/octaves',
+    ('smoothing', 'octaves'),
     widgets.SelectionSlider(
         description='Smoothing strength',
         options=[
@@ -980,7 +992,7 @@ smoothing_octaves = setting(
         ], value=1/1,
         style={'description_width': 'initial'}))
 smoothing_preserve_original = setting(
-    'smoothing/preserve_original',
+    ('smoothing', 'preserve_original'),
     widgets.RadioButtons(
         options=[
             ('Display smoothed data alongside unsmoothed data', True),
@@ -989,7 +1001,7 @@ smoothing_preserve_original = setting(
         layout={'width': 'max-content'}))
 smoothing_params = widgets.VBox([smoothing_octaves, smoothing_preserve_original])
 smoothing_enabled = setting(
-    'smoothing/enabled',
+    ('smoothing', 'enabled'),
     widgets.Checkbox(
         description='Enable smoothing',
         value=False,
