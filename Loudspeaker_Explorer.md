@@ -131,6 +131,7 @@ speaker_enable_JBL_705P_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_JBL_705P_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_JBL_Control1Pro = False  # @param {type:"boolean"}
 speaker_enable_JBL_OneSeries104 = False  # @param {type:"boolean"}
+speaker_enable_JBL_Studio530 = True  # @param {type:"boolean"}
 speaker_enable_Kali_IN8 = False  # @param {type:"boolean"}
 speaker_enable_KEF_LS50 = False  # @param {type:"boolean"}
 speaker_enable_KEF_Q100 = False  # @param {type:"boolean"}
@@ -142,7 +143,7 @@ speaker_enable_Neumann_KH80_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_Neumann_KH80_Sample2 = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPBS22LR = False  # @param {type:"boolean"}
 speaker_enable_Pioneer_SPEBS73LR = False  # @param {type:"boolean"}
-speaker_enable_Pioneer_SPEC73 =  True  # @param {type:"boolean"}
+speaker_enable_Pioneer_SPEC73 =  False  # @param {type:"boolean"}
 speaker_enable_Polk_T15 = False  # @param {type:"boolean"}
 speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
@@ -316,6 +317,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-01-25'),
     'Active': True,
     'Price (Single, USD)': 65.00,
+  }, {
+    'Speaker': 'JBL Studio 530',
+    'Enabled': speaker_enable_JBL_Studio530,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-studio-530-spinorama-zip.56405/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-studio-530-speaker-measurements.12298/',
+    'Product URL': 'https://www.jbl.com/loudspeakers/STUDIO+530.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-studio-530-speaker-monitor-audio-review-jpg.56394/',
+    'Measurement Date': pd.Timestamp('2020-03-31'),
+    'Active': False,
+    'Price (Single, USD)': 300.00,
   }, {
     'Speaker': 'Kali Audio IN-8',
     'Enabled': speaker_enable_Kali_IN8,
