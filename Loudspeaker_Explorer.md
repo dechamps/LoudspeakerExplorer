@@ -121,11 +121,12 @@ speaker_enable_AscendAcoustics_CMT340SECenter = False  # @param {type:"boolean"}
 speaker_enable_AscendAcoustics_Sierra2 = False  # @param {type:"boolean"}
 speaker_enable_DaytonAudio_B652AIR = False  # @param {type:"boolean"}
 speaker_enable_Elac_AdanteAS61 = False  # @param {type:"boolean"}
-speaker_enable_Elac_DebutReferenceDBR62 = True  # @param {type:"boolean"}
+speaker_enable_Elac_DebutReferenceDBR62 = False  # @param {type:"boolean"}
 speaker_enable_Emotiva_Airmotiv6s = False  # @param {type:"boolean"}
 speaker_enable_Genelec_8341A = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_LowOrder = False  # @param {type:"boolean"}
 speaker_enable_Harbeth_Monitor30_HighOrder = False  # @param {type:"boolean"}
+speaker_enable_Infinity_R162 = True  # @param {type:"boolean"}
 speaker_enable_JBL_305PMkII = False  # @param {type:"boolean"}
 speaker_enable_JBL_705P_Sample1 = False  # @param {type:"boolean"}
 speaker_enable_JBL_705P_Sample2 = False  # @param {type:"boolean"}
@@ -263,6 +264,16 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-02-09'),
     'Active': False,
     'Price (Single, USD)': 1600.00,
+  }, {
+    'Speaker': 'Infinity R162',
+    'Enabled': speaker_enable_Infinity_R162,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/inifinity-r162-spinorama-zip.56832/',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/infinity-r162-bookshelf-speaker-review.12333/',
+    'Product URL': 'https://www.harmanaudio.com/loudspeakers/REFERENCE+162.html',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/inifinity-r162-bookshelf-home-theater-speaker-review-jpg.56774/',
+    'Measurement Date': pd.Timestamp('2020-04-01'),
+    'Active': False,
+    'Price (Single, USD)': 135.00,
   }, {
     'Speaker': 'JBL 305P MkII',
     'Enabled': speaker_enable_JBL_305PMkII,
