@@ -150,9 +150,10 @@ speaker_enable_Realistic_MC1000 = False  # @param {type:"boolean"}
 speaker_enable_Revel_C52 = False  # @param {type:"boolean"}
 speaker_enable_Revel_F35 = False  # @param {type:"boolean"}
 speaker_enable_Revel_M16 = False  # @param {type:"boolean"}
-speaker_enable_Revel_M22 = True  # @param {type:"boolean"}
+speaker_enable_Revel_M22 = False  # @param {type:"boolean"}
 speaker_enable_SelahAudio_RC3R = False  # @param {type:"boolean"}
 speaker_enable_Tannoy_System600 = False  # @param {type:"boolean"}
+speaker_enable_VerantAudio_BambusaMG1 = True  # @param {type:"boolean"}
 speaker_enable_ZaphAudio_ZA52TM_Winkleswizard = False  # @param {type:"boolean"}
 
 speakers = pd.DataFrame([{
@@ -542,6 +543,17 @@ speakers = pd.DataFrame([{
     'Measurement Date': pd.Timestamp('2020-03-08'),
     'Active': False,
     'Price (Single, USD)': 250.00,  # wild guess
+  }, {
+    'Speaker': 'Verdant Audio Bambusa MG 1',
+    'Enabled': speaker_enable_VerantAudio_BambusaMG1,
+    'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/bambusa-mg-1-spinorama-zip.57040/',
+    'Data License': 'Creative Commons BY-NC-SA 4.0',
+    'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/verdant-audio-bambusa-mg-1-speaker-review.12385/',
+    'Product URL': 'https://verdantaudio.com/products/bambusa-mg-1-pair',
+    'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/bambusa-mg-1-bookshelf-speaker-audio-review-jpg.57041/',
+    'Measurement Date': pd.Timestamp('2020-04-03'),
+    'Active': False,
+    'Price (Single, USD)': 2500.00,
   }, {
     'Speaker': 'Zaph Audio ZA5.2 TM (built by Winkleswizard)',
     'Enabled': speaker_enable_ZaphAudio_ZA52TM_Winkleswizard,
