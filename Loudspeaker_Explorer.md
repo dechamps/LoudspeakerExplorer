@@ -184,7 +184,6 @@ Also note that the **Revel F35** measurement suffers from [numerical computation
 ```python
 speakers = pd.DataFrame([{
     'Speaker': 'Adam Audio S2V',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/adam-s2v-spinorama-cea2034-zip.50119/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/adam-s2v-studio-monitor-review.11455/',
     'Product URL': 'https://www.adam-audio.com/en/s-series/s2v/',
@@ -194,7 +193,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 875.00,
   }, {
     'Speaker': 'Ascend Acoustics CBM-170 SE',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-cbm170-spinorama-data-zip.52802/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-cbm-170-se-speaker-review.11839/',
@@ -205,7 +203,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 150.00,
   }, {
     'Speaker': 'Ascend Acoustics CMT-340 SE Center',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-acoustics-cmt-340-spin-data-zip.52403/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-cmt-340-se-center-channel-speaker-review.11797/',
     'Product URL': 'http://www.ascendacoustics.com/pages/products/speakers/cmt340c/cmt340c.html',
@@ -215,7 +212,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 150.00,
   }, {
     'Speaker': 'Ascend Acoustics Sierra-2',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/ascend-sierra-2-spin-data-zip.52401/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/ascend-sierra-2-speaker-review.11813/',
     'Product URL': 'http://www.ascendacoustics.com/pages/products/speakers/SRM2/srm2.html',
@@ -225,7 +221,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 740.00,
   }, {
     'Speaker': 'Dayton Audio B652-AIR',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/dayton-audio-b652-air-spinorama-zip.49763/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/dayton-audio-b652-air-speaker-review.11410/',
     'Product URL': 'https://www.daytonaudio.com/product/1243/b652-air-6-1-2-2-way-bookshelf-speaker-with-amt-tweeter-pair',
@@ -235,7 +230,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 39.00,
   }, {
     'Speaker': 'Elac Adante AS-61',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-adante-as-61-cea-2034-spin-data-zip.50439/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/elac-adante-as-61-speaker-review.11507/',
     'Product URL': 'https://www.elac.com/series/adante/as-61/',
@@ -245,7 +239,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1250.00,
   }, {
     'Speaker': 'Elac Debut Reference DBR-62',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/elac-dbr62-zip.55724/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/elac-debut-reference-dbr-62-speaker-review.12232/',
@@ -256,7 +249,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 300.00,
   }, {
     'Speaker': 'Emotiva Airmotiv 6s',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/emotiva-airmotive-6s-spinorama-zip.48091/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/emotiva-airmotiv-6s-powered-speaker-review.11185/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/emotiva-airmotive-6s-powered-monitor-speaker-review-jpg.48017/',
@@ -265,7 +257,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 250.00,
   }, {
     'Speaker': 'Genelec 8341A',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/genelec-8431a-spl-adjusted-zip.51413/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/',
     'Product URL': 'https://www.genelec.com/8341a',
@@ -275,7 +266,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 2950.00,
   }, {
     'Speaker': 'Harbeth Monitor 30 (low order)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-ces2034-spinorama-zip.47527/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/harbeth-monitor-30-speaker-review.11108/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-30-speaker-review-jpg.47512/',
@@ -284,7 +274,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1600.00,
   }, {
     'Speaker': 'Harbeth Monitor 30 (high order)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-30-high-order-spin-data-zip.49385/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324345',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/harbeth-monitor-30-speaker-review-jpg.47512/',
@@ -293,7 +282,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1600.00,
   }, {
     'Speaker': 'Infinity R162',
-    'Enabled': True,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/inifinity-r162-spinorama-zip.56832/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/infinity-r162-bookshelf-speaker-review.12333/',
     'Product URL': 'https://www.harmanaudio.com/loudspeakers/REFERENCE+162.html',
@@ -303,7 +291,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 135.00,
   }, {
     'Speaker': 'JBL 305P MkII',
-    'Enabled': False,
     # https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-monitor-review.11018/page-2#post-310325
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-305p-mark-ii-cea2034-zip.46835/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/',
@@ -314,7 +301,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 150.00,
   }, {
     'Speaker': 'JBL 705P (sample 1)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-spinorama-zip.53447/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-705p-studio-monitor-review.11944/',
@@ -325,7 +311,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1000.00,
   }, {
     'Speaker': 'JBL 705P (sample 2)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-705p-sample-2-zip.53543/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-705p-studio-monitor-review.11944/page-8#post-346907',
@@ -336,7 +321,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1000.00,
   }, {
     'Speaker': 'JBL Control 1 Pro',
-    'Enabled': False,
     # https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/page-24#post-315827
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-control-1-pro-zip.47821/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/',
@@ -347,7 +331,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 82.00,
   }, {
     'Speaker': 'JBL One Series 104',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-104-spinorama-zip.47297/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-one-series-104-powered-monitor-review.11076/',
     'Product URL': 'https://jblpro.com/en-US/products/104',
@@ -357,7 +340,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 65.00,
   }, {
     'Speaker': 'JBL Studio 530',
-    'Enabled': True,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/jbl-studio-530-spinorama-zip.56405/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/jbl-studio-530-speaker-measurements.12298/',
@@ -368,7 +350,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 300.00,
   }, {
     'Speaker': 'Kali Audio IN-8',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kali-in-8-spinorama-zip.48347/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kali-audio-in-8-studio-monitor-review.10897/page-29#post-318617',
     'Product URL': 'https://www.kaliaudio.com/independence',
@@ -378,7 +359,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 400.00,
   }, {
     'Speaker': 'KEF LS50',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-ls50-ces2034-zip.47785/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-ls50-bookshelf-speaker-review.11144/',
     'Product URL': 'https://us.kef.com/catalog/product/view/id/1143/s/ls50-mini-monitor-speaker-pair/category/94/',
@@ -388,7 +368,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 750.00,
   }, {
     'Speaker': 'KEF Q100',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-q100-spinorama-zip.53776/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-q100-speaker-review.11987/',
@@ -398,7 +377,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 225.00,
   }, {
     'Speaker': 'KEF R3',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/kef-r3-spinorama-zip.54005/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/kef-r3-speaker-review.12021/',
@@ -408,7 +386,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 1000.00,
   }, {
     'Speaker': 'Klipsch R-41M',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-r41m-spin-data-zip.50860/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/',
     'Product URL': 'https://www.klipsch.com/products/r-41m-bookshelf-speaker-blk-gnm',
@@ -418,7 +395,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 75.00,
   }, {
     'Speaker': 'Klipsch RP-600M',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/klipsch-rp-600m-spinorama-zip.55056/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/klipsch-rp-600m-speaker-review.12138/',
@@ -429,7 +405,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 315.00,
   }, {
     'Speaker': 'Micca RB42',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/micca-rb42-cea2034-spinorama-zip.48638/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/micca-rb42-bookshelf-speaker-review.11267/',
     'Product URL': 'https://www.miccatron.com/micca-rb42-reference-bookshelf-speakers/',
@@ -439,7 +414,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 75.00,
   }, {
     'Speaker': 'Neumann KH 80 DSP (sample 1)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/neumann-kh-80-cea2034-zip.46824/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-monitor-review.11018/',
     'Product URL': 'https://www.neumann.com/homestudio/en/kh-80',
@@ -449,7 +423,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 500.00,
   }, {
     'Speaker': 'Neumann KH 80 DSP (sample 2)',
-    'Enabled': False,
     # https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-12#post-324456
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/neumann-kh80-dsp-1000-point-order-20-spin-datra-zip.49443/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/',
@@ -460,7 +433,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 500.00,
   }, {
     'Speaker': 'Pioneer SP-BS22-LR',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-bs22-lr-spinorama-2-zip.49024/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-sp-bs22-lr-bookshelf-speaker-review.11303/',
     'Product URL': 'https://intl.pioneer-audiovisual.com/products/speakers/sp-bs22-lr/',
@@ -470,7 +442,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 80.00,
   }, {
     'Speaker': 'Pioneer Elite SP-EBS73-LR',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-elite-sp-eb73lr-spinorama-zip.55313/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-elite-sp-ebs73-lr-atmos-speaker-review.12163/',
@@ -480,7 +451,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 375.00,
   }, {
     'Speaker': 'Pioneer Elite SP-EC73',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/pioneer-sp-ec73-speaker-spinorama-zip.55573/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/pioneer-elite-sp-ec73-center-speaker-review.12197/',
@@ -490,7 +460,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 400.00,
   }, {
     'Speaker': 'Polk T15',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/polk-t15-spin-data-zip.52404/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/polk-t15-bookshelf-speaker-review.11720/',
     'Product URL': 'https://en.polkaudio.com/shop/polkaudio-tseries/t15',
@@ -500,7 +469,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 40.00,
   }, {
     'Speaker': 'Realistic MC-1000',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/realistic-mc-1000-spinorama-zip.48797/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/mc-1000-best-speaker-in-the-world.11283/',
     'Picture URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/realistic-mc-1000-radio-shack-2-way-vintage-speaker-listing-jpg.48786/',
@@ -509,7 +477,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 120.00,  # $30 in 1978, adjusted for inflation
   }, {
     'Speaker': 'Revel C52',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-c52-spinorama-zip.52515/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-c52-speaker-review-and-measurements.10934/',
     'Product URL': 'https://www.revelspeakers.com/support/legacy/lsupport-center-channel/C52-.html',
@@ -519,7 +486,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 2500.00,
   }, {
     'Speaker': 'Revel F35',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-f35-spinorama-zip.54290/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/',
@@ -530,7 +496,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 800.00,
   }, {
     'Speaker': 'Revel M16',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m16-spin-zip.52914/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-m16-speaker-review.11884/',
@@ -541,7 +506,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 450.00,
   }, {
     'Speaker': 'Revel M22',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/revel-m22-spinorama-zip.56078/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/revel-m22-speaker-review.12279/',
@@ -551,7 +515,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 300.00,  # used
   }, {
     'Speaker': 'Selah Audio RC3R',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/selah-audio-rc3r-spinorama-zip.48264/',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/selah-audio-rc3r-3-way-speaker-review.11218/',
     'Product URL': 'http://www.selahaudio.com/monitors',
@@ -561,7 +524,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 650.00,
   }, {
     'Speaker': 'Tannoy System 600',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/tannoy-system-600-spinorama-zip.53279/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/tannoy-system-600-speaker-review.11919/',
@@ -571,7 +533,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 250.00,  # wild guess
   }, {
     'Speaker': 'Verdant Audio Bambusa MG 1',
-    'Enabled': True,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/bambusa-mg-1-spinorama-zip.57040/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/verdant-audio-bambusa-mg-1-speaker-review.12385/',
@@ -582,7 +543,6 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 2500.00,
   }, {
     'Speaker': 'Zaph Audio ZA5.2 TM (built by Winkleswizard)',
-    'Enabled': False,
     'Data URL': 'https://www.audiosciencereview.com/forum/index.php?attachments/zaph-audio-za5-zip.54633/',
     'Data License': 'Creative Commons BY-NC-SA 4.0',
     'Review URL': 'https://www.audiosciencereview.com/forum/index.php?threads/zaph-audio-za5-diy-kit-speaker-review.12086/',
@@ -593,6 +553,9 @@ speakers = pd.DataFrame([{
     'Price (Single, USD)': 170.00,
   },
 ]).set_index('Speaker')
+
+speakers.loc[:, 'Enabled'] = speakers.index.isin(
+    speakers.loc[:, 'Measurement Date'].nlargest(3).index)
 
 def speaker_checkbox(speaker):
     speaker = speaker.copy()
