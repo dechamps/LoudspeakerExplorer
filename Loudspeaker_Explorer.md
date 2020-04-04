@@ -1047,15 +1047,43 @@ Here you can customize some parameters related to the charts.
 <!-- #endregion -->
 
 ```python
-# @markdown In standalone charts, offset speaker traces by this many dB. (`-10` is a good starting point.)
-speaker_offset_db = 0  # @param {type:"number"}
-# @markdown Dimensions for standalone charts
-standalone_chart_width = 800  # @param {type:"integer"}
-standalone_chart_height = 400  # @param {type:"integer"}
-# @markdown Dimensions for side-by-side charts
-sidebyside_chart_width = 600  # @param {type:"integer"}
-sidebyside_chart_height = 300  # @param {type:"integer"}
+speaker_offset_db = setting(
+    ('speaker_offset', 'db'),
+    widgets.FloatText(value=-10, description='Offset (dB):'))
+speaker_offset_enabled = setting(
+    ('speaker_offset', 'enabled'),
+    widgets.Checkbox(
+        description='Offset speaker traces', value=False,
+        style={'description_width': 'initial'}),
+    on_new_value=lambda value: display_widget(speaker_offset_db, value))
 
+standalone_chart_width = setting(
+    ('chart_size', 'standalone', 'width'),
+    widgets.IntText(
+        description='Standalone chart width:', value=800, min=0,
+        style={'description_width': 'initial'}))
+standalone_chart_height = setting(
+    ('chart_size', 'standalone', 'height'),
+    widgets.IntText(
+        description='height:', value=400, min=0))
+sidebyside_chart_width = setting(
+    ('chart_size', 'sidebyside', 'width'),
+    widgets.IntText(
+        description='Side-by-side chart width:', value=600, min=0,
+        style={'description_width': 'initial'}))
+sidebyside_chart_height = setting(
+    ('chart_size', 'sidebyside', 'height'),
+    widgets.IntText(
+        description='height:', value=300, min=0))
+
+form(widgets.VBox([
+    widgets.HBox([speaker_offset_enabled, speaker_offset_db]),
+    widgets.HBox([standalone_chart_width, standalone_chart_height]),
+    widgets.HBox([sidebyside_chart_width, sidebyside_chart_height]),
+]))
+```
+
+```python
 # Removes index levels from `df` that have identical values throughout.
 # Also returns a Series with the index levels that were removed, along with their common value.
 #
@@ -1133,7 +1161,16 @@ common_title = alt.TitleParams(
     text='; '.join(common_title.to_list()),
     anchor='start')
 
-speaker_offsets = speakers_fr_ready.index.get_level_values('Speaker').drop_duplicates().to_frame().reset_index(drop=True).reset_index().set_index('Speaker').loc[:, 'index']*speaker_offset_db
+speaker_offsets = (speakers_fr_ready.index
+    .get_level_values('Speaker')
+    .drop_duplicates()
+    .to_frame()
+    .reset_index(drop=True)
+    .reset_index()
+    .set_index('Speaker')
+    .loc[:, 'index']
+    * (speaker_offset_db.value if speaker_offset_enabled.value else 0)
+)
 def relabel_speaker_with_offset(speaker_name):
     speaker_offset = speaker_offsets.loc[speaker_name]
     return speaker_name + ('' if speaker_offset == 0 else ' [{:+.0f} dB]'.format(speaker_offsets.loc[speaker_name]))
@@ -1177,8 +1214,8 @@ def set_chart_dimensions(chart, sidebyside=False):
     if single_speaker_mode:
         sidebyside = False
     return chart.properties(
-        width=sidebyside_chart_width if sidebyside else standalone_chart_width,
-        height=sidebyside_chart_height if sidebyside else standalone_chart_height)
+        width=sidebyside_chart_width.value if sidebyside else standalone_chart_width.value,
+        height=sidebyside_chart_height.value if sidebyside else standalone_chart_height.value)
 
 def frequency_tooltip():
     return alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s')
