@@ -885,11 +885,15 @@ form(widgets.HBox([normalization_mode, detrend]))
 ```python
 def smooth(speaker_fr, octaves):
     (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Mean resolution (freqs/octave)'].unique()
+    span = freqs_per_octave*octaves
+    if span <= 1:
+        # Data resolution is lower than requested smoothing - nothing to do.
+        return speaker_fr
     return (speaker_fr
         # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
         .sort_index()
         # Note that this assumes points are equally spaced in log-frequency.
-        .ewm(span=freqs_per_octave*octaves).mean()
+        .ewm(span=span).mean()
     )
 
 speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
