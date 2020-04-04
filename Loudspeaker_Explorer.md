@@ -82,13 +82,35 @@ You might also be interested in:
 LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = None
 ###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###  # Variable assignment injected by continuous integration process
 
-# https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
 import sys
-!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
-
-from os import environ, rename
+from os import chdir, mkdir, environ, rename
+import shutil
 from pathlib import Path
 import re
+import json
+
+if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in environ:
+    current_git_sha = None
+    try:
+        with open('.loudspeaker_explorer_git_sha', mode='r') as git_sha_file:
+            current_git_sha = git_sha_file.read()
+    except FileNotFoundError:
+        pass
+    if current_git_sha != LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA:
+        if current_git_sha is not None:
+            # An already running Colab instance has opened a different version of the notebook.
+            # (It's not clear if this can actually happen in practice, but err on the safe side nonetheless…)
+            chdir('..')
+            shutil.rmtree('LoudspeakerExplorer')
+        mkdir('LoudspeakerExplorer')
+        chdir('LoudspeakerExplorer')
+        !curl --location -- 'https://github.com/dechamps/LoudspeakerExplorer/tarball/{LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA}' | tar --gzip --extract --strip-components=1
+        with open('.loudspeaker_explorer_git_sha', mode='w') as git_sha_file:
+            git_sha_file.write(LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
+        
+# https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
+!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
+
 import numpy as np
 import pandas as pd
 import engarde.decorators as ed
@@ -96,7 +118,6 @@ import IPython
 import ipywidgets as widgets
 import yattag
 import altair as alt
-import json
 ```
 
 ```python
