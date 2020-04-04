@@ -97,6 +97,12 @@ import json
 ```
 
 ```python
+# Equivalent to the (deprecated) alt.pipe(), or toolz.curried.pipe() (but without the extra dependency)
+def pipe(data, *funcs):
+    for func in funcs:
+        data = func(data)
+    return data
+
 # Shamelessly stolen from https://stackoverflow.com/a/37704379/172594
 def get_nested(dic, path):    
     for key in path: dic = dic[key]
@@ -1184,7 +1190,7 @@ def frequency_tooltip():
     return alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s')
 
 def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
-    return alt.pipe(
+    return pipe(
         alt.Chart(data, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
@@ -1297,7 +1303,7 @@ This chart shows the resolution of the input data at each frequency. For each po
 A straight, horizontal line means that resolution is constant throughout the spectrum, or in other words, points are equally spaced in log-frequency. Some Loudspeaker Explorer features, especially smoothing and detrending, implicitly assume that this is the case, and might produce inaccurate results otherwise.
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready
         .index.to_frame()
         .reset_index(drop=True)
@@ -1341,7 +1347,7 @@ Remember:
 
 ```python
 spinorama_chart_legend_selection = alt.selection_multi(fields=['variable'], bind='legend')
-spinorama_chart_common = alt.pipe(
+spinorama_chart_common = pipe(
     speakers_fr_ready
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1368,14 +1374,14 @@ spinorama_chart_common = alt.pipe(
 # - To make the two axes zoom and pan at the same time, `.interactive()` has to
 #   be used on each encoding, not on the overall view. Otherwise only the left
 #   axis will support zoom & pan.
-alt.pipe(
+pipe(
     alt.layer(
-        alt.pipe(
+        pipe(
             spinorama_chart_common
                 .encode(sound_pressure_yaxis())
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'])),
             lambda chart: interactive_line(chart, variable_color_fn())),
-        alt.pipe(
+        pipe(
             spinorama_chart_common
                 .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
@@ -1389,7 +1395,7 @@ alt.pipe(
 ## On-axis response
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
@@ -1422,7 +1428,7 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    return alt.pipe(
+    return pipe(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(convert_angles)
@@ -1463,7 +1469,7 @@ off_axis_angles_chart('Vertical')
 <!-- #endregion -->
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready
         .loc[:, 'Horizontal Reflections']
         .rename_axis(columns=['Direction'])
@@ -1492,7 +1498,7 @@ alt.pipe(
 <!-- #endregion -->
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready
         .loc[:, 'Vertical Reflections']
         .rename_axis(columns=['Direction'])
@@ -1517,7 +1523,7 @@ alt.pipe(
 ## Listening Window response
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1535,7 +1541,7 @@ alt.pipe(
 ## Early Reflections response
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1553,7 +1559,7 @@ alt.pipe(
 ## Sound Power response
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1571,7 +1577,7 @@ alt.pipe(
 ## Early Reflections Directivity Index
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1589,7 +1595,7 @@ alt.pipe(
 ## Sound Power Directivity Index
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1607,7 +1613,7 @@ alt.pipe(
 ## Estimated In-Room Response
 
 ```python
-alt.pipe(
+pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1633,7 +1639,7 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-listening_window_detail_common = alt.pipe(
+listening_window_detail_common = pipe(
     speakers_fr_ready
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
@@ -1662,14 +1668,14 @@ listening_window_detail_highlight = alt.FieldOneOfPredicate(
 listening_window_color_fn = variable_color_fn(scale=alt.Scale(
     range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']))
 
-alt.pipe(
+pipe(
     alt.layer(
-        alt.pipe(
+        pipe(
             listening_window_detail_common
                 .transform_filter({'not': listening_window_detail_highlight})
                 .encode(strokeWidth=alt.value(1.5)),
              lambda chart: interactive_line(chart, listening_window_color_fn)),
-        alt.pipe(
+        pipe(
             listening_window_detail_common
                 .transform_filter(listening_window_detail_highlight),
             lambda chart: interactive_line(chart, listening_window_color_fn))),
