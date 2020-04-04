@@ -179,7 +179,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 
 Also note that the **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
 
-**How to add a new speaker**: in the following code block, add a new variable, and repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
+**How to add a new speaker**: in the following code block, repeat the pattern in the `speakers` variable assignment. That's it - everything else should take care of itself. Note that the tool expects a zipfile in the format that amirm publishes (which presumably is the Klippel analysis software export format). If you want to upload the zipfile manually instead of using `Data URL`, you can do that using the Colab file browser on the left - just make sure the name of the file matches the `Speaker` field in the raw specification so that the tool can find it.
 
 ```python
 speakers = pd.DataFrame([{
