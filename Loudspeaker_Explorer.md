@@ -79,6 +79,9 @@ You might also be interested in:
 <!-- #endregion -->
 
 ```python
+LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = None
+###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###  # Variable assignment injected by continuous integration process
+
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
 import sys
 !{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
@@ -164,6 +167,8 @@ def form(widget):
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
     return widgets.VBox([form_banner, widget])
 
+if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None:
+    print('Prerendered from Git commit', LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
 print(json.dumps(settings, indent=4, sort_keys=True))
 ```
 
