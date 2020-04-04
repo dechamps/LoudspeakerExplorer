@@ -1671,7 +1671,20 @@ listening_window_detail_highlight = alt.FieldOneOfPredicate(
     oneOf=['Listening Window', 'On Axis'])
 
 listening_window_color_fn = variable_color_fn(scale=alt.Scale(
-    range=['#aeadd3', '#796db2', '#cec5c1', '#c0b8b4', '#b3aaa7', '#a59c99', '#98908c', '#8b827f', '#ff7f0e', '#2ca02c']))
+    range=[
+        # Vertical ±10°: purples(2)
+        '#796db2', '#aeadd3', 
+        # Horizontal ±10°: browns(2)
+        '#c26d43', '#e1a360',
+        # Horizontal ±20°: blues(2)
+        '#3887c0', '#86bcdc',
+        # Horizontal ±30°: greys(2)
+        '#686868', '#aaaaaa',
+        # Listening Window: category10(1)
+        '#ff7f0e',
+        # On Axis: category10(2)
+        '#2ca02c',
+    ]))
 
 pipe(
     alt.layer(
