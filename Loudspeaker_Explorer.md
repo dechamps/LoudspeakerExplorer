@@ -157,6 +157,8 @@ def form(widget):
         lambda widget: widget.observe(
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
     return widgets.VBox([form_banner, widget])
+
+print(json.dumps(settings, indent=4, sort_keys=True))
 ```
 
 # Speaker selection
