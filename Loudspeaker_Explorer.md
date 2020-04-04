@@ -81,7 +81,8 @@ You might also be interested in:
 ```python
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
 import sys
-!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
+# We freeze altair at version 4.0.1 because 4.1.0 uses vega-lite 4.8.0, which is problematic because of https://github.com/vega/vega-lite/issues/6259
+!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair==4.0.1
 
 from os import environ, rename
 from pathlib import Path
