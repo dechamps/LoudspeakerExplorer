@@ -1,4 +1,5 @@
 from . import fr
+from . import pd
 from . import util
 from . import widgets
 
