@@ -81,3 +81,21 @@ def load_speaker(dir):
         (_load_fr(file) for file in filter(lambda path: not path.name in (
             'LICENSE.txt', 'Read License Agreement.txt', 'speaker_metadata.yaml'), dir.iterdir())),
         axis='columns')
+
+
+def convert_angles(df):
+    # Given a DataFrame with some of the columns in the following format:
+    #   'On-Axis' '10°' '20°' '-10°' ...
+    # Converts the above column labels to the following:
+    #   0.0 10.0 20.0 -10.0
+    def convert_label(label):
+        if label == 'On-Axis':
+            return 0.0
+        stripped_label = label.strip('°')
+        if stripped_label == label:
+            return label
+        try:
+            return float(stripped_label)
+        except ValueError:
+            return label
+    return df.rename(columns=convert_label)

@@ -233,7 +233,7 @@ data files for each speaker are merged to form the columns of the DataFrame.
 
 ```python
 speakers_fr_raw = pd.concat(
-  {speaker.Index: lsx.load_speaker(pathlib.Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
+  {speaker.Index: lsx.data.load_speaker(pathlib.Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
   names=['Speaker'], axis='rows')
 speakers_fr_raw
 ```
@@ -745,23 +745,6 @@ def speaker_input(chart):
                 name='Speaker: ', options=[None] + speakers, labels=['All'] + speakers))
     return chart.transform_filter(selection).add_selection(selection)
 
-# Given a DataFrame with some of the columns in the following format:
-#   'On-Axis' '10°' '20°' '-10°' ...
-# Converts the above column labels to the following:
-#   0.0 10.0 20.0 -10.0
-def convert_angles(df):
-    def convert_label(label):
-        if label == 'On-Axis':
-            return 0.0
-        stripped_label = label.strip('°')
-        if stripped_label == label:
-            return label
-        try:
-            return float(stripped_label)
-        except ValueError:
-            return label
-    return df.rename(columns=convert_label)
-
 def postprocess_chart(chart):
     # Altair/Vega-Lite doesn't provide a way to set multiple titles or just display arbitrary text.
     # We hack around that limitation by concatenating with a dummy chart that has a title.
@@ -917,7 +900,7 @@ def off_axis_angles_chart(direction):
     return lsx.util.pipe(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
-            .pipe(convert_angles)
+            .pipe(lsx.data.convert_angles)
             .rename_axis(columns='Angle')
             .stack()
             .reset_index()
