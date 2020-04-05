@@ -123,30 +123,7 @@ import loudspeakerexplorer as lsx
 ```
 
 ```python
-def load_settings():
-    try:
-        with open('settings.json', mode='r') as settings_file:
-            return json.load(settings_file)
-    except FileNotFoundError:
-        return {}
-def save_settings():
-    with open('settings.json.new', mode='w') as settings_file:
-        json.dump(settings, settings_file, indent=4, sort_keys=True)
-    os.rename('settings.json.new', 'settings.json')
-    
-settings = load_settings()
-def setting(path, widget, on_new_value=lambda x: None):
-    try:
-        widget.value = lsx.util.get_nested(settings, path)
-    except KeyError:
-        pass
-    def on_change(change):
-        lsx.util.set_nested(settings, path, change['new'])
-        save_settings()
-        return on_new_value(change['new'])
-    on_new_value(widget.value)
-    widget.observe(on_change, names='value')
-    return widget
+settings = lsx.Settings(pathlib.Path('settings.json'))
 
 def recurse_attr(obj, attr, fn):
     for child in getattr(obj, attr, []):
@@ -177,7 +154,7 @@ def form(widget):
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None:
     print('Prerendered from Git commit', LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
-print(json.dumps(settings, indent=4, sort_keys=True))
+print(settings)
 ```
 
 # Speaker selection
@@ -219,7 +196,7 @@ def speaker_checkbox(speaker):
     speaker = speaker.copy()
     def speaker_change(new):
         speakers.loc[speaker.name, 'Enabled'] = new
-    return setting(
+    return settings.track_widget(
         ('speakers', 'enabled', speaker.name),
         widgets.Checkbox(value=speaker.loc['Enabled'], description=speaker.name, style={'description_width': 'initial'}),
         speaker_change)
@@ -433,10 +410,10 @@ Note that in other contexts a band centered around 1 kHz is often used.
 def frequency_slider(**kwargs):
     return widgets.FloatLogSlider(base=10, min=np.log10(20), max=np.log10(20000), step=0.1, readout_format='.2s', layout=widgets.Layout(width='90%'), **kwargs)
 
-sensitivity_first_frequency_hz = setting(
+sensitivity_first_frequency_hz = settings.track_widget(
     ('sensitivity', 'first_frequency_hz'),
     frequency_slider(value=200, description='First frequency (Hz)', style={'description_width': 'initial'}))
-sensitivity_last_frequency_hz = setting(
+sensitivity_last_frequency_hz = settings.track_widget(
     ('sensitivity', 'last_frequency_hz'),
     frequency_slider(value=400, description='Last frequency (Hz)', style={'description_width': 'initial'}))
 
@@ -474,21 +451,21 @@ If **Detrend each response individually** is checked, individual responses are s
 The **Detrending strength** is the strength of the smoothing applied to the subtracted response.
 
 ```python
-detrend_reference = setting(
+detrend_reference = settings.track_widget(
     ('normalization', 'detrend', 'reference'),
     widgets.RadioButtons(
         description='Detrending reference',
         options=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'], value='On Axis',
         style={'description_width': 'initial'},
         layout={'width': 'max-content'}))
-detrend_individually = setting(
+detrend_individually = settings.track_widget(
     ('normalization', 'detrend', 'individually'),
     widgets.Checkbox(
         description='Detrend each response individually',
         value=False,
         style={'description_width': 'initial'}),
     on_new_value=lambda value: display_widget(detrend_reference, not value))
-detrend_octaves = setting(
+detrend_octaves = settings.track_widget(
     ('normalization', 'detrend', 'octaves'),
     widgets.SelectionSlider(
         description='Detrending strength',
@@ -502,7 +479,7 @@ detrend_octaves = setting(
         style={'description_width': 'initial'}))
 detrend = widgets.VBox([detrend_individually, detrend_reference, detrend_octaves])
 
-normalization_mode = setting(
+normalization_mode = settings.track_widget(
     ('normalization', 'mode'),
     widgets.RadioButtons(
         description='Normalization mode',
@@ -591,7 +568,7 @@ Smoothing is done by applying an [exponential moving average (EMA)](https://en.w
 Note that the current algorithm makes the implicit assumption that the input data is equally log-spaced in frequency (see "Data Check", "Resolution" below). With recent datasets this assumption tends to break down below ~100 Hz, where points are further apart than expected, leading to excessive smoothing.
 
 ```python
-smoothing_octaves = setting(
+smoothing_octaves = settings.track_widget(
     ('smoothing', 'octaves'),
     widgets.SelectionSlider(
         description='Smoothing strength',
@@ -603,7 +580,7 @@ smoothing_octaves = setting(
             ('1/12-octave', 1/12),
         ], value=1/1,
         style={'description_width': 'initial'}))
-smoothing_preserve_original = setting(
+smoothing_preserve_original = settings.track_widget(
     ('smoothing', 'preserve_original'),
     widgets.RadioButtons(
         options=[
@@ -612,7 +589,7 @@ smoothing_preserve_original = setting(
         ], value=True,
         layout={'width': 'max-content'}))
 smoothing_params = widgets.VBox([smoothing_octaves, smoothing_preserve_original])
-smoothing_enabled = setting(
+smoothing_enabled = settings.track_widget(
     ('smoothing', 'enabled'),
     widgets.Checkbox(
         description='Enable smoothing',
@@ -657,31 +634,31 @@ Here you can customize some parameters related to the charts.
 <!-- #endregion -->
 
 ```python
-speaker_offset_db = setting(
+speaker_offset_db = settings.track_widget(
     ('speaker_offset', 'db'),
     widgets.FloatText(value=-10, description='Offset (dB):'))
-speaker_offset_enabled = setting(
+speaker_offset_enabled = settings.track_widget(
     ('speaker_offset', 'enabled'),
     widgets.Checkbox(
         description='Offset speaker traces', value=False,
         style={'description_width': 'initial'}),
     on_new_value=lambda value: display_widget(speaker_offset_db, value))
 
-standalone_chart_width = setting(
+standalone_chart_width = settings.track_widget(
     ('chart_size', 'standalone', 'width'),
     widgets.IntText(
         description='Standalone chart width:', value=800, min=0,
         style={'description_width': 'initial'}))
-standalone_chart_height = setting(
+standalone_chart_height = settings.track_widget(
     ('chart_size', 'standalone', 'height'),
     widgets.IntText(
         description='height:', value=400, min=0))
-sidebyside_chart_width = setting(
+sidebyside_chart_width = settings.track_widget(
     ('chart_size', 'sidebyside', 'width'),
     widgets.IntText(
         description='Side-by-side chart width:', value=600, min=0,
         style={'description_width': 'initial'}))
-sidebyside_chart_height = setting(
+sidebyside_chart_height = settings.track_widget(
     ('chart_size', 'sidebyside', 'height'),
     widgets.IntText(
         description='height:', value=300, min=0))
