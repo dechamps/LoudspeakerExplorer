@@ -63,7 +63,7 @@ To run the code and (re)generate the data, go to the **Runtime** menu and click 
 If you don't have a Google account, or don't want to use Colab for any other reason, the following alternatives are available:
 
 - **[Binder](https://mybinder.org/v2/gh/dechamps/LoudspeakerExplorer/master?filepath=Loudspeaker_Explorer.ipynb)**: similar to Colab. Can take a (very) long time to load the first time; be patient. To run the notebook after it's loaded, go to the **Kernel** menu and click **Restart & Run All**.
-- **[Run locally](https://github.com/dechamps/LoudspeakerExplorer#developer-information)**: clone the Github repository and follow the developer instructions to run the Notebook on your local machine. This is not an easy option as it requires you to set up a Python environment. This is useful you want maximum performance, if you want to make significant changes to the code, or if you want to contribute to Loudspeaker Explorer.
+- **[Run locally](https://github.com/dechamps/LoudspeakerExplorer#developer-information)**: clone the Github repository and follow the developer instructions to run the Notebook on your local machine. This is not an easy option as it requires you to set up a Python environment. This is useful if you want maximum performance, if you want to make significant changes to the code, or if you want to contribute to Loudspeaker Explorer.
 
 ## Acknowledgments
 
