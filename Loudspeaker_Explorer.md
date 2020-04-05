@@ -127,12 +127,6 @@ settings = lsx.Settings(pathlib.Path('settings.json'))
 
 prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
 
-def display_widget(widget, value):
-    widget.layout.display = None if value else 'none'
-    
-def lookup_widget_option_label(widget):
-    return {value: label for label, value in widget.options}[widget.value]
-
 def form(widget):
     form_banner = widgets.HTML()
     def set_form_banner(contents):
@@ -459,7 +453,7 @@ detrend_individually = settings.track_widget(
         description='Detrend each response individually',
         value=False,
         style={'description_width': 'initial'}),
-    on_new_value=lambda value: display_widget(detrend_reference, not value))
+    on_new_value=lambda value: lsx.widgets.display(detrend_reference, not value))
 detrend_octaves = settings.track_widget(
     ('normalization', 'detrend', 'octaves'),
     widgets.SelectionSlider(
@@ -486,7 +480,7 @@ normalization_mode = settings.track_widget(
             ('Detrend', 'detrend'),
         ], value='sensitivity',
         style={'description_width': 'initial'}),
-    on_new_value=lambda value: display_widget(detrend, value == 'detrend'))
+    on_new_value=lambda value: lsx.widgets.display(detrend, value == 'detrend'))
 
 form(widgets.HBox([normalization_mode, detrend]))
 ```
@@ -527,7 +521,7 @@ if normalization_mode.value == 'listening_window':
     spl_axis_label = ['Sound Pressure (dBr)', 'relative to listening window']
     spl_domain = (-40, 10)
 if normalization_mode.value == 'detrend':
-    detrend_octaves_label = lookup_widget_option_label(detrend_octaves)
+    detrend_octaves_label = lsx.widgets.lookup_option_label(detrend_octaves)
     if detrend_individually.value:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
@@ -590,7 +584,7 @@ smoothing_enabled = settings.track_widget(
         description='Enable smoothing',
         value=False,
         style={'description_width': 'initial'}),
-    on_new_value=lambda value: display_widget(smoothing_params, value))
+    on_new_value=lambda value: lsx.widgets.display(smoothing_params, value))
 
 form(widgets.HBox([smoothing_enabled, smoothing_params]))
 ```
@@ -611,7 +605,7 @@ if smoothing_enabled.value:
         .apply(smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
         .pipe(append_constant_index,
-              lookup_widget_option_label(smoothing_octaves) + ' smoothing',
+              lsx.widgets.lookup_option_label(smoothing_octaves) + ' smoothing',
               name='Smoothing')
         .stack())
     speakers_fr_smoothed = (
@@ -637,7 +631,7 @@ speaker_offset_enabled = settings.track_widget(
     widgets.Checkbox(
         description='Offset speaker traces', value=False,
         style={'description_width': 'initial'}),
-    on_new_value=lambda value: display_widget(speaker_offset_db, value))
+    on_new_value=lambda value: lsx.widgets.display(speaker_offset_db, value))
 
 standalone_chart_width = settings.track_widget(
     ('chart_size', 'standalone', 'width'),
