@@ -647,22 +647,6 @@ else:
 
 alt.data_transformers.disable_max_rows()
 
-# Prepares DataFrame `df` for charting using alt.Chart().
-#
-# Altair doesn't use the index, so we move it into columns. Then columns are
-# renamed according to the `columns_mapper` dict. (This is necessary because
-# Altair doesn't work well with verbose column names, and it doesn't support
-# multi-level columns anyway.) Columns that don't appear in the dict are
-# dropped.
-#
-# Note: contrary to DataFrame.rename(), in the case of MultiIndex columns,
-# `columns_mapper` keys are matched against the full column name (i.e. a tuple),
-# not individual per-level labels.
-def prepare_alt_chart(df, columns_mapper):
-    df = df.reset_index().loc[:, list(columns_mapper.keys())]
-    df.columns = df.columns.map(mapper=columns_mapper)
-    return df
-
 def set_chart_dimensions(chart, sidebyside=False):
     if single_speaker_mode:
         sidebyside = False
@@ -756,7 +740,7 @@ lsx.util.pipe(
         .pipe(np.log2)
         .pow(-1)
         .rename(columns={'Frequency [Hz]': 'Resolution (points/octave)'})
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
             'Speaker': 'speaker',
             'Frequency [Hz]': 'frequency',
             'Resolution (points/octave)': 'value',
@@ -792,7 +776,7 @@ Remember:
 spinorama_chart_legend_selection = alt.selection_multi(fields=['variable'], bind='legend')
 spinorama_chart_common = lsx.util.pipe(
     speakers_fr_ready
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('CEA2034', 'On Axis'): 'On Axis',
@@ -840,7 +824,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
             ('Speaker', ''): 'speaker',
             ('Frequency [Hz]', ''): 'frequency',
             ('CEA2034', 'On Axis'): 'value',
@@ -878,7 +862,7 @@ def off_axis_angles_chart(direction):
             .rename_axis(columns='Angle')
             .stack()
             .reset_index()
-            .pipe(prepare_alt_chart, {
+            .pipe(lsx.alt.prepare_chart, {
                 'Speaker': 'speaker',
                 'Angle': 'angle',
                 'Frequency [Hz]': 'frequency',
@@ -920,7 +904,7 @@ lsx.util.pipe(
         .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
         .stack(level=['Direction'])
         .reset_index()
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
             'Speaker': 'speaker',
             'Direction': 'variable',
             'Frequency [Hz]': 'frequency',
@@ -949,7 +933,7 @@ lsx.util.pipe(
         .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
         .stack(level=['Direction'])
         .reset_index()
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
             'Speaker': 'speaker',
             'Direction': 'variable',
             'Frequency [Hz]': 'frequency',
@@ -969,7 +953,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('CEA2034', 'Listening Window'): 'value',
@@ -987,7 +971,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('CEA2034', 'Early Reflections'): 'value',
@@ -1005,7 +989,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('CEA2034', 'Sound Power'): 'value',
@@ -1023,7 +1007,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('Directivity Index', 'Early Reflections DI'): 'value',
@@ -1041,7 +1025,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('Directivity Index', 'Sound Power DI'): 'value',
@@ -1059,7 +1043,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
           ('Speaker', ''): 'speaker',
           ('Frequency [Hz]', ''): 'frequency',
           ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
@@ -1085,7 +1069,7 @@ This chart provides more detail by including each individual angle that is used 
 ```python
 listening_window_detail_common = lsx.util.pipe(
     speakers_fr_ready
-        .pipe(prepare_alt_chart, {
+        .pipe(lsx.alt.prepare_chart, {
             ('Speaker', ''): 'speaker',
             ('Frequency [Hz]', ''): 'frequency',
             ('CEA2034', 'Listening Window'): 'Listening Window',
