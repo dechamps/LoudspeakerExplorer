@@ -18,3 +18,9 @@ def set_nested(dic, path, value):
     for key in path[:-1]:
         dic = dic.setdefault(key, {})
     dic[path[-1]] = value
+
+
+def recurse_attr(obj, attr, fn):
+    for child in getattr(obj, attr, []):
+        recurse_attr(child, attr, fn)
+    fn(obj)

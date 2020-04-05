@@ -125,11 +125,6 @@ import loudspeakerexplorer as lsx
 ```python
 settings = lsx.Settings(pathlib.Path('settings.json'))
 
-def recurse_attr(obj, attr, fn):
-    for child in getattr(obj, attr, []):
-        recurse_attr(child, attr, fn)
-    fn(obj)
-
 prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
 
 def display_widget(widget, value):
@@ -146,8 +141,8 @@ def form(widget):
         set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
         def disable_widget(widget):
             widget.disabled = True
-        recurse_attr(widget, 'children', disable_widget)
-    recurse_attr(widget, 'children',
+        lsx.util.recurse_attr(widget, 'children', disable_widget)
+    lsx.util.recurse_attr(widget, 'children',
         lambda widget: widget.observe(
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
     return widgets.VBox([form_banner, widget])
