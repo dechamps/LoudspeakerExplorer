@@ -29,9 +29,6 @@ def interactive_line(chart, legend_channel):
         .mark_circle(clip=True, size=100)
         .add_selection(mouseover_selection)
         .encode(
-            # Disable the legend for points to ensure the legend uses the line
-            # shape and a continuous scale if applicable. See in particular:
-            #   https://github.com/vega/vega-lite/issues/6258
             # We don't use legend_selection for points. If we do, it seems to
             # break legend interactivity in weird ways on non-faceted charts.
             legend_channel,
