@@ -416,19 +416,6 @@ form(widgets.HBox([normalization_mode, detrend]))
 ```
 
 ```python
-def smooth(speaker_fr, octaves):
-    (freqs_per_octave,) = speaker_fr.index.to_frame().loc[:, 'Mean resolution (freqs/octave)'].unique()
-    span = freqs_per_octave*octaves
-    if span <= 1:
-        # Data resolution is lower than requested smoothing - nothing to do.
-        return speaker_fr
-    return (speaker_fr
-        # Ensure the input to ewm() is sorted by frequency, otherwise things will get weird fast. This should already be the case, but make sure regardless.
-        .sort_index()
-        # Note that this assumes points are equally spaced in log-frequency.
-        .ewm(span=span).mean()
-    )
-
 speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
 speakers_fr_dinorm = speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
 spl_axis_label = ['Absolute Sound Pressure Level (dB SPL)']
@@ -455,18 +442,18 @@ if normalization_mode.value == 'detrend':
     if detrend_individually.value:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
             .groupby('Speaker')
-            .apply(smooth, detrend_octaves.value))
+            .apply(lsx.fr.smooth, detrend_octaves.value))
         spl_axis_label = ['Sound Pressure (dBr)', detrend_octaves_label + ' detrended']
         spl_domain = (-25, 25)
         speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
             .groupby('Speaker')
-            .apply(smooth, detrend_octaves.value))
+            .apply(lsx.fr.smooth, detrend_octaves.value))
         di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label + ' detrended']
         di_domain = (-7.5, 7.5)
     else:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]
             .groupby('Speaker')                     
-            .apply(smooth, detrend_octaves.value), axis='index')
+            .apply(lsx.fr.smooth, detrend_octaves.value), axis='index')
         spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves_label, detrend_reference.value)]
         spl_domain = (-40, 10)
         
@@ -532,7 +519,7 @@ speakers_fr_smoothed = (speakers_fr_norm
 if smoothing_enabled.value:
     speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
-        .apply(smooth, smoothing_octaves.value)
+        .apply(lsx.fr.smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
         .pipe(append_constant_index,
               lsx.widgets.lookup_option_label(smoothing_octaves) + ' smoothing',

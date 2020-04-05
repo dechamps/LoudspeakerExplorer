@@ -1,3 +1,4 @@
+from . import fr
 from . import util
 from . import widgets
 
