@@ -8,7 +8,8 @@ Currently, all data comes from speaker reviews made by [amirm][] from
 [consider donating][donate].
 
 There is one directory per speaker measurement. The contents of each directory
-are identical to the contents of the data zipfile that amirm publishes.
+are identical to the contents of the data zipfile that amirm publishes, except
+for the `speaker_metadata.yaml` file, which is specific to Loudspeaker Explorer.
 
 Contrary to Loudspeaker Explorer itself, **this data is not licensed under
 MIT**. Measurements made on or after 2020-03-02 are licensed under a

@@ -4,3 +4,4 @@ engarde
 ipywidgets
 yattag
 altair
+pyyaml
