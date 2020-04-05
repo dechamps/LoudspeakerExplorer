@@ -14,4 +14,4 @@ You might be looking for the ready-to-use [rendered Colab notebook](https://cola
 
 To make version control easier, in this repository the Loudspeaker Explorer Jupyter Notebook is stored as a [Jupytext](https://github.com/mwouts/jupytext) Markdown file. Jupytext is used to convert the Markdown file to Jupyter Notebook format (`.ipynb`) for publishing on Colab.
 
-The best way to set up a development environment for Loudspeaker Explorer is to [install](https://jupyter.org/install.html) Jupyter Notebook or JupyterLab as well as [Jupytext](https://jupytext.readthedocs.io/en/latest/install.html). Then simply open `Loudspeaker_Explorer.md`. Happy hacking!
+The best way to set up a development environment for Loudspeaker Explorer is to [install](https://jupyter.org/install.html) Jupyter Notebook or JupyterLab as well as [Jupytext](https://jupytext.readthedocs.io/en/latest/install.html). Then simply open `Loudspeaker_Explorer.md`. For the notebook to actually run, don't forget to install dependencies using `pip install -r requirements.txt`. Happy hacking!
