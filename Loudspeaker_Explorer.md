@@ -17,7 +17,7 @@ jupyter:
     toc_visible: true
   hide_input: true
   jupytext:
-    notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version,hide_input
+    notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version,hide_input,toc.toc_window_display,toc
     text_representation:
       extension: .md
       format_name: markdown
@@ -26,6 +26,8 @@ jupyter:
     display_name: Python 3
     language: python
     name: python3
+  toc:
+    toc_window_display: true
 ---
 
 <!-- #region id="view-in-github" -->
