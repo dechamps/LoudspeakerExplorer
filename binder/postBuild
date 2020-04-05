@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+set -x
+
+pip install --requirement requirements.txt jupytext
+LOUDSPEAKER_EXPLORER_PRERENDER=true jupytext --to notebook --execute Loudspeaker_Explorer.md
+jupyter trust Loudspeaker_Explorer.ipynb
