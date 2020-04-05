@@ -15,8 +15,9 @@ jupyter:
     - vertical-reflection-responses
     name: Loudspeaker Explorer
     toc_visible: true
+  hide_input: true
   jupytext:
-    notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version
+    notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version,hide_input
     text_representation:
       extension: .md
       format_name: markdown

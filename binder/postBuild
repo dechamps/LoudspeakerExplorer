@@ -3,6 +3,8 @@
 set -e
 set -x
 
-pip install --requirement requirements.txt jupytext
+pip install --requirement requirements.txt jupytext jupyter_contrib_nbextensions
+jupyter contrib nbextension install --user
+jupyter nbextension enable hide_input_all/main
 LOUDSPEAKER_EXPLORER_PRERENDER=true jupytext --to notebook --execute Loudspeaker_Explorer.md
 jupyter trust Loudspeaker_Explorer.ipynb
