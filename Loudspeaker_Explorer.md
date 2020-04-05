@@ -109,7 +109,7 @@ if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in envir
             git_sha_file.write(LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
         
 # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
-!{sys.executable} -m pip install --progress-bar=off numpy pandas engarde ipywidgets yattag altair
+!{sys.executable} -m pip install --requirement requirements.txt --progress-bar=off
 
 import numpy as np
 import pandas as pd

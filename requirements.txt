@@ -1,0 +1,6 @@
+numpy
+pandas
+engarde
+ipywidgets
+yattag
+altair
