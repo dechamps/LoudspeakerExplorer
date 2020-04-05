@@ -2,7 +2,7 @@
 
 *By Etienne Dechamps (etienne@edechamps.fr)* - MIT License
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb) [![Continuous Integration](https://github.com/dechamps/LoudspeakerExplorer/workflows/Continuous%20Integration/badge.svg)](https://github.com/dechamps/LoudspeakerExplorer/actions)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/master/Loudspeaker_Explorer.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dechamps/LoudspeakerExplorer/master?filepath=Loudspeaker_Explorer.ipynb) [![Continuous Integration](https://github.com/dechamps/LoudspeakerExplorer/workflows/Continuous%20Integration/badge.svg)](https://github.com/dechamps/LoudspeakerExplorer/actions)
 
 This is the development home of Loudspeaker Explorer, a speaker measurement visualization, analysis and comparison tool.
 
