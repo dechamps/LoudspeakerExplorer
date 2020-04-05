@@ -58,6 +58,13 @@ To run the code and (re)generate the data, go to the **Runtime** menu and click 
 
 **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
+### Other ways to run this notebook
+
+If you don't have a Google account, or don't want to use Colab for any other reason, the following alternatives are available:
+
+- **[Binder](https://mybinder.org/v2/gh/dechamps/LoudspeakerExplorer/master?filepath=Loudspeaker_Explorer.ipynb)**: similar to Colab. Can take a (very) long time to load the first time; be patient. To run the notebook after it's loaded, go to the **Kernel** menu and click **Restart & Run All**.
+- **[Run locally](https://github.com/dechamps/LoudspeakerExplorer#developer-information)**: clone the Github repository and follow the developer instructions to run the Notebook on your local machine. This is not an easy option as it requires you to set up a Python environment. This is useful you want maximum performance, if you want to make significant changes to the code, or if you want to contribute to Loudspeaker Explorer.
+
 ## Acknowledgments
 
 None of this would have been possible without [amirm](https://www.audiosciencereview.com/forum/index.php?members/amirm.2/)'s [tremendous work](https://www.audiosciencereview.com/forum/index.php?threads/announcement-asr-will-be-measuring-speakers.10725/) in measuring speakers. All the data used by this tool is from measurements made by amirm for [AudioScienceReview](https://www.audiosciencereview.com/). If you like what you see, [consider making a donation](https://www.audiosciencereview.com/forum/index.php?threads/how-to-support-audio-science-review.8150/).
