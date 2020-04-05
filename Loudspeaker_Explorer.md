@@ -105,11 +105,10 @@ if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in envir
         mkdir('LoudspeakerExplorer')
         chdir('LoudspeakerExplorer')
         !curl --location -- 'https://github.com/dechamps/LoudspeakerExplorer/tarball/{LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA}' | tar --gzip --extract --strip-components=1
+        # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
+        !{sys.executable} -m pip install --requirement requirements.txt --progress-bar=off
         with open('.loudspeaker_explorer_git_sha', mode='w') as git_sha_file:
             git_sha_file.write(LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
-        
-# https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
-!{sys.executable} -m pip install --requirement requirements.txt --progress-bar=off
 
 import numpy as np
 import pandas as pd
