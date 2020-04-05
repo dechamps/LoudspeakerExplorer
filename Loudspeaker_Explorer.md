@@ -118,24 +118,11 @@ import ipywidgets as widgets
 import yattag
 import altair as alt
 import yaml
+
+import loudspeakerexplorer as lsx
 ```
 
 ```python
-# Equivalent to the (deprecated) alt.pipe(), or toolz.curried.pipe() (but without the extra dependency)
-def pipe(data, *funcs):
-    for func in funcs:
-        data = func(data)
-    return data
-
-# Shamelessly stolen from https://stackoverflow.com/a/37704379/172594
-def get_nested(dic, path):    
-    for key in path: dic = dic[key]
-    return dic
-def set_nested(dic, path, value):
-    for key in path[:-1]:
-        dic = dic.setdefault(key, {})
-    dic[path[-1]] = value
-
 def load_settings():
     try:
         with open('settings.json', mode='r') as settings_file:
@@ -150,11 +137,11 @@ def save_settings():
 settings = load_settings()
 def setting(path, widget, on_new_value=lambda x: None):
     try:
-        widget.value = get_nested(settings, path)
+        widget.value = lsx.util.get_nested(settings, path)
     except KeyError:
         pass
     def on_change(change):
-        set_nested(settings, path, change['new'])
+        lsx.util.set_nested(settings, path, change['new'])
         save_settings()
         return on_new_value(change['new'])
     on_new_value(widget.value)
@@ -844,7 +831,7 @@ def frequency_tooltip():
     return alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s')
 
 def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
-    return pipe(
+    return lsx.util.pipe(
         alt.Chart(data, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
@@ -959,7 +946,7 @@ This chart shows the resolution of the input data at each frequency. For each po
 A straight, horizontal line means that resolution is constant throughout the spectrum, or in other words, points are equally spaced in log-frequency. Some Loudspeaker Explorer features, especially smoothing and detrending, implicitly assume that this is the case, and might produce inaccurate results otherwise.
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready
         .index.to_frame()
         .reset_index(drop=True)
@@ -1003,7 +990,7 @@ Remember:
 
 ```python
 spinorama_chart_legend_selection = alt.selection_multi(fields=['variable'], bind='legend')
-spinorama_chart_common = pipe(
+spinorama_chart_common = lsx.util.pipe(
     speakers_fr_ready
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1030,14 +1017,14 @@ spinorama_chart_common = pipe(
 # - To make the two axes zoom and pan at the same time, `.interactive()` has to
 #   be used on each encoding, not on the overall view. Otherwise only the left
 #   axis will support zoom & pan.
-pipe(
+lsx.util.pipe(
     alt.layer(
-        pipe(
+        lsx.util.pipe(
             spinorama_chart_common
                 .encode(sound_pressure_yaxis())
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'])),
             lambda chart: interactive_line(chart, variable_color())),
-        pipe(
+        lsx.util.pipe(
             spinorama_chart_common
                 .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
                 .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
@@ -1051,7 +1038,7 @@ pipe(
 ## On-axis response
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
@@ -1084,7 +1071,7 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    return pipe(
+    return lsx.util.pipe(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(convert_angles)
@@ -1126,7 +1113,7 @@ off_axis_angles_chart('Vertical')
 <!-- #endregion -->
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready
         .loc[:, 'Horizontal Reflections']
         .rename_axis(columns=['Direction'])
@@ -1155,7 +1142,7 @@ pipe(
 <!-- #endregion -->
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready
         .loc[:, 'Vertical Reflections']
         .rename_axis(columns=['Direction'])
@@ -1180,7 +1167,7 @@ pipe(
 ## Listening Window response
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1198,7 +1185,7 @@ pipe(
 ## Early Reflections response
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1216,7 +1203,7 @@ pipe(
 ## Sound Power response
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1234,7 +1221,7 @@ pipe(
 ## Early Reflections Directivity Index
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1252,7 +1239,7 @@ pipe(
 ## Sound Power Directivity Index
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1270,7 +1257,7 @@ pipe(
 ## Estimated In-Room Response
 
 ```python
-pipe(
+lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(prepare_alt_chart, {
           ('Speaker', ''): 'speaker',
@@ -1296,7 +1283,7 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-listening_window_detail_common = pipe(
+listening_window_detail_common = lsx.util.pipe(
     speakers_fr_ready
         .pipe(prepare_alt_chart, {
             ('Speaker', ''): 'speaker',
@@ -1338,14 +1325,14 @@ listening_window_color_fn = variable_color(scale=alt.Scale(
         '#2ca02c',
     ]))
 
-pipe(
+lsx.util.pipe(
     alt.layer(
-        pipe(
+        lsx.util.pipe(
             listening_window_detail_common
                 .transform_filter({'not': listening_window_detail_highlight})
                 .encode(strokeWidth=alt.value(1.5)),
              lambda chart: interactive_line(chart, listening_window_color_fn)),
-        pipe(
+        lsx.util.pipe(
             listening_window_detail_common
                 .transform_filter(listening_window_detail_highlight),
             lambda chart: interactive_line(chart, listening_window_color_fn))),
