@@ -83,13 +83,13 @@ LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = None
 ###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###  # Variable assignment injected by continuous integration process
 
 import sys
-from os import chdir, mkdir, environ, rename
+import os
 import shutil
-from pathlib import Path
+import pathlib
 import re
 import json
 
-if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in environ:
+if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in os.environ:
     current_git_sha = None
     try:
         with open('.loudspeaker_explorer_git_sha', mode='r') as git_sha_file:
@@ -100,10 +100,10 @@ if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in envir
         if current_git_sha is not None:
             # An already running Colab instance has opened a different version of the notebook.
             # (It's not clear if this can actually happen in practice, but err on the safe side nonetheless…)
-            chdir('..')
+            os.chdir('..')
             shutil.rmtree('LoudspeakerExplorer')
-        mkdir('LoudspeakerExplorer')
-        chdir('LoudspeakerExplorer')
+        os.mkdir('LoudspeakerExplorer')
+        os.chdir('LoudspeakerExplorer')
         !curl --location -- 'https://github.com/dechamps/LoudspeakerExplorer/tarball/{LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA}' | tar --gzip --extract --strip-components=1
         # https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
         !{sys.executable} -m pip install --requirement requirements.txt --progress-bar=off
@@ -132,7 +132,7 @@ def load_settings():
 def save_settings():
     with open('settings.json.new', mode='w') as settings_file:
         json.dump(settings, settings_file, indent=4, sort_keys=True)
-    rename('settings.json.new', 'settings.json')
+    os.rename('settings.json.new', 'settings.json')
     
 settings = load_settings()
 def setting(path, widget, on_new_value=lambda x: None):
@@ -153,7 +153,7 @@ def recurse_attr(obj, attr, fn):
         recurse_attr(child, attr, fn)
     fn(obj)
 
-prerender_mode = bool(environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
+prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
 
 def display_widget(widget, value):
     widget.layout.display = None if value else 'none'
@@ -200,7 +200,7 @@ Also note that the **Revel F35** measurement suffers from [numerical computation
 
 ```python
 speakers = {}
-for speaker_dir in Path('speaker_data').iterdir():
+for speaker_dir in pathlib.Path('speaker_data').iterdir():
     try:
         with (speaker_dir / 'speaker_metadata.yaml').open(mode='r') as speaker_metadata_file:
             speakers[speaker_dir.name] = yaml.safe_load(speaker_metadata_file)
@@ -337,7 +337,7 @@ def load_speaker(dir):
         axis='columns')
 
 speakers_fr_raw = pd.concat(
-  {speaker.Index: load_speaker(Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
+  {speaker.Index: load_speaker(pathlib.Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
   names=['Speaker'], axis='rows')
 speakers_fr_raw
 ```
