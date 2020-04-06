@@ -8,7 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
       - run: pip3 install --requirement requirements.txt jupyter jupytext
-      - run: sed -i "s/###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###/LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = '$GITHUB_SHA'/g" Loudspeaker_Explorer.md
+      - run: sed -i "s/###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###/LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = '$GITHUB_SHA'/g" Loudspeaker_Explorer.md   
+      - run: sed -i "s#<!--BUILDINFO--># - _[Changelog](https://github.com/$GITHUB_REPOSITORY/commits/$GITHUB_SHA) (built from [${GITHUB_SHA:0:7}](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA) on [$(date)](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))_#g"
       - run: jupytext --to notebook --execute Loudspeaker_Explorer.md
         env:
           LOUDSPEAKER_EXPLORER_PRERENDER: true
@@ -30,16 +31,10 @@ jobs:
       - run: sudo apt-get install jq
       - run: |
           jq --from-file /dev/stdin Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb <<"EOF"
-          (.cells[] |= ((
-              # Add build information.
-              (select(.metadata.tags[]? | contains("buildinfo")) | .source[]) |=
-                gsub("<!--BUILDINFO-->"; " - _[Changelog](https://github.com/\(env.GITHUB_REPOSITORY)/commits/\(env.GITHUB_SHA)) (built from [\(env.GITHUB_SHA[0:7])](https://github.com/\(env.GITHUB_REPOSITORY)/commit/\(env.GITHUB_SHA)) on [\(now | todateiso8601)](https://github.com/\(env.GITHUB_REPOSITORY)/actions/runs/\(env.GITHUB_RUN_ID)))_")
-            ) | (
-              # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
-              # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
-              # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
-              (select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@markdown\n"] + .)
-          ))) |
+          # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
+          # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
+          # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
+          (.cells[] | select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@markdown\n"] + .) |
           # Colab expects widget state to be directly under the key in metadata.widgets.
           # But in nbconvert output, the widget stated is nested under an intermediate `state` key.
           (.metadata.widgets[] |= (. + .state))
