@@ -8,8 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
       - run: pip3 install --requirement requirements.txt jupyter jupytext
-      - run: sed -i "s/###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###/LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = '$GITHUB_SHA'/g" Loudspeaker_Explorer.md   
-      - run: sed -i "s#<!--BUILDINFO--># - _[Changelog](https://github.com/$GITHUB_REPOSITORY/commits/$GITHUB_SHA) (built from [${GITHUB_SHA:0:7}](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA) on [$(date)](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))_#g"
+      - run: gawk --include inplace 'gsub(/###INJECT_LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA###/, "LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA = \"" ENVIRON["GITHUB_SHA"] "\"") 1' Loudspeaker_Explorer.md  
+      - run: gawk --include inplace 'gsub(/<!--BUILDINFO-->/, " - _[Changelog](https://github.com/" ENVIRON["GITHUB_REPOSITORY"] "/commits/" ENVIRON["GITHUB_SHA"] ") (built from [" substr(ENVIRON["GITHUB_SHA"], 0, 7) "](https://github.com/" ENVIRON["GITHUB_REPOSITORY"] "/commit/" ENVIRON["GITHUB_SHA"] ") on [" strftime() "](https://github.com/" ENVIRON["GITHUB_REPOSITORY"] "/actions/runs/" ENVIRON["GITHUB_RUN_ID"] "))_") 1' Loudspeaker_Explorer.md
       - run: jupytext --to notebook --execute Loudspeaker_Explorer.md
         env:
           LOUDSPEAKER_EXPLORER_PRERENDER: true
