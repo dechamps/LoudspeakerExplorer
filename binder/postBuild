@@ -8,5 +8,10 @@ jupyter contrib nbextension install --user
 jupyter nbextension enable hide_input_all/main
 jupyter nbextension enable toc2/main
 jupyter nbextension enable collapsible_headings/main
+
+GITHUB_SHA="$(git rev-parse HEAD)" GITHUB_REPOSITORY="dechamps/LoudspeakerExplorer" \
+    gawk --include inplace --file replace_build_info.awk Loudspeaker_Explorer.md
+
 LOUDSPEAKER_EXPLORER_PRERENDER=true jupytext --to notebook --execute Loudspeaker_Explorer.md
+
 jupyter trust Loudspeaker_Explorer.ipynb
