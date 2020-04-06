@@ -25,9 +25,6 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: Loudspeaker_Explorer
-      # The jq script below requires jq >=1.6, which is only available in Ubuntu >=focal.
-      # (jq 1.5 will choke on the nested assignment with a "Invalid path expression with result…" error.)
-      - run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu/ focal main universe'
       - run: sudo apt-get install jq
       - run: |
           jq --from-file /dev/stdin Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb <<"EOF"
