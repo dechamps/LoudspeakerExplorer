@@ -182,8 +182,9 @@ for speaker_dir in pathlib.Path('speaker_data').iterdir():
     except (FileNotFoundError, NotADirectoryError):
         continue
 speakers = (pd.DataFrame.from_dict(speakers, orient='index')
-    .rename_axis('Speaker')
-    .sort_index())
+    .rename_axis('Speaker'))
+
+speakers = speakers.iloc[speakers.index.to_series().str.casefold().argsort()]
 
 speakers.loc[:, 'Measurement Date'] = pd.to_datetime(speakers.loc[:, 'Measurement Date'])
 
