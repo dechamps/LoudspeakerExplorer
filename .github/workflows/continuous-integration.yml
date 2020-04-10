@@ -84,3 +84,8 @@ jobs:
           echo "Publish commit: https://github.com/dechamps/LoudspeakerExplorer-rendered/commit/ci-$GITHUB_SHA-$GITHUB_RUN_ID"
       - run: |
           echo "Open in Colab: https://colab.research.google.com/github/dechamps/LoudspeakerExplorer-rendered/blob/ci-$GITHUB_SHA-$GITHUB_RUN_ID/Loudspeaker_Explorer.ipynb"
+  binder:
+    name: Build Binder
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl --location --user-agent 'LoudspeakerExplorer Continuous Integration https://github.com/dechamps/LoudspeakerExplorer' -- "https://mybinder.org/build/gh/$GITHUB_REPOSITORY/$GITHUB_SHA"
