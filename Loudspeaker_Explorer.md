@@ -1,18 +1,6 @@
 ---
 jupyter:
   colab:
-    collapsed_sections:
-    - preliminary-boilerplate
-    - data-intake
-    - raw-summary
-    - sensitivity
-    - normalization
-    - smoothing
-    - plot-settings
-    - data-check
-    - off-axis-responses
-    - horizontal-reflection-responses
-    - vertical-reflection-responses
     name: Loudspeaker Explorer
     toc_visible: true
   hide_input: true
@@ -85,7 +73,7 @@ You might also be interested in:
  - [MZKM](https://www.audiosciencereview.com/forum/index.php?members/mzkm.4645/)'s [Preference Rating data](https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN63daR6Ph8lxhCDUEHxWq_gwV0wEjL2Q1KRDA0J4i_eE1JS-JQYSZy7kCQZMKtRnjTOn578fYZPJ/pubhtml)
  - [pierre](https://www.audiosciencereview.com/forum/index.php?members/pierre.344/)'s [Spinorama visualizations](https://pierreaubert.github.io/spinorama/)
 <!-- #endregion -->
-<!-- #region id="preliminary-boilerplate" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Preliminary boilerplate
 <!-- #endregion -->
 
@@ -231,7 +219,7 @@ def speaker_list_html():
 IPython.display.HTML(speaker_list_html())
 ```
 
-<!-- #region id="data-intake" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Data intake
 <!-- #endregion -->
 
@@ -246,7 +234,7 @@ speakers_fr_raw = pd.concat(
 speakers_fr_raw
 ```
 
-<!-- #region id="raw-summary" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Raw data summary
 
 Basic information about loaded data, including frequency bounds and resolution.
@@ -307,7 +295,7 @@ speakers_fr_annotated = (speakers_fr_raw
 )
 ```
 
-<!-- #region id="sensitivity" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Sensitivity
 
 This calculates a single sensitivity value for each speaker using the **mean on-axis SPL** in a configurable frequency band. The result can then be used as the basis for normalization (see next section).
@@ -351,7 +339,7 @@ speakers_sensitivity = (speakers_fr_raw
 speakers_sensitivity.to_frame()
 ```
 
-<!-- #region id="normalization" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Normalization & detrending
 
 This step normalizes *all* SPL frequency response data (on-axis, spinorama, off-axis, estimated in-room response, etc.).
@@ -463,7 +451,7 @@ speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='co
 speakers_fr_norm
 ```
 
-<!-- #region id="smoothing" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Smoothing
 
 All responses (including directivity indices) are smoothed according to the settings below.
@@ -531,7 +519,7 @@ if smoothing_enabled.value:
 speakers_fr_smoothed
 ```
 
-<!-- #region id="plot-settings" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Plot settings
 
 Here you can customize some parameters related to the charts.
@@ -713,7 +701,7 @@ def postprocess_chart(chart):
         .configure_view(width=600, height=1, opacity=0))
 ```
 
-<!-- #region id="data-check" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 # Data check
 
 The charts in these section can be used to sanity check the input data. They are not particularly useful unless you suspect a problem with the data.
@@ -833,7 +821,7 @@ lsx.util.pipe(
     postprocess_chart)
 ```
 
-<!-- #region id="off-axis-responses" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 ## Off-axis responses
 
 Note that this chart can be particularly taxing on your browser due to the sheer number of points.
@@ -884,7 +872,7 @@ off_axis_angles_chart('Horizontal')
 off_axis_angles_chart('Vertical')
 ```
 
-<!-- #region id="horizontal-reflection-responses" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 ## Horizontal reflection responses
 <!-- #endregion -->
 
@@ -911,7 +899,7 @@ lsx.util.pipe(
     postprocess_chart)
 ```
 
-<!-- #region id="vertical-reflection-responses" heading_collapsed=true -->
+<!-- #region heading_collapsed=true -->
 ## Vertical reflection responses
 <!-- #endregion -->
 

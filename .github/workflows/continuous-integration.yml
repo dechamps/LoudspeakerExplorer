@@ -27,13 +27,23 @@ jobs:
       - run: sudo apt-get install jq
       - run: |
           jq --from-file /dev/stdin Loudspeaker_Explorer/Loudspeaker_Explorer.ipynb > Loudspeaker_Explorer.ipynb <<"EOF"
+
+          # Assign IDs to all sections that are missing one so that we can refer to them in the `collapsed_sections` Colab metadata (see below).
+          (.cells |= reduce range(0; length) as $i (.; .[$i].metadata.id |= (. // "cell-" + ($i | tostring)))) |
+
+          # Colab does not recognize the `heading_collapsed` cell metadata from the `collapsible_headings` extension.
+          # It uses its own way to specify collapsed sections in the notebook metadata. This code converts the former to the latter.
+          (.metadata.colab.collapsed_sections = [.cells[].metadata | select(.heading_collapsed).id]) |
+
           # This hides all code cells in Colab by setting the cellView metadata attribute to "form".
           # Note that for this to work, the code cell needs to contain at least one form element, so we prepend a dummy one.
           # (This is hacky, but it is exactly what Colab does when using the "hide code" function. If it's good enough for Colab, it's good enough for us.)
           (.cells[] | select(.cell_type == "code")) |= (.metadata.cellView = "form" | .source |= ["#@markdown\n"] + .) |
+
           # Colab expects widget state to be directly under the key in metadata.widgets.
           # But in nbconvert output, the widget stated is nested under an intermediate `state` key.
           (.metadata.widgets[] |= (. + .state))
+
           EOF
       - uses: actions/upload-artifact@v1
         with:
