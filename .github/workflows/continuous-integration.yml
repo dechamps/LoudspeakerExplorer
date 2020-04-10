@@ -89,3 +89,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: curl --location --user-agent 'LoudspeakerExplorer Continuous Integration https://github.com/dechamps/LoudspeakerExplorer' -- "https://mybinder.org/build/gh/$GITHUB_REPOSITORY/$GITHUB_SHA"
+      - run: |
+          echo "Open in Binder: https://mybinder.org/v2/gh/$GITHUB_REPOSITORY/$GITHUB_SHA?filepath=Loudspeaker_Explorer.ipynb"
