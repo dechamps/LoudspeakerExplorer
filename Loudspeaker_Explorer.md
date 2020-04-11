@@ -189,7 +189,9 @@ def speaker_checkbox(speaker):
         speaker_change)
     return checkbox
 
-form(widgets.VBox(list(speakers.apply(speaker_checkbox, axis='columns'))))
+speakers_box = widgets.HBox(list(speakers.apply(speaker_checkbox, axis='columns')))
+speakers_box.layout.flex_flow = 'row wrap'
+form(speakers_box)
 ```
 
 ```python
