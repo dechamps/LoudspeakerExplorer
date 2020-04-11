@@ -5,7 +5,7 @@ jupyter:
     toc_visible: true
   hide_input: true
   jupytext:
-    cell_metadata_filter: heading_collapsed,id,tags,-hidden
+    cell_metadata_filter: heading_collapsed,id,tags,scrolled,-hidden
     notebook_metadata_filter: colab,-jupytext.text_representation.jupytext_version,hide_input,toc.toc_window_display,toc
     text_representation:
       extension: .md
@@ -167,7 +167,7 @@ Also note that a [measurement artefact](https://www.audiosciencereview.com/forum
 
 Also note that the **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
 
-```python
+```python scrolled=false
 speakers = {}
 for speaker_dir in pathlib.Path('speaker_data').iterdir():
     try:
