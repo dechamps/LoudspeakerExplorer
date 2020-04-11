@@ -143,13 +143,10 @@ def form(widget):
     lsx.util.recurse_attr(widget, 'children',
         lambda widget: widget.observe(
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
-    return widgets.VBox([
-        widgets.HTML('''<style>
+    IPython.display.display(IPython.display.HTML('''<style>
             .widget-checkbox *, .widget-radio-box * { cursor: pointer; }
-        </style>'''),
-        form_banner,
-        widget
-    ])
+    </style>'''))
+    return widgets.VBox([form_banner, widget])
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None:
     print('Prerendered from Git commit', LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA)
@@ -243,17 +240,16 @@ def speaker_box(speaker):
     box.layout.padding = '5px'
     return box
 
-speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
-speakers_box.layout.flex_flow = 'row wrap'
-form(widgets.VBox([
-    widgets.HTML('''<style>
+IPython.display.display(IPython.display.HTML('''<style>
         .lsx-speaker { background-color: #f6f6f6; }
         .lsx-speaker-enabled { background-color: #dcf5d0; }
         .lsx-speaker-checkbox label { width: 100%; }
         .lsx-speaker-enabled label { font-weight: bold; }
-    </style>'''),
-    speakers_box,
-]))
+</style>'''))
+
+speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
+speakers_box.layout.flex_flow = 'row wrap'
+form(speakers_box)
 ```
 
 <!-- #region heading_collapsed=true -->
