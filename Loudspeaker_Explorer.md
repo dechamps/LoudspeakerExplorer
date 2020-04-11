@@ -209,7 +209,7 @@ def speaker_box(speaker):
 
     def img():
         doc = yattag.Doc()
-        doc.stag('img', src=speaker['Picture URL'], style='max-height: 100%')
+        doc.stag('img', src=speaker.loc['Picture URL'])
         box = widgets.Box([widgets.HTML(doc.getvalue())])
         box.layout.height = '150px'
         box.layout.width = '100px'
@@ -250,9 +250,17 @@ IPython.display.display(IPython.display.Javascript('''
 
 IPython.display.display(IPython.display.HTML('''<style>
         .lsx-speaker { background-color: #f6f6f6; }
+        .lsx-speaker * {
+            /* required in Colab to avoid scrollbars on images */
+            overflow: hidden;
+        }
         .lsx-speaker-enabled { background-color: #dcf5d0; }
         .lsx-speaker-checkbox label { width: 100%; }
         .lsx-speaker-enabled label { font-weight: bold; }
+        .lsx-speaker img {
+            max-height: 100%;
+            max-width: 100%;  /* required in Colab */
+        }
 </style>'''))
 
 speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
