@@ -143,17 +143,17 @@ def form(widget):
     lsx.util.recurse_attr(widget, 'children',
         lambda widget: widget.observe(
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
-    IPython.display.display(IPython.display.HTML('''<style>
+    lsx.ipython.display_css('''
         .widget-checkbox *, .widget-radio-box * { cursor: pointer; }
-    </style>'''))
+    ''')
     if prerender_mode:
-        IPython.display.display(IPython.display.HTML('''<style>
+        lsx.ipython.display_css('''
             /*
                 Don't show the broken chain "disconnected" icon as it messes up the form layouts, and it's redundant with the banner.
                 We only hide it in pre-render - in live runs, we do want the user to notice if the kernel is disconnected.
             */
             .jupyter-widgets-disconnected::before { content: none; }
-        </style>'''))
+        ''')
     return widgets.VBox([form_banner, widget])
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None:
@@ -256,20 +256,20 @@ IPython.display.display(IPython.display.Javascript('''
     catch (e) {}
 '''))
 
-IPython.display.display(IPython.display.HTML('''<style>
-        .lsx-speaker { background-color: #f6f6f6; }
-        .lsx-speaker * {
-            /* required in Colab to avoid scrollbars on images */
-            overflow: hidden;
-        }
-        .lsx-speaker label { font-weight: bold; }
-        .lsx-speaker-enabled { background-color: #dcf5d0; }
-        .lsx-speaker-checkbox label { width: 100%; }
-        .lsx-speaker img {
-            max-height: 100%;
-            max-width: 100%;  /* required in Colab */
-        }
-</style>'''))
+lsx.ipython.display_css('''
+    .lsx-speaker { background-color: #f6f6f6; }
+    .lsx-speaker * {
+        /* required in Colab to avoid scrollbars on images */
+        overflow: hidden;
+    }
+    .lsx-speaker label { font-weight: bold; }
+    .lsx-speaker-enabled { background-color: #dcf5d0; }
+    .lsx-speaker-checkbox label { width: 100%; }
+    .lsx-speaker img {
+        max-height: 100%;
+        max-width: 100%;  /* required in Colab */
+    }
+''')
 
 speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
 speakers_box.layout.flex_flow = 'row wrap'
