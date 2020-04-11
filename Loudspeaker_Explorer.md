@@ -213,15 +213,22 @@ def speaker_box(speaker):
         text('Measured ' + str(speaker.loc['Measurement Date'].date()))
         return widgets.HTML(doc.getvalue())
 
-    return widgets.VBox([
+    box = widgets.VBox([
         checkbox(),
         # Note: not using widgets.Image() because Colab doesn't support that. See https://github.com/googlecolab/colabtools/issues/587
         widgets.HBox([img(), info()])
     ])
+    box.add_class('lsx-speaker')
+    box.layout.margin = '5px'
+    box.layout.padding = '5px'
+    return box
 
 speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
 speakers_box.layout.flex_flow = 'row wrap'
-form(speakers_box)
+form(widgets.VBox([
+    widgets.HTML('<style>.lsx-speaker { background-color: #f6f6f6; }</style>'),
+    speakers_box,
+]))
 ```
 
 <!-- #region heading_collapsed=true -->
