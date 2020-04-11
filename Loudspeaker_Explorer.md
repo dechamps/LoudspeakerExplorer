@@ -186,10 +186,16 @@ speakers.loc[:, 'Enabled'] = speakers.index.isin(
     speakers.loc[:, 'Measurement Date'].nlargest(3).index)
 
 def speaker_box(speaker):
+    box = widgets.VBox()
+    
     def checkbox():
         speaker_copy = speaker.copy()
         def speaker_change(new):
             speakers.loc[speaker_copy.name, 'Enabled'] = new
+            if new:
+                box.add_class('lsx-speaker-enabled')
+            else:
+                box.remove_class('lsx-speaker-enabled')
         checkbox = settings.track_widget(
             ('speakers', 'enabled', speaker_copy.name),
             widgets.Checkbox(value=speaker_copy.loc['Enabled'], description=speaker_copy.name, style={'description_width': 'initial'}),
@@ -220,11 +226,11 @@ def speaker_box(speaker):
         text('Measured ' + str(speaker.loc['Measurement Date'].date()))
         return widgets.HTML(doc.getvalue())
 
-    box = widgets.VBox([
+    box.children = (
         checkbox(),
         # Note: not using widgets.Image() because Colab doesn't support that. See https://github.com/googlecolab/colabtools/issues/587
         widgets.HBox([img(), info()])
-    ])
+    )
     box.add_class('lsx-speaker')
     box.layout.margin = '5px'
     box.layout.padding = '5px'
@@ -235,7 +241,9 @@ speakers_box.layout.flex_flow = 'row wrap'
 form(widgets.VBox([
     widgets.HTML('''<style>
         .lsx-speaker { background-color: #f6f6f6; }
+        .lsx-speaker-enabled { background-color: #dcf5d0; }
         .lsx-speaker-checkbox label { width: 100%; }
+        .lsx-speaker-enabled label { font-weight: bold; }
     </style>'''),
     speakers_box,
 ]))
