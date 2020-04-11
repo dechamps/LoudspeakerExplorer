@@ -88,12 +88,19 @@ import pathlib
 import re
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in os.environ:
-    current_git_sha = None
-    try:
-        with open('.loudspeaker_explorer_git_sha', mode='r') as git_sha_file:
-            current_git_sha = git_sha_file.read()
-    except FileNotFoundError:
-        pass
+    def read_git_sha(directory):
+        try:
+            with open(directory / '.loudspeaker_explorer_git_sha', mode='r') as git_sha_file:
+                return git_sha_file.read()
+        except FileNotFoundError:
+            return None
+
+    current_git_sha = read_git_sha(pathlib.Path('.'))
+    if current_git_sha is None:
+        current_git_sha = read_git_sha(pathlib.Path('LoudspeakerExplorer'))
+        if current_git_sha is not None:
+            os.chdir('LoudspeakerExplorer')
+            
     if current_git_sha != LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA:
         if current_git_sha is not None:
             # An already running Colab instance has opened a different version of the notebook.
