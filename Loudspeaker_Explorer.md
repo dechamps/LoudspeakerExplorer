@@ -240,6 +240,14 @@ def speaker_box(speaker):
     box.layout.padding = '5px'
     return box
 
+# Colab does not recognize the scrolled=false cell metadata.
+# Simulate it using the technique described at https://github.com/googlecolab/colabtools/issues/541
+# Note that this only has an effect in Colab. The reason we don't add that line as part of Continuous Integration is because the Javascript to be present in prerender *and* run.
+IPython.display.display(IPython.display.Javascript('''
+    try { google.colab.output.setIframeHeight(0, true, {maxHeight: 5000}) }
+    catch (e) {}
+'''))
+
 IPython.display.display(IPython.display.HTML('''<style>
         .lsx-speaker { background-color: #f6f6f6; }
         .lsx-speaker-enabled { background-color: #dcf5d0; }
