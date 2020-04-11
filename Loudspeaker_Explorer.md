@@ -209,6 +209,8 @@ def speaker_box(speaker):
         text('Active' if speaker.loc['Active'] else 'Passive')
         doc.stag('br')
         text('${:.0f} (single)'.format(speaker.loc['Price (Single, USD)']))
+        doc.stag('br')
+        text('Measured ' + str(speaker.loc['Measurement Date'].date()))
         return widgets.HTML(doc.getvalue())
 
     return widgets.VBox([
