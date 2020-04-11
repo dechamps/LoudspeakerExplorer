@@ -179,46 +179,51 @@ speakers.loc[:, 'Measurement Date'] = pd.to_datetime(speakers.loc[:, 'Measuremen
 speakers.loc[:, 'Enabled'] = speakers.index.isin(
     speakers.loc[:, 'Measurement Date'].nlargest(3).index)
 
-def speaker_checkbox(speaker):
-    speaker = speaker.copy()
-    def speaker_change(new):
-        speakers.loc[speaker.name, 'Enabled'] = new
-    return settings.track_widget(
-        ('speakers', 'enabled', speaker.name),
-        widgets.Checkbox(value=speaker.loc['Enabled'], description=speaker.name, style={'description_width': 'initial'}),
-        speaker_change)
-    return checkbox
+def speaker_box(speaker):
+    def checkbox():
+        speaker_copy = speaker.copy()
+        def speaker_change(new):
+            speakers.loc[speaker_copy.name, 'Enabled'] = new
+        return settings.track_widget(
+            ('speakers', 'enabled', speaker_copy.name),
+            widgets.Checkbox(value=speaker_copy.loc['Enabled'], description=speaker_copy.name, style={'description_width': 'initial'}),
+            speaker_change)
+        return checkbox
 
-speakers_box = widgets.HBox(list(speakers.apply(speaker_checkbox, axis='columns')))
+    def img():
+        doc = yattag.Doc()
+        doc.stag('img', src=speaker['Picture URL'], style='max-height: 100%')
+        box = widgets.Box([widgets.HTML(doc.getvalue())])
+        box.layout.height = '150px'
+        box.layout.width = '100px'
+        return box
+    
+    def info():
+        doc, tag, text, line = yattag.Doc().ttl()
+        product_url = speaker.loc['Product URL']
+        if not pd.isna(product_url):
+            line('a', 'Product page', href=product_url, target='_blank')
+            text(' - ')
+        line('a', 'Review', href=speaker.loc['Review URL'], target='_blank')
+        doc.stag('br')
+        text('Active' if speaker.loc['Active'] else 'Passive')
+        doc.stag('br')
+        text('${:.0f} (single)'.format(speaker.loc['Price (Single, USD)']))
+        return widgets.HTML(doc.getvalue())
+
+    return widgets.VBox([
+        checkbox(),
+        # Note: not using widgets.Image() because Colab doesn't support that. See https://github.com/googlecolab/colabtools/issues/587
+        widgets.HBox([img(), info()])
+    ])
+
+speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
 speakers_box.layout.flex_flow = 'row wrap'
 form(speakers_box)
 ```
 
 ```python
 speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)', 'Measurement Date']]
-```
-
-```python
-def speaker_list_html():
-    doc, tag, text, line = yattag.Doc().ttl()
-    for speaker_name in speakers.index:
-        speaker = speakers.loc[speaker_name, :]
-        with tag('h2', style='clear: left; padding-top: 20px'):
-            text(speaker_name + (' (ENABLED)' if speaker['Enabled'] else ''))
-        doc.stag('img', src=speaker['Picture URL'], width=200, style='float: left; margin-right: 20px')
-        product_url = speaker['Product URL']
-        if not pd.isna(product_url):
-            line('a', 'Product page', href=speaker['Product URL'], target='_blank')
-            text(' - ')
-        line('a', 'Review', href=speaker['Review URL'], target='_blank')
-        doc.stag('br')
-        with tag('b'): text('Active' if speaker['Active'] else 'Passive')
-        doc.stag('br')
-        with tag('b'): text('Price: ')
-        text('${:.0f} (single)'.format(speaker['Price (Single, USD)']))
-    return doc.getvalue()
-
-IPython.display.HTML(speaker_list_html())
 ```
 
 <!-- #region heading_collapsed=true -->
