@@ -224,10 +224,6 @@ speakers_box.layout.flex_flow = 'row wrap'
 form(speakers_box)
 ```
 
-```python
-speakers.loc[:, ['Enabled', 'Active', 'Price (Single, USD)', 'Measurement Date']]
-```
-
 <!-- #region heading_collapsed=true -->
 # Data intake
 <!-- #endregion -->
