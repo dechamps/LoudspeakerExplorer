@@ -144,8 +144,16 @@ def form(widget):
         lambda widget: widget.observe(
             lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
     IPython.display.display(IPython.display.HTML('''<style>
-            .widget-checkbox *, .widget-radio-box * { cursor: pointer; }
+        .widget-checkbox *, .widget-radio-box * { cursor: pointer; }
     </style>'''))
+    if prerender_mode:
+        IPython.display.display(IPython.display.HTML('''<style>
+            /*
+                Don't show the broken chain "disconnected" icon as it messes up the form layouts, and it's redundant with the banner.
+                We only hide it in pre-render - in live runs, we do want the user to notice if the kernel is disconnected.
+            */
+            .jupyter-widgets-disconnected::before { content: none; }
+        </style>'''))
     return widgets.VBox([form_banner, widget])
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None:
