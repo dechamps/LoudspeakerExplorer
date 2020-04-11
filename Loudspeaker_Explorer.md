@@ -254,9 +254,9 @@ IPython.display.display(IPython.display.HTML('''<style>
             /* required in Colab to avoid scrollbars on images */
             overflow: hidden;
         }
+        .lsx-speaker label { font-weight: bold; }
         .lsx-speaker-enabled { background-color: #dcf5d0; }
         .lsx-speaker-checkbox label { width: 100%; }
-        .lsx-speaker-enabled label { font-weight: bold; }
         .lsx-speaker img {
             max-height: 100%;
             max-width: 100%;  /* required in Colab */
