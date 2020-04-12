@@ -1,6 +1,11 @@
 import pandas as pd
 
 
+def index_as_columns(df):
+    # Returns df.index as a DataFrame with only columns and no index.
+    return df.index.to_frame().reset_index(drop=True)
+
+
 def extract_common_index_levels(df):
     # Removes index levels from `df` that have identical values throughout.
     # Also returns a Series with the index levels that were removed, along with

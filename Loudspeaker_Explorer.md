@@ -298,11 +298,7 @@ Basic information about loaded data, including frequency bounds and resolution.
 <!-- #endregion -->
 
 ```python
-speakers_frequencies = (speakers_fr_raw
-  .index
-  .to_frame()
-  .reset_index(drop=True)
-  .groupby('Speaker'))
+speakers_frequencies = speakers_fr_raw.pipe(lsx.pd.index_as_columns).groupby('Speaker')
 speakers_frequency_count = speakers_frequencies.count().loc[:, 'Frequency [Hz]'].rename('Frequencies')
 speakers_min_frequency = speakers_frequencies.min().loc[:, 'Frequency [Hz]'].rename('Min Frequency (Hz)')
 speakers_max_frequency = speakers_frequencies.max().loc[:, 'Frequency [Hz]'].rename('Max Frequency (Hz)')
@@ -773,8 +769,7 @@ A straight, horizontal line means that resolution is constant throughout the spe
 ```python
 lsx.util.pipe(
     speakers_fr_ready
-        .index.to_frame()
-        .reset_index(drop=True)
+        .pipe(lsx.pd.index_as_columns)
         .set_index('Speaker')
         .set_index('Frequency [Hz]', append=True, drop=False)
         .groupby('Speaker').apply(lambda frequencies: frequencies / frequencies.shift(1))
