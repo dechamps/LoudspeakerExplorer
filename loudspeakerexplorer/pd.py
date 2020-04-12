@@ -31,9 +31,11 @@ def join_index(df, labels):
     #          2
     # j 1j 2j  3
     #          4
-    return df.align(
-        labels.set_index(list(labels.columns.values), append=True),
-        axis='index')[0]
+    df = df.copy()
+    index = df.index.to_frame()
+    df.index = pd.MultiIndex.from_frame(
+        pd.concat([index, labels], axis='columns'))
+    return df
 
 
 def extract_common_index_levels(df):
