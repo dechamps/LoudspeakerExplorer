@@ -22,6 +22,7 @@ def index_as_columns(df):
 def join_index(df, labels):
     # Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
     # Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
+    # Rows that don't have a corresponding match in `labels` are removed from `df`.
     #
     # For example, given `df`:
     #   C0
@@ -30,6 +31,7 @@ def join_index(df, labels):
     #    2
     # j  3
     #    4
+    # k  5
     #
     # And `labels`:
     #   C1 C2
@@ -44,7 +46,7 @@ def join_index(df, labels):
     #          2
     # j 1j 2j  3
     #          4
-    df = df.copy()
+    df = df.drop(index=df.index.difference(labels.index)).copy()
     index = df.index.to_frame()
     df.index = pd.MultiIndex.from_frame(
         pd.concat([index, labels], axis='columns'))

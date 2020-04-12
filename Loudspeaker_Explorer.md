@@ -666,19 +666,24 @@ def set_chart_dimensions(chart, sidebyside=False):
         width=sidebyside_chart_width.value if sidebyside else standalone_chart_width.value,
         height=sidebyside_chart_height.value if sidebyside else standalone_chart_height.value)
 
-def frequency_tooltip():
-    return alt.Tooltip('frequency', title='Frequency (Hz)', format='.03s')
+def frequency_tooltip(shorthand='frequency', title='Frequency', **kwargs):
+    return alt.Tooltip(shorthand, title=f'{title} (Hz)', format='.03s', **kwargs)
 
-def frequency_response_chart(data, sidebyside=False, additional_tooltips=[]):
+def value_db_tooltip(shorthand='value', title='Value', **kwargs):
+    return alt.Tooltip(shorthand, title=f'{title} (dB)', format='.2f', **kwargs)
+
+def frequency_response_chart(
+    data,
+    sidebyside=False,
+    additional_tooltips=[]):
     return lsx.util.pipe(
         alt.Chart(data, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
             .encode(
-              frequency_xaxis('frequency'),
-              tooltip=additional_tooltips + [
-                  frequency_tooltip(),
-                  alt.Tooltip('value', title='Value (dB)', format='.2f')]))
+                frequency_xaxis('frequency'),
+                tooltip=additional_tooltips +
+                    [frequency_tooltip(), value_db_tooltip()]))
 
 def frequency_xaxis(shorthand):
     return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
@@ -1127,4 +1132,265 @@ lsx.util.pipe(
     speaker_facet, speaker_input,
     postprocess_chart
 )
+```
+
+<!-- #region heading_collapsed=true -->
+# Olive Preference Score (work in progress)
+<!-- #endregion -->
+
+This section describes the calculation of a loudspeaker preference score based on [research by Sean Olive](http://www.aes.org/e-lib/browse.cfm?elib=12847) (also available as a [patent](https://patents.google.com/patent/US20050195982A1)).
+
+This research involves 268 listeners evaluating 70 loudspeakers in rigorous controlled conditions. Statistical methods were used to correlate subjective ratings with the speakers anechoic measurement data. The result is a statistical model in the form of a formula that can be used to fairly accurately predict loudspeaker preference ratings from spinorama data alone. This research is widely considered to be the state of the art when it comes to assessing speakers based on measurements.
+
+**This section is a work in progress. It does not yet include a complete score calculation.**
+
+**Note that scores are calculated based on post-processed data. For example, if smoothing or detrending are enabled, they will affect the calculated scores.**
+
+```python
+# Remap columns according to the curves selected in the Olive paper.
+speakers_fr_olive = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
+    ('CEA2034', 'On Axis'): 'ON',
+    ('CEA2034', 'Listening Window'): 'LW',
+    ('CEA2034', 'Early Reflections'): 'ER',
+    ('Estimated In-Room Response', 'Estimated In-Room Response'): 'PIR',
+    ('CEA2034', 'Sound Power'): 'SP',
+    ('Directivity Index', 'Sound Power DI'): 'SPDI',
+    ('Directivity Index', 'Early Reflections DI'): 'ERDI',
+}).rename_axis(columns='Curve')
+
+olive_variable_labels = {
+    'NBD': 'Narrow Band Deviation',
+}
+olive_curve_labels = {
+    'ON': 'On Axis',
+    'LW': 'Listening Window',
+    'ER': 'Early Reflections',
+    'PIR': 'Predicted In-Room Response',
+    'SP': 'Sound Power',
+    'SPDI': 'Sound Power Directivity Index',
+    'ERDI': 'Early Reflections Directivity Index',
+}
+
+def expand_olive_curve_label(curve):
+    return f'{curve} {olive_curve_labels[curve]}'
+
+def expand_olive_label(variable, curve):
+    return f'{variable}_{curve} {olive_curve_labels[curve]} {olive_variable_labels[variable]}'
+
+def expand_olive_labels(df, variable):
+    return df.rename(columns=lambda column: expand_olive_label(variable, column))
+
+def curve_input(chart, init):
+    selection = alt.selection_single(
+            fields=['curve'], init={'curve': init},
+            bind=alt.binding_select(
+                name='Curve: ',
+                options=list(olive_curve_labels.keys()),
+                labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()]))
+    return chart.transform_filter(selection).add_selection(selection)
+```
+
+## Narrow Band Deviation (NBD)
+
+<!-- #region heading_collapsed=true -->
+### Calculation
+<!-- #endregion -->
+
+This metric is defined in section 3.2.2 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0068 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses the following interpretation:
+
+$$\mathit{NBD} =
+    (\sum_{n=1}^{N} \sum_{b=1}^{10} |y_{n,b} - \overline{y}_{n}|) \div N$$
+    
+Where:
+
+- $\mathit{NBD}$ is the Narrow Band Deviation in dB. Lower is better.
+- $N$ is the total number of ½-octave bands between 100 Hz and 12 kHz.
+- $y_{n,b}$ is the amplitude of the $b$th measurement point within the $n$th ½-octave band in dB.
+- $\overline{y}_{n}$ is the average amplitude within the ½-octave band $n$ in dB.
+
+If the number of measurement points within a given ½-octave band is different than 10, the corresponding term is scaled accordingly.
+
+
+The paper is ambiguous as to where the _½-octave bands between 100 Hz and 12 kHz_ actually lie. Specifically, it is not clear if *100 Hz* and *12 kHz* are meant as *boundaries*, or if they refer to the *center frequencies* of the first and last bands. (For more debate on this topic, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-3#post-303034), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-4#post-303834), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306831), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-10#post-308515), and [this](https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/page-6#post-309021).) In his [score calculations](https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN63daR6Ph8lxhCDUEHxWq_gwV0wEjL2Q1KRDA0J4i_eE1JS-JQYSZy7kCQZMKtRnjTOn578fYZPJ/pubhtml), [MZKM](https://www.audiosciencereview.com/forum/index.php?members/mzkm.4645/) uses 114 Hz as the center frequency of the first band and deduces the rest from there. For consistency's sake, Loudspeaker Explorer does the same, resulting in the following bands:
+
+```python
+nbd_bands = (pd.Series(range(0, 14)).rpow(2**(1/2))*114).rename('Center Frequency (Hz)')
+nbd_bands = pd.concat([
+    (nbd_bands / (2**(1/4))).rename('Start Frequency (Hz)'),
+    nbd_bands,
+    (nbd_bands * (2**(1/4))).rename('End Frequency (Hz)'),
+], axis='columns').rename_axis('Band').rename(index=lambda i: i+1)
+nbd_bands
+```
+
+```python
+frequency_nbd_band = (speakers_fr_olive
+    .pipe(lsx.pd.index_as_columns)
+    .set_index('Speaker')
+    .set_index('Frequency [Hz]', append=True, drop=False)
+    .reindex(columns=nbd_bands.index))
+frequency_nbd_band.loc[:, :] = frequency_nbd_band.index.get_level_values('Frequency [Hz]').values[:, None]
+frequency_nbd_band = ((
+    (frequency_nbd_band >= nbd_bands.loc[:, 'Start Frequency (Hz)']) &
+    (frequency_nbd_band <  nbd_bands.loc[:, 'End Frequency (Hz)']))
+    .stack())
+frequency_nbd_band = (frequency_nbd_band
+    .loc[frequency_nbd_band]
+    .pipe(lsx.pd.index_as_columns)
+    .set_index(['Speaker', 'Frequency [Hz]']))
+
+speakers_fr_band = (speakers_fr_olive
+    .pipe(lsx.pd.join_index, frequency_nbd_band)
+    .swaplevel('Frequency [Hz]', 'Band'))
+speakers_nbd_mean = speakers_fr_band.groupby(['Speaker', 'Band']).mean()
+speakers_nbd_mean
+```
+
+```python
+speakers_nbd_deviation = speakers_fr_band - speakers_nbd_mean
+speakers_nbd_deviation
+```
+
+```python
+speakers_nbd_deviation_band = speakers_nbd_deviation.abs().groupby(['Speaker', 'Band'])
+speakers_nbd_band = (
+    speakers_nbd_deviation_band.mean()
+    * 10 / speakers_nbd_deviation_band.count()
+    / len(nbd_bands.index))
+speakers_nbd_band
+```
+
+```python
+speakers_nbd = speakers_nbd_band.groupby(['Speaker']).sum()
+speakers_nbd
+```
+
+### Results
+
+```python
+def split_tuple_column(df, column, columns):
+    return pd.concat([
+        df,
+        pd.DataFrame(df.loc[:, column].tolist(), columns=columns, index=df.index),
+    ], axis='columns').drop(columns=column)
+
+def columns_to_tuple(df):
+    return pd.Series(list(df.to_records(index=False)), index=df.index)
+
+nbd_fr_chart_base = lsx.util.pipe(pd.concat([
+            speakers_fr_olive
+                .assign(layer='Curve')
+                .reset_index(),
+            pd.concat({
+                'Actual': speakers_fr_band,
+                'Value': speakers_fr_band - speakers_nbd_deviation,
+            }, axis='columns')
+                .swaplevel(axis='columns')
+                .groupby(axis='columns', level='Curve')
+                # Merge (Actual, Value) into a single tuple column so that it survives melt().
+                .apply(columns_to_tuple)
+                .reset_index()
+                .assign(layer='Deviation'),
+            speakers_nbd_mean
+                # TODO: could show band NBD here too
+                .merge(nbd_bands, left_index=True, right_index=True, validate='1:m')
+                .assign(layer='Band Mean')
+                .reset_index()
+                .rename(columns={'Start Frequency (Hz)': 'Frequency [Hz]'})
+        ])
+        .melt([
+            'layer',
+            'Speaker',
+            'Frequency [Hz]',
+            'Band',
+            'Center Frequency (Hz)',
+            'End Frequency (Hz)',
+        ], var_name='curve', value_name='actual_value')
+        # Unpack the tuples generated above.
+        .assign(actual_value=lambda df: df.loc[:, 'actual_value'].apply(
+            lambda actual_value: actual_value if type(actual_value) is np.record else ('', actual_value)))
+        .pipe(split_tuple_column, 'actual_value', ['actual', 'value'])
+        .rename(columns={
+            'Speaker': 'speaker',
+            'Frequency [Hz]': 'frequency',
+            'Band': 'band',
+            'Center Frequency (Hz)': 'frequency_center',
+            'End Frequency (Hz)': 'frequency_end',
+        })
+        .assign(label=lambda df: df.aggregate(
+            lambda row: ('NBD_' if row.loc['layer'] != 'Curve' else '') + row.loc['curve'] + ' ' + row.loc['layer'],
+            axis='columns')),
+    lambda data: frequency_response_chart(
+        data, sidebyside=True,
+        additional_tooltips=[alt.Tooltip('layer', title='Layer')]))
+
+nbd_fr_chart_color = alt.Color(
+    'label', title=None,
+    legend=alt.Legend(symbolType='stroke'),
+    scale=alt.Scale(range=[
+        '#2ca02c',  # category10[2]: Band Mean
+        '#ff7f0e',  # category10[1]: Deviation
+        '#1f77b4',  # category10[0]: Curve
+    ]))
+
+lsx.util.pipe(
+    alt.layer(
+        lsx.util.pipe(nbd_fr_chart_base
+                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Curve'))
+                .encode(sound_pressure_yaxis(), strokeWidth=alt.value(0.5)),
+            lambda chart: lsx.alt.interactive_line(chart, nbd_fr_chart_color)),
+        lsx.util.pipe(nbd_fr_chart_base
+                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Band Mean'))
+                .encode(
+                    sound_pressure_yaxis(),
+                    alt.X2('frequency_end'),
+                    tooltip=[
+                            alt.Tooltip('layer', title='Layer'),
+                            alt.Tooltip('band', title='Band'),
+                            frequency_tooltip('frequency', 'Start Frequency'),
+                            frequency_tooltip('frequency_center', 'Center Frequency'),
+                            frequency_tooltip('frequency_end', 'End Frequency'),
+                            value_db_tooltip(),
+                        ]),
+            lambda chart: lsx.alt.interactive_line(
+                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule())
+                .interactive()),
+        lsx.util.pipe(nbd_fr_chart_base
+                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Deviation'))
+                .transform_calculate(deviation=alt.datum.actual - alt.datum.value)
+                .encode(
+                    sound_pressure_yaxis(),
+                    alt.Y2('actual'),
+                    strokeWidth=alt.value(2),
+                    tooltip=[
+                            alt.Tooltip('layer', title='Layer'),
+                            alt.Tooltip('band', title='Band'),
+                            frequency_tooltip(),
+                            value_db_tooltip('deviation', 'Deviation', type='quantitative'),
+                        ]),
+            lambda chart: lsx.alt.interactive_line(
+                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule()))),
+    speaker_facet, speaker_input,
+    lambda chart: curve_input(chart, 'ON'),
+    postprocess_chart)
+```
+
+```python
+lsx.util.pipe(
+    alt.Chart(speakers_nbd_band
+            .reset_index()
+            .melt(['Speaker', 'Band'], var_name='curve')
+            .rename(columns={
+                'Speaker': 'speaker',
+                'Band': 'band',
+            }))
+        .mark_bar()
+        .encode(
+            alt.Column('curve', title=None),
+            alt.X('value', title=['Narrow Band Deviation (NBD)', 'lower is better']),
+            alt.Y('speaker', title=None),
+            alt.Color('band', type='nominal', sort=None, title='Band'),
+            alt.Order('band')),
+    lambda chart: curve_input(chart, 'ON'),
+    postprocess_chart)
 ```

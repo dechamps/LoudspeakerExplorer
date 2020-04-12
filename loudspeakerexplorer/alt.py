@@ -14,7 +14,9 @@ def prepare_chart(df, columns_mapper):
     return df.reset_index().pipe(lsx.pd.remap_columns, columns_mapper)
 
 
-def interactive_line(chart, legend_channel):
+def interactive_line(
+        chart, legend_channel,
+        add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
     # Note that `legend_channel` should explicitly override the legend
     # symbolType to 'stroke', otherwise it gets set to 'circle' from the hidden
     # layer, which is wrong. A clear way to avoid this problem would be to make
@@ -30,8 +32,7 @@ def interactive_line(chart, legend_channel):
     #   https://github.com/vega/vega-lite/issues/6107
     return alt.layer(
         # Note: order is important. If the points chart comes first, legend selection doesn't work.
-        chart
-        .mark_line(clip=True, interpolate='monotone')
+        add_mark(chart)
         .add_selection(legend_selection)
         .encode(
             legend_channel,
