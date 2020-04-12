@@ -314,36 +314,9 @@ pd.concat([
 ```
 
 ```python
-# Similar to joining `df` against `labels`, but columns from `labels` are added as index levels to `df`, instead of columns.
-# Particularly useful when touching columns risks wreaking havoc in a multi-level column index.
-#
-# For example, given `df`:
-#   C0
-# A
-# i  1 
-#    2
-# j  3
-#    4
-#
-# And `labels`:
-#   C1 C2
-# A
-# i 1i 2i
-# j 1j 2j
-#
-# Then the result will be:
-#         C0
-# A C1 C2
-# i 1i 2i  1
-#          2
-# j 1j 2j  3
-#          4
-def join_index(df, labels):
-    return df.align(labels.set_index(list(labels.columns.values), append=True), axis='index')[0]
-
 speakers_fr_annotated = (speakers_fr_raw
     .unstack(level='Frequency [Hz]')
-    .pipe(join_index, speakers_freqs_per_octave.to_frame())
+    .pipe(lsx.pd.join_index, speakers_freqs_per_octave.to_frame())
     .stack()
 )
 ```
