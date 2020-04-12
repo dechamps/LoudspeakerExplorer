@@ -782,7 +782,6 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-spinorama_chart_legend_selection = alt.selection_multi(fields=['variable'], bind='legend')
 spinorama_chart_common = lsx.util.pipe(
     speakers_fr_ready
         .pipe(lsx.alt.prepare_chart, {
