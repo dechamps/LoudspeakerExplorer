@@ -1,6 +1,19 @@
 import pandas as pd
 
 
+def remap_columns(df, mapper):
+    # Renames columns in `df` according to `columns_mapper`.
+    #
+    # Columns that don't appear in `columns_mapper` are dropped.
+    #
+    # Note: contrary to DataFrame.rename(), in the case of MultiIndex columns,
+    # `columns_mapper` keys are matched against the full column name (i.e. a
+    # tuple), not individual per-level labels.
+    df = df.loc[:, list(mapper.keys())]
+    df.columns = df.columns.map(mapper=mapper)
+    return df
+
+
 def index_as_columns(df):
     # Returns df.index as a DataFrame with only columns and no index.
     return df.index.to_frame().reset_index(drop=True)

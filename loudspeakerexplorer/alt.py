@@ -1,21 +1,17 @@
 import altair as alt
 
+import loudspeakerexplorer as lsx
+
 
 def prepare_chart(df, columns_mapper):
     # Prepares DataFrame `df` for charting using alt.Chart().
     #
     # Altair doesn't use the index, so we move it into columns. Then columns are
-    # renamed according to the `columns_mapper` dict. (This is necessary because
-    # Altair doesn't work well with verbose column names, and it doesn't support
-    # multi-level columns anyway.) Columns that don't appear in the dict are
-    # dropped.
-    #
-    # Note: contrary to DataFrame.rename(), in the case of MultiIndex columns,
-    # `columns_mapper` keys are matched against the full column name (i.e. a
-    # tuple), not individual per-level labels.
-    df = df.reset_index().loc[:, list(columns_mapper.keys())]
-    df.columns = df.columns.map(mapper=columns_mapper)
-    return df
+    # remapped according to the `columns_mapper` dict. (This is necessary
+    # because Altair doesn't work well with verbose column names, and it doesn't
+    # support multi-level columns anyway.) Columns that don't appear in the dict
+    # are dropped.
+    return df.reset_index().pipe(lsx.pd.remap_columns, columns_mapper)
 
 
 def interactive_line(chart, legend_channel):
