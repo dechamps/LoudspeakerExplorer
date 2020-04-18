@@ -722,9 +722,11 @@ def postprocess_chart(chart):
     return (alt.vconcat(
         chart,
         alt.Chart(title=alt.TitleParams(
-            credits, fontSize=10, fontWeight='lighter', color='gray', anchor='start')).mark_text())
+            credits, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
+            width=600, height=1)
+            .mark_text())
         .resolve_legend(color='independent')
-        .configure_view(width=600, height=1, opacity=0))
+        .configure_view(opacity=0))
 ```
 
 <!-- #region heading_collapsed=true -->
