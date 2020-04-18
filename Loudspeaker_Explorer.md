@@ -1199,16 +1199,19 @@ def curve_input(chart, init):
 This metric is defined in section 3.2.2 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0068 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses the following interpretation:
 
 $$\mathit{NBD} =
-    (\sum_{n=1}^{N} \sum_{b=1}^{10} |y_{n,b} - \overline{y}_{n}|) \div N$$
+    \left(\sum_{n=1}^{N} \frac{\sum_{b=1}^{B_{n}} |y_{n,b} - \overline{y}_{n}|}{B_{n}}\right) \div N$$
     
 Where:
 
 - $\mathit{NBD}$ is the Narrow Band Deviation in dB. Lower is better.
-- $N$ is the total number of ½-octave bands between 100 Hz and 12 kHz.
-- $y_{n,b}$ is the amplitude of the $b$th measurement point within the $n$th ½-octave band in dB.
-- $\overline{y}_{n}$ is the average amplitude within the ½-octave band $n$ in dB.
+- $N$ is the number of ½-octave bands between 100 Hz and 12 kHz.
+- $B_{n}$ is the number of measurement points within the $n$th ½-octave band. The model assumes $B_{n} = 10$.
+- $y_{n,b}$ is the amplitude of the $b$th measurement point within the $n$th ½-octave band in dB. Points should be equally spaced in log-frequency.
+- $\overline{y}_{n}$ is the mean amplitude within the $n$th ½-octave band in dB, i.e. $\overline{y}_{n} = \left(\sum_{b=1}^{B_{n}} y_{n,b}\right) \div B_{n}$
 
-If the number of measurement points within a given ½-octave band is different than 10, the corresponding term is scaled accordingly.
+In plain English, NBD takes the mean absolute deviation from the mean SPL within each ½-octave band, and then takes the mean of these bands.
+
+The formula that appears in the paper is somewhat different as it does not include the division by $B_{n}$, i.e. it uses the sum of deviations within each ½-octave band, as opposed to their mean. It is [believed](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-12#post-376370) that this is an oversight in the paper and that the formula above is the one Olive actually meant.
 
 
 The paper is ambiguous as to where the _½-octave bands between 100 Hz and 12 kHz_ actually lie. Specifically, it is not clear if *100 Hz* and *12 kHz* are meant as *boundaries*, or if they refer to the *center frequencies* of the first and last bands. (For more debate on this topic, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-3#post-303034), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-4#post-303834), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306831), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-10#post-308515), and [this](https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/page-6#post-309021).) In his [score calculations](https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN63daR6Ph8lxhCDUEHxWq_gwV0wEjL2Q1KRDA0J4i_eE1JS-JQYSZy7kCQZMKtRnjTOn578fYZPJ/pubhtml), [MZKM](https://www.audiosciencereview.com/forum/index.php?members/mzkm.4645/) uses 114 Hz as the center frequency of the first band and deduces the rest from there. For consistency's sake, Loudspeaker Explorer does the same, resulting in the following bands:
@@ -1253,10 +1256,7 @@ speakers_nbd_deviation
 
 ```python
 speakers_nbd_deviation_band = speakers_nbd_deviation.abs().groupby(['Speaker', 'Band'])
-speakers_nbd_band = (
-    speakers_nbd_deviation_band.mean()
-    * 10 / speakers_nbd_deviation_band.count()
-    / len(nbd_bands.index))
+speakers_nbd_band = speakers_nbd_deviation_band.mean() / len(nbd_bands.index)
 speakers_nbd_band
 ```
 
