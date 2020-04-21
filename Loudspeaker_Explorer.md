@@ -884,27 +884,28 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    return lsx.util.pipe(
-        speakers_fr_ready
+    speakers_fr_angles = (speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(lsx.data.convert_angles)
-            .rename_axis(columns='Angle')
-            .stack()
+            .pipe(lambda df: df.pipe(lsx.pd.set_columns, df.columns.map(mapper=lambda column: f'{column:+.0f}')))
+            .rename_axis(columns='Angle'))
+    return lsx.util.pipe(
+            speakers_fr_angles
             .reset_index()
-            .pipe(lsx.alt.prepare_chart, {
+            .rename(columns={
                 'Speaker': 'speaker',
-                'Angle': 'angle',
                 'Frequency [Hz]': 'frequency',
-                0: 'value',
               }),
         lambda data: frequency_response_chart(data,
             sidebyside=True,
-            additional_tooltips=[alt.Tooltip('angle', title=direction + ' angle (°)')])
+            additional_tooltips=[alt.Tooltip('angle_string', type='nominal', title=direction + ' angle (°)')])
+            .transform_fold(speakers_fr_angles.columns.values, ['angle_string', 'value'])
+            .transform_calculate(angle=alt.expr.toNumber(alt.datum.angle_string))
             .transform_filter(off_axis_angle_selection)
             .encode(sound_pressure_yaxis()),
         lambda chart: lsx.alt.interactive_line(
             chart, legend_channel=alt.Color(
-                'angle', title=direction + ' angle (°)',
+                'angle', title=direction + ' angle (°)', type='quantitative',
                 scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
                 # We have to explicitly set the legend type to 'gradient' because of https://github.com/vega/vega-lite/issues/6258
                 legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10)))))

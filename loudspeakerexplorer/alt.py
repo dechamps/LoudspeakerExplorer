@@ -24,7 +24,12 @@ def interactive_line(
     # that causes problems with faceted charts, see:
     #   https://github.com/vega/vega-lite/issues/6261
 
-    mouseover_selection = alt.selection_single(on='mouseover', empty='none')
+    mouseover_selection = alt.selection_single(
+        on='mouseover', empty='none',
+        # We explicitly specify the encodings, as the defaults might not take
+        # new fields added by transforms into account. See:
+        #   https://github.com/vega/vega-lite/issues/6389
+        encodings=['x', 'y'])
     legend_selection = alt.selection_multi(encodings=['color'], bind='legend')
     # This is equivalent to using the `point` line mark property.
     # The reason why we don't simply do that is because tooltips wouldn't work
