@@ -805,21 +805,26 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
+speakers_fr_spinorama = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
+    ('CEA2034', 'On Axis'): 'On Axis',
+    ('CEA2034', 'Listening Window'): 'Listening Window',
+    ('CEA2034', 'Early Reflections'): 'Early Reflections',
+    ('CEA2034', 'Sound Power'): 'Sound Power',
+    ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
+    ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
+})
+
 spinorama_chart_common = lsx.util.pipe(
-    speakers_fr_ready
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('CEA2034', 'On Axis'): 'On Axis',
-          ('CEA2034', 'Listening Window'): 'Listening Window',
-          ('CEA2034', 'Early Reflections'): 'Early Reflections',
-          ('CEA2034', 'Sound Power'): 'Sound Power',
-          ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
-          ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
-        }).melt(['speaker', 'frequency']),
+    speakers_fr_spinorama
+        .reset_index()
+        .rename(columns={
+            'Speaker': 'speaker',
+            'Frequency [Hz]': 'frequency',
+        }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', title='Response')]))
+        additional_tooltips=[alt.Tooltip('variable', type='nominal', title='Response')])
+        .transform_fold(speakers_fr_spinorama.columns.values, ['variable', 'value']))
 
 # Note that there are few subtleties here because of Altair/Vega quirks:
 # - To make the Y axes independent, `.resolve_scale()` has to be used *before
