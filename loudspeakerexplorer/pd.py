@@ -1,6 +1,18 @@
 import pandas as pd
 
 
+def set_index(df, index):
+    df = df.copy()
+    df.index = index
+    return df
+
+
+def set_columns(df, columns):
+    df = df.copy()
+    df.columns = columns
+    return df
+
+
 def remap_columns(df, mapper):
     # Renames columns in `df` according to `columns_mapper`.
     #
@@ -9,9 +21,8 @@ def remap_columns(df, mapper):
     # Note: contrary to DataFrame.rename(), in the case of MultiIndex columns,
     # `columns_mapper` keys are matched against the full column name (i.e. a
     # tuple), not individual per-level labels.
-    df = df.loc[:, list(mapper.keys())]
-    df.columns = df.columns.map(mapper=mapper)
-    return df
+    return df.loc[:, list(mapper.keys())].pipe(
+        lambda df: df.pipe(set_columns, df.columns.map(mapper=mapper)))
 
 
 def index_as_columns(df):
@@ -46,11 +57,9 @@ def join_index(df, labels):
     #          2
     # j 1j 2j  3
     #          4
-    df = df.drop(index=df.index.difference(labels.index)).copy()
-    index = df.index.to_frame()
-    df.index = pd.MultiIndex.from_frame(
-        pd.concat([index, labels], axis='columns'))
-    return df
+    return df.drop(index=df.index.difference(labels.index)).pipe(
+        lambda df: df.pipe(set_index, pd.MultiIndex.from_frame(
+            pd.concat([df.index.to_frame(), labels], axis='columns'))))
 
 
 def extract_common_index_levels(df):
@@ -92,7 +101,5 @@ def extract_common_index_levels(df):
         .to_series()
         .apply(extract_unique_index_value)
     )
-    df = df.copy()
-    df.index = pd.MultiIndex.from_frame(
-        index_df.drop(columns=index_common_names))
-    return df, common_info
+    return df.pipe(set_index, pd.MultiIndex.from_frame(
+        index_df.drop(columns=index_common_names))), common_info

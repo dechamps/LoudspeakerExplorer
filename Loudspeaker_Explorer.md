@@ -591,19 +591,18 @@ form(widgets.VBox([
 ```python
 # Rearranges the index, folding metadata such as resolution and smoothing into the "Speaker" index level.
 def fold_speakers_info(speakers_fr):
-    speakers_fr = (speakers_fr
+    return (speakers_fr
         .unstack(level='Frequency [Hz]')
-        .copy()
-    )
-    speakers_fr.index = pd.MultiIndex.from_frame(speakers_fr
-        .index
-        .to_frame()
-        .apply(
-            # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
-            lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
-            axis='columns')
-    )
-    return speakers_fr.stack()
+        .pipe(lambda df: df
+              .pipe(lsx.pd.set_index, df
+                  .index
+                  .to_frame()
+                  .apply(
+                      # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
+                      lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
+                      axis='columns')
+                  .pipe(pd.MultiIndex.from_frame)))
+        .stack())
 
 (speakers_fr_ready, common_title) = (speakers_fr_smoothed
     .rename(
