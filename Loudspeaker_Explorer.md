@@ -666,10 +666,16 @@ def set_chart_dimensions(chart, sidebyside=False):
         height=sidebyside_chart_height.value if sidebyside else standalone_chart_height.value)
 
 def frequency_tooltip(shorthand='frequency', title='Frequency', **kwargs):
-    return alt.Tooltip(shorthand, title=f'{title} (Hz)', format='.03s', **kwargs)
+    return alt.Tooltip(
+        shorthand, type='quantitative',
+        title=f'{title} (Hz)', format='.03s',
+        **kwargs)
 
 def value_db_tooltip(shorthand='value', title='Value', **kwargs):
-    return alt.Tooltip(shorthand, title=f'{title} (dB)', format='.2f', **kwargs)
+    return alt.Tooltip(
+        shorthand, type='quantitative',
+        title=f'{title} (dB)', format='.2f',
+        **kwargs)
 
 def frequency_response_chart(
     data,
@@ -685,29 +691,40 @@ def frequency_response_chart(
                     [frequency_tooltip(), value_db_tooltip()]))
 
 def frequency_xaxis(shorthand):
-    return alt.X(shorthand, title='Frequency (Hz)', scale=alt.Scale(type='log', base=10, nice=False), axis=alt.Axis(format='s'))
+    return alt.X(
+        shorthand, type='quantitative', title='Frequency (Hz)',
+        scale=alt.Scale(type='log', base=10, nice=False),
+        axis=alt.Axis(format='s'))
 
 def sound_pressure_yaxis(title_prefix=None):
-    return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + spl_axis_label[0]] + spl_axis_label[1:], scale=alt.Scale(domain=spl_domain), axis=alt.Axis(grid=True))
+    return alt.Y(
+        'value', type='quantitative',
+        title=[(title_prefix + ' ' if title_prefix else '') + spl_axis_label[0]] + spl_axis_label[1:],
+        scale=alt.Scale(domain=spl_domain),
+        axis=alt.Axis(grid=True))
 
 def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
-    return alt.Y('value', title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:], scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
+    return alt.Y(
+        'value', type='quantitative',
+        title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:],
+        scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
 def variable_color(**kwargs):
     return alt.Color(
-        'variable', title=None, sort=None,
+        'variable', type='nominal', title=None, sort=None,
         legend=alt.Legend(symbolType='stroke'),
         **kwargs)
  
 def speaker_color(**kwargs):
-    return alt.Color('speaker',
-        title=None,
-        legend=None if single_speaker_mode else alt.Legend(orient='top', direction='vertical', labelLimit=600, symbolType='stroke'),
+    return alt.Color(
+        'speaker', type='nominal', title=None,
+        legend=None if single_speaker_mode else alt.Legend(
+            orient='top', direction='vertical', labelLimit=600, symbolType='stroke'),
         **kwargs)
 
 def speaker_facet(chart):
     return chart.facet(
-        alt.Column('speaker', title=None),
+        alt.Column('speaker', title=None, type='nominal'),
         title=common_title)
 
 def speaker_input(chart):
@@ -1365,7 +1382,7 @@ lsx.util.pipe(
                             alt.Tooltip('layer', title='Layer'),
                             alt.Tooltip('band', title='Band'),
                             frequency_tooltip(),
-                            value_db_tooltip('deviation', 'Deviation', type='quantitative'),
+                            value_db_tooltip('deviation', 'Deviation'),
                         ]),
             lambda chart: lsx.alt.interactive_line(
                 chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule()))),
