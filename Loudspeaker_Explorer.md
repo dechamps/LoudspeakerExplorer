@@ -1098,13 +1098,11 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-listening_window_detail_common = lsx.util.pipe(
+lsx.util.pipe(
     speakers_fr_ready
         .pipe(lsx.alt.prepare_chart, {
             ('Speaker', ''): 'speaker',
             ('Frequency [Hz]', ''): 'frequency',
-            ('CEA2034', 'Listening Window'): 'Listening Window',
-            ('CEA2034', 'On Axis'): 'On Axis',
             ('SPL Vertical', '-10°'): '-10° Vertical',
             ('SPL Vertical',  '10°'): '+10° Vertical',
             ('SPL Horizontal', '-10°'): '-10° Horizontal',
@@ -1113,47 +1111,34 @@ listening_window_detail_common = lsx.util.pipe(
             ('SPL Horizontal',  '20°'): '+20° Horizontal',
             ('SPL Horizontal', '-30°'): '-30° Horizontal',
             ('SPL Horizontal',  '30°'): '+30° Horizontal',
+            ('CEA2034', 'Listening Window'): 'Listening Window',
+            ('CEA2034', 'On Axis'): 'On Axis',
         })
         .melt(['speaker', 'frequency']),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('variable', title='Response')])
-        .encode(sound_pressure_yaxis()))
-
-listening_window_detail_highlight = alt.FieldOneOfPredicate(
-    field='variable',
-    oneOf=['Listening Window', 'On Axis'])
-
-listening_window_color_fn = variable_color(scale=alt.Scale(
-    range=[
-        # Vertical ±10°: purples(2)
-        '#796db2', '#aeadd3', 
-        # Horizontal ±10°: browns(2)
-        '#c26d43', '#e1a360',
-        # Horizontal ±20°: blues(2)
-        '#3887c0', '#86bcdc',
-        # Horizontal ±30°: greys(2)
-        '#686868', '#aaaaaa',
-        # Listening Window: category10(1)
-        '#ff7f0e',
-        # On Axis: category10(2)
-        '#2ca02c',
-    ]))
-
-lsx.util.pipe(
-    alt.layer(
-        lsx.util.pipe(
-            listening_window_detail_common
-                .transform_filter({'not': listening_window_detail_highlight})
-                .encode(strokeWidth=alt.value(1.5)),
-             lambda chart: lsx.alt.interactive_line(chart, listening_window_color_fn)),
-        lsx.util.pipe(
-            listening_window_detail_common
-                .transform_filter(listening_window_detail_highlight),
-            lambda chart: lsx.alt.interactive_line(chart, listening_window_color_fn))),
+        .encode(sound_pressure_yaxis())
+        .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
+            field='variable', oneOf=['Listening Window', 'On Axis']),
+            if_true=alt.value(2), if_false=alt.value(1.5))),
+    lambda chart: lsx.alt.interactive_line(chart,
+        variable_color(scale=alt.Scale(range=[
+            # Vertical ±10°: purples(2)
+            '#796db2', '#aeadd3', 
+            # Horizontal ±10°: browns(2)
+            '#c26d43', '#e1a360',
+            # Horizontal ±20°: blues(2)
+            '#3887c0', '#86bcdc',
+            # Horizontal ±30°: greys(2)
+            '#686868', '#aaaaaa',
+            # Listening Window: category10(1)
+            '#ff7f0e',
+            # On Axis: category10(2)
+            '#2ca02c',
+        ]))),
     speaker_facet, speaker_input,
-    postprocess_chart
-)
+    postprocess_chart)
 ```
 
 <!-- #region heading_collapsed=true -->
