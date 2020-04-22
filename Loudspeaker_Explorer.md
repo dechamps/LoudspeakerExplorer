@@ -709,9 +709,9 @@ def directivity_index_yaxis(title_prefix=None, scale_domain=di_domain):
         title=[(title_prefix + ' ' if title_prefix else '') + di_axis_label[0]] + di_axis_label[1:],
         scale=alt.Scale(domain=scale_domain), axis=alt.Axis(grid=True))
 
-def variable_color(**kwargs):
+def key_color(**kwargs):
     return alt.Color(
-        'variable', type='nominal', title=None, sort=None,
+        'key', type='nominal', title=None, sort=None,
         legend=alt.Legend(symbolType='stroke'),
         **kwargs)
  
@@ -823,8 +823,8 @@ spinorama_chart_common = lsx.util.pipe(
         }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', type='nominal', title='Response')])
-        .transform_fold(speakers_fr_spinorama.columns.values, ['variable', 'value']))
+        additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
+        .transform_fold(speakers_fr_spinorama.columns.values))
 
 # Note that there are few subtleties here because of Altair/Vega quirks:
 # - To make the Y axes independent, `.resolve_scale()` has to be used *before
@@ -842,13 +842,13 @@ lsx.util.pipe(
         lsx.util.pipe(
             spinorama_chart_common
                 .encode(sound_pressure_yaxis())
-                .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'])),
-            lambda chart: lsx.alt.interactive_line(chart, variable_color())),
+                .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=['On Axis', 'Listening Window', 'Early Reflections', 'Sound Power'])),
+            lambda chart: lsx.alt.interactive_line(chart, key_color())),
         lsx.util.pipe(
             spinorama_chart_common
                 .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
-                .transform_filter(alt.FieldOneOfPredicate(field='variable', oneOf=['Early Reflections DI', 'Sound Power DI'])),
-            lambda chart: lsx.alt.interactive_line(chart, variable_color())))
+                .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=['Early Reflections DI', 'Sound Power DI'])),
+            lambda chart: lsx.alt.interactive_line(chart, key_color())))
         .resolve_scale(y='independent'),
     speaker_facet, speaker_input,
     lambda chart: chart.resolve_scale(y='independent'),
@@ -903,9 +903,9 @@ def off_axis_angles_chart(direction):
               }),
         lambda data: frequency_response_chart(data,
             sidebyside=True,
-            additional_tooltips=[alt.Tooltip('angle_string', type='nominal', title=direction + ' angle (°)')])
-            .transform_fold(speakers_fr_angles.columns.values, ['angle_string', 'value'])
-            .transform_calculate(angle=alt.expr.toNumber(alt.datum.angle_string))
+            additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')])
+            .transform_fold(speakers_fr_angles.columns.values)
+            .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
             .transform_filter(off_axis_angle_selection)
             .encode(sound_pressure_yaxis()),
         lambda chart: lsx.alt.interactive_line(
@@ -939,15 +939,15 @@ lsx.util.pipe(
         .reset_index()
         .pipe(lsx.alt.prepare_chart, {
             'Speaker': 'speaker',
-            'Direction': 'variable',
+            'Direction': 'key',
             'Frequency [Hz]': 'frequency',
             0: 'value',
         }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', title='Direction')])
+        additional_tooltips=[alt.Tooltip('key', title='Direction')])
         .encode(sound_pressure_yaxis()),
-    lambda chart: lsx.alt.interactive_line(chart, variable_color()),
+    lambda chart: lsx.alt.interactive_line(chart, key_color()),
     speaker_facet, speaker_input,
     postprocess_chart)
 ```
@@ -966,15 +966,15 @@ lsx.util.pipe(
         .reset_index()
         .pipe(lsx.alt.prepare_chart, {
             'Speaker': 'speaker',
-            'Direction': 'variable',
+            'Direction': 'key',
             'Frequency [Hz]': 'frequency',
             0: 'value',
         }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', title='Direction')])
+        additional_tooltips=[alt.Tooltip('key', title='Direction')])
         .encode(sound_pressure_yaxis()),
-    lambda chart: lsx.alt.interactive_line(chart, variable_color()),
+    lambda chart: lsx.alt.interactive_line(chart, key_color()),
     speaker_facet, speaker_input,
     postprocess_chart)
 ```
@@ -1120,14 +1120,14 @@ lsx.util.pipe(
         }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', type='nominal', title='Response')])
-        .transform_fold(speakers_fr_listening_window.columns.values, ['variable', 'value'])
+        additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
+        .transform_fold(speakers_fr_listening_window.columns.values)
         .encode(sound_pressure_yaxis())
         .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
-            field='variable', oneOf=['Listening Window', 'On Axis']),
+            field='key', oneOf=['Listening Window', 'On Axis']),
             if_true=alt.value(2), if_false=alt.value(1.5))),
     lambda chart: lsx.alt.interactive_line(chart,
-        variable_color(scale=alt.Scale(range=[
+        key_color(scale=alt.Scale(range=[
             # Vertical ±10°: purples(2)
             '#796db2', '#aeadd3', 
             # Horizontal ±10°: browns(2)
