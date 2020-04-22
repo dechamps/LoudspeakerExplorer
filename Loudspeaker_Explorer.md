@@ -930,53 +930,35 @@ off_axis_angles_chart('Vertical')
 <!-- #endregion -->
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready
-        .loc[:, 'Horizontal Reflections']
-        .rename_axis(columns=['Direction'])
-        .rename(columns=lambda column: re.sub(' ?Horizontal ?', '', re.sub(' ?Reflection ?', '', column)))
-        .stack(level=['Direction'])
-        .reset_index()
-        .pipe(lsx.alt.prepare_chart, {
-            'Speaker': 'speaker',
-            'Direction': 'key',
-            'Frequency [Hz]': 'frequency',
-            0: 'value',
-        }),
-    lambda data: frequency_response_chart(data,
-        sidebyside=True,
-        additional_tooltips=[alt.Tooltip('key', title='Direction')])
-        .encode(sound_pressure_yaxis()),
-    lambda chart: lsx.alt.interactive_line(chart, key_color()),
-    speaker_facet, speaker_input,
-    postprocess_chart)
+def reflection_responses_chart(axis):
+    return lsx.util.pipe(
+        speakers_fr_ready
+            .loc[:, f'{axis} Reflections']
+            .rename_axis(columns=['Direction'])
+            .rename(columns=lambda column: re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column)))
+            .stack(level=['Direction'])
+            .reset_index()
+            .pipe(lsx.alt.prepare_chart, {
+                'Speaker': 'speaker',
+                'Direction': 'key',
+                'Frequency [Hz]': 'frequency',
+                0: 'value',
+            }),
+        lambda data: frequency_response_chart(data,
+            sidebyside=True,
+            additional_tooltips=[alt.Tooltip('key', title='Direction')])
+            .encode(sound_pressure_yaxis()),
+        lambda chart: lsx.alt.interactive_line(chart, key_color()),
+        speaker_facet, speaker_input,
+        postprocess_chart)
+
+reflection_responses_chart('Horizontal')
 ```
 
-<!-- #region heading_collapsed=true -->
 ## Vertical reflection responses
-<!-- #endregion -->
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready
-        .loc[:, 'Vertical Reflections']
-        .rename_axis(columns=['Direction'])
-        .rename(columns=lambda column: re.sub(' ?Vertical ?', '', re.sub(' ?Reflection ?', '', column)))
-        .stack(level=['Direction'])
-        .reset_index()
-        .pipe(lsx.alt.prepare_chart, {
-            'Speaker': 'speaker',
-            'Direction': 'key',
-            'Frequency [Hz]': 'frequency',
-            0: 'value',
-        }),
-    lambda data: frequency_response_chart(data,
-        sidebyside=True,
-        additional_tooltips=[alt.Tooltip('key', title='Direction')])
-        .encode(sound_pressure_yaxis()),
-    lambda chart: lsx.alt.interactive_line(chart, key_color()),
-    speaker_facet, speaker_input,
-    postprocess_chart)
+reflection_responses_chart('Vertical')
 ```
 
 ## Listening Window response
