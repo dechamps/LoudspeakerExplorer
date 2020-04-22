@@ -1098,26 +1098,30 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
+speakers_fr_listening_window = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
+    ('SPL Vertical', '-10°'): '-10° Vertical',
+    ('SPL Vertical',  '10°'): '+10° Vertical',
+    ('SPL Horizontal', '-10°'): '-10° Horizontal',
+    ('SPL Horizontal',  '10°'): '+10° Horizontal',
+    ('SPL Horizontal', '-20°'): '-20° Horizontal',
+    ('SPL Horizontal',  '20°'): '+20° Horizontal',
+    ('SPL Horizontal', '-30°'): '-30° Horizontal',
+    ('SPL Horizontal',  '30°'): '+30° Horizontal',
+    ('CEA2034', 'Listening Window'): 'Listening Window',
+    ('CEA2034', 'On Axis'): 'On Axis',
+})
+
 lsx.util.pipe(
-    speakers_fr_ready
-        .pipe(lsx.alt.prepare_chart, {
-            ('Speaker', ''): 'speaker',
-            ('Frequency [Hz]', ''): 'frequency',
-            ('SPL Vertical', '-10°'): '-10° Vertical',
-            ('SPL Vertical',  '10°'): '+10° Vertical',
-            ('SPL Horizontal', '-10°'): '-10° Horizontal',
-            ('SPL Horizontal',  '10°'): '+10° Horizontal',
-            ('SPL Horizontal', '-20°'): '-20° Horizontal',
-            ('SPL Horizontal',  '20°'): '+20° Horizontal',
-            ('SPL Horizontal', '-30°'): '-30° Horizontal',
-            ('SPL Horizontal',  '30°'): '+30° Horizontal',
-            ('CEA2034', 'Listening Window'): 'Listening Window',
-            ('CEA2034', 'On Axis'): 'On Axis',
-        })
-        .melt(['speaker', 'frequency']),
+    speakers_fr_listening_window
+        .reset_index()
+        .rename(columns={
+            'Speaker': 'speaker',
+            'Frequency [Hz]': 'frequency',
+        }),
     lambda data: frequency_response_chart(data,
         sidebyside=True,
-        additional_tooltips=[alt.Tooltip('variable', title='Response')])
+        additional_tooltips=[alt.Tooltip('variable', type='nominal', title='Response')])
+        .transform_fold(speakers_fr_listening_window.columns.values, ['variable', 'value'])
         .encode(sound_pressure_yaxis())
         .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
             field='variable', oneOf=['Listening Window', 'On Axis']),
