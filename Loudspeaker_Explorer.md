@@ -931,22 +931,22 @@ off_axis_angles_chart('Vertical')
 
 ```python
 def reflection_responses_chart(axis):
-    return lsx.util.pipe(
-        speakers_fr_ready
-            .loc[:, f'{axis} Reflections']
-            .rename_axis(columns=['Direction'])
-            .rename(columns=lambda column: re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column)))
-            .stack(level=['Direction'])
+    fr = (speakers_fr_ready
+        .loc[:, f'{axis} Reflections']
+        .rename_axis(columns=['Direction'])
+        .rename(columns=lambda column:
+                re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))))
+    
+    return lsx.util.pipe(fr            
             .reset_index()
-            .pipe(lsx.alt.prepare_chart, {
+            .rename(columns={
                 'Speaker': 'speaker',
-                'Direction': 'key',
                 'Frequency [Hz]': 'frequency',
-                0: 'value',
             }),
         lambda data: frequency_response_chart(data,
             sidebyside=True,
-            additional_tooltips=[alt.Tooltip('key', title='Direction')])
+            additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')])
+            .transform_fold(fr.columns.values)
             .encode(sound_pressure_yaxis()),
         lambda chart: lsx.alt.interactive_line(chart, key_color()),
         speaker_facet, speaker_input,
