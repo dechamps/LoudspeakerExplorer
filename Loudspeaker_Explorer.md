@@ -693,6 +693,8 @@ def raw_frequency_response_chart(
 def frequency_response_chart(data, *kargs, **kwargs):
     data = (data
         .reset_index('Frequency [Hz]')
+        # Round numbers like 0.999999999999 to prevent them from unnecessarily increasing spec size.
+        .apply(lambda column: np.around(column, 3), raw=True)
         .pipe(lsx.pd.implode)
         .rename(columns={'Frequency [Hz]': 'frequency'}))
     return (raw_frequency_response_chart(data
