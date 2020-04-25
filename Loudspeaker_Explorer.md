@@ -682,7 +682,13 @@ def frequency_response_chart(
     sidebyside=False,
     additional_tooltips=[]):
     return lsx.util.pipe(
-        alt.Chart(data, title=common_title),
+        alt.Chart(data
+                .reset_index()
+                .rename(columns={
+                    'Speaker': 'speaker',
+                    'Frequency [Hz]': 'frequency',
+                }),
+            title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
             .encode(
@@ -772,7 +778,8 @@ lsx.util.pipe(
         .pipe(np.log2)
         .pow(-1)
         .rename(columns={'Frequency [Hz]': 'Resolution (points/octave)'})
-        .pipe(lsx.alt.prepare_chart, {
+        .reset_index()
+        .pipe(lsx.pd.remap_columns, {
             'Speaker': 'speaker',
             'Frequency [Hz]': 'frequency',
             'Resolution (points/octave)': 'value',
@@ -815,12 +822,7 @@ speakers_fr_spinorama = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
 })
 
 spinorama_chart_common = lsx.util.pipe(
-    speakers_fr_spinorama
-        .reset_index()
-        .rename(columns={
-            'Speaker': 'speaker',
-            'Frequency [Hz]': 'frequency',
-        }),
+    speakers_fr_spinorama,
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
@@ -860,11 +862,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-            ('Speaker', ''): 'speaker',
-            ('Frequency [Hz]', ''): 'frequency',
-            ('CEA2034', 'On Axis'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('CEA2034', 'On Axis'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='On Axis')),
@@ -895,12 +893,7 @@ def off_axis_angles_chart(direction):
             .pipe(lambda df: df.pipe(lsx.pd.set_columns, df.columns.map(mapper=lambda column: f'{column:+.0f}')))
             .rename_axis(columns='Angle'))
     return lsx.util.pipe(
-            speakers_fr_angles
-            .reset_index()
-            .rename(columns={
-                'Speaker': 'speaker',
-                'Frequency [Hz]': 'frequency',
-              }),
+        speakers_fr_angles,
         lambda data: frequency_response_chart(data,
             sidebyside=True,
             additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')])
@@ -937,12 +930,8 @@ def reflection_responses_chart(axis):
         .rename(columns=lambda column:
                 re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))))
     
-    return lsx.util.pipe(fr            
-            .reset_index()
-            .rename(columns={
-                'Speaker': 'speaker',
-                'Frequency [Hz]': 'frequency',
-            }),
+    return lsx.util.pipe(
+        fr,
         lambda data: frequency_response_chart(data,
             sidebyside=True,
             additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')])
@@ -966,11 +955,7 @@ reflection_responses_chart('Vertical')
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('CEA2034', 'Listening Window'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Listening Window'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
@@ -984,11 +969,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('CEA2034', 'Early Reflections'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Early Reflections'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
@@ -1002,11 +983,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('CEA2034', 'Sound Power'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Sound Power'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
@@ -1020,11 +997,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('Directivity Index', 'Early Reflections DI'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Early Reflections DI'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
@@ -1038,11 +1011,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('Directivity Index', 'Sound Power DI'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Sound Power DI'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Sound Power')),
@@ -1056,11 +1025,7 @@ lsx.util.pipe(
 ```python
 lsx.util.pipe(
     speakers_fr_ready_offset
-        .pipe(lsx.alt.prepare_chart, {
-          ('Speaker', ''): 'speaker',
-          ('Frequency [Hz]', ''): 'frequency',
-          ('Estimated In-Room Response', 'Estimated In-Room Response'): 'value',
-        }),
+        .pipe(lsx.pd.remap_columns, {('Estimated In-Room Response', 'Estimated In-Room Response'): 'value'}),
     lambda data: frequency_response_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
@@ -1094,12 +1059,7 @@ speakers_fr_listening_window = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
 })
 
 lsx.util.pipe(
-    speakers_fr_listening_window
-        .reset_index()
-        .rename(columns={
-            'Speaker': 'speaker',
-            'Frequency [Hz]': 'frequency',
-        }),
+    speakers_fr_listening_window,
     lambda data: frequency_response_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
@@ -1304,8 +1264,6 @@ nbd_fr_chart_base = lsx.util.pipe(pd.concat([
             lambda actual_value: actual_value if type(actual_value) is np.record else ('', actual_value)))
         .pipe(split_tuple_column, 'actual_value', ['actual', 'value'])
         .rename(columns={
-            'Speaker': 'speaker',
-            'Frequency [Hz]': 'frequency',
             'Band': 'band',
             'Center Frequency (Hz)': 'frequency_center',
             'End Frequency (Hz)': 'frequency_end',

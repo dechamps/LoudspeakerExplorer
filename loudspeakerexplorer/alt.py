@@ -3,17 +3,6 @@ import altair as alt
 import loudspeakerexplorer as lsx
 
 
-def prepare_chart(df, columns_mapper):
-    # Prepares DataFrame `df` for charting using alt.Chart().
-    #
-    # Altair doesn't use the index, so we move it into columns. Then columns are
-    # remapped according to the `columns_mapper` dict. (This is necessary
-    # because Altair doesn't work well with verbose column names, and it doesn't
-    # support multi-level columns anyway.) Columns that don't appear in the dict
-    # are dropped.
-    return df.reset_index().pipe(lsx.pd.remap_columns, columns_mapper)
-
-
 def interactive_line(
         chart, legend_channel,
         add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
