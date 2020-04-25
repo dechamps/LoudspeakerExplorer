@@ -715,7 +715,9 @@ def standalone_speaker_frequency_response_db_chart(column, yaxis):
             .rename('value')
             .to_frame(),
         lambda data: frequency_response_db_chart(data,
-            additional_tooltips=[alt.Tooltip('speaker', type='nominal', title='Speaker')])
+            additional_tooltips=
+                [alt.Tooltip('speaker', type='nominal', title='Speaker')]
+                if data.index.get_level_values('Speaker').nunique() > 1 else [])
             .encode(y=yaxis),
         lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
         speaker_input,
@@ -808,7 +810,8 @@ lsx.util.pipe(
         }),
     lambda data: frequency_response_chart(
         data, alter_tooltips=lambda tooltips:
-        [alt.Tooltip('speaker', title='Speaker')] +
+        ([alt.Tooltip('speaker', title='Speaker')]
+            if speakers_fr_ready.index.get_level_values('Speaker').nunique() > 1 else []) +
         tooltips +
         [alt.Tooltip('value', type='quantitative', title='Resolution (points/octave)', format='.2f')])
         .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
