@@ -800,6 +800,7 @@ lsx.util.pipe(
         [alt.Tooltip('value', type='quantitative', title='Resolution (points/octave)', format='.2f')])
         .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
+    speaker_input,
     postprocess_chart)
 ```
 
