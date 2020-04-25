@@ -677,24 +677,29 @@ def value_db_tooltip(shorthand='value', title='Value', **kwargs):
         title=f'{title} (dB)', format='.2f',
         **kwargs)
 
-def frequency_response_chart(
+def raw_frequency_response_chart(
     data,
     sidebyside=False,
     additional_tooltips=[]):
     return lsx.util.pipe(
-        alt.Chart(data
-                .reset_index()
-                .rename(columns={
-                    'Speaker': 'speaker',
-                    'Frequency [Hz]': 'frequency',
-                }),
-            title=common_title),
+        alt.Chart(data, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
             .encode(
                 frequency_xaxis('frequency'),
                 tooltip=additional_tooltips +
                     [frequency_tooltip(), value_db_tooltip()]))
+
+def frequency_response_chart(data, *kargs, **kwargs):
+    data = (data
+        .reset_index('Frequency [Hz]')
+        .pipe(lsx.pd.implode)
+        .rename(columns={'Frequency [Hz]': 'frequency'}))
+    return (raw_frequency_response_chart(data
+            .reset_index()
+            .rename(columns={'Speaker': 'speaker'}),
+        *kargs, **kwargs)
+        .transform_flatten(data.columns.values))
 
 def frequency_xaxis(shorthand):
     return alt.X(
@@ -1264,6 +1269,8 @@ nbd_fr_chart_base = lsx.util.pipe(pd.concat([
             lambda actual_value: actual_value if type(actual_value) is np.record else ('', actual_value)))
         .pipe(split_tuple_column, 'actual_value', ['actual', 'value'])
         .rename(columns={
+            'Speaker': 'speaker',
+            'Frequency [Hz]': 'frequency',
             'Band': 'band',
             'Center Frequency (Hz)': 'frequency_center',
             'End Frequency (Hz)': 'frequency_end',
@@ -1271,7 +1278,7 @@ nbd_fr_chart_base = lsx.util.pipe(pd.concat([
         .assign(label=lambda df: df.aggregate(
             lambda row: ('NBD_' if row.loc['layer'] != 'Curve' else '') + row.loc['curve'] + ' ' + row.loc['layer'],
             axis='columns')),
-    lambda data: frequency_response_chart(
+    lambda data: raw_frequency_response_chart(
         data, sidebyside=True,
         additional_tooltips=[alt.Tooltip('layer', title='Layer')]))
 
