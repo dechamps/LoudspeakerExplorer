@@ -708,6 +708,19 @@ def frequency_response_db_chart(data, additional_tooltips=[], *kargs, **kwargs):
         alter_tooltips=lambda tooltips: additional_tooltips + tooltips + [value_db_tooltip()],
         **kwargs)
 
+def standalone_speaker_frequency_response_db_chart(column, yaxis):
+    return lsx.util.pipe(
+        speakers_fr_ready
+            .loc[:, column]
+            .rename('value')
+            .to_frame(),
+        lambda data: frequency_response_db_chart(data,
+            additional_tooltips=[alt.Tooltip('speaker', type='nominal', title='Speaker')])
+            .encode(y=yaxis),
+        lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
+        speaker_input,
+        postprocess_chart)
+
 def frequency_xaxis(shorthand):
     return alt.X(
         shorthand, type='quantitative', title='Frequency (Hz)',
@@ -866,15 +879,9 @@ lsx.util.pipe(
 ## On-axis response
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('CEA2034', 'On Axis'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(sound_pressure_yaxis(title_prefix='On Axis')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('CEA2034', 'On Axis'),
+    sound_pressure_yaxis(title_prefix='On Axis'))
 ```
 
 <!-- #region heading_collapsed=true -->
@@ -959,85 +966,49 @@ reflection_responses_chart('Vertical')
 ## Listening Window response
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Listening Window'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('CEA2034', 'Listening Window'),
+    sound_pressure_yaxis(title_prefix='Listening Window'))
 ```
 
 ## Early Reflections response
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Early Reflections'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('CEA2034', 'Early Reflections'),
+    sound_pressure_yaxis(title_prefix='Early Reflections'))
 ```
 
 ## Sound Power response
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('CEA2034', 'Sound Power'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('CEA2034', 'Sound Power'),
+    sound_pressure_yaxis(title_prefix='Sound Power'))
 ```
 
 ## Early Reflections Directivity Index
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Early Reflections DI'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('Directivity Index', 'Early Reflections DI'),
+    directivity_index_yaxis(title_prefix='Early Reflections'))
 ```
 
 ## Sound Power Directivity Index
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Sound Power DI'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(directivity_index_yaxis(title_prefix='Sound Power')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('Directivity Index', 'Sound Power DI'),
+    directivity_index_yaxis(title_prefix='Sound Power'))
 ```
 
 ## Estimated In-Room Response
 
 ```python
-lsx.util.pipe(
-    speakers_fr_ready_offset
-        .pipe(lsx.pd.remap_columns, {('Estimated In-Room Response', 'Estimated In-Room Response'): 'value'}),
-    lambda data: frequency_response_db_chart(data,
-        additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
-        .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-    speaker_input,
-    postprocess_chart)
+standalone_speaker_frequency_response_db_chart(
+    ('Estimated In-Room Response', 'Estimated In-Room Response'),
+    sound_pressure_yaxis(title_prefix='Estimated In-Room Response'))
 ```
 
 # Other measurements
