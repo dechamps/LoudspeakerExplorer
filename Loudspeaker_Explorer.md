@@ -680,15 +680,14 @@ def value_db_tooltip(shorthand='value', title='Value', **kwargs):
 def raw_frequency_response_chart(
     data,
     sidebyside=False,
-    additional_tooltips=[]):
+    alter_tooltips=lambda tooltips: tooltips):
     return lsx.util.pipe(
         alt.Chart(data, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
             .encode(
                 frequency_xaxis('frequency'),
-                tooltip=additional_tooltips +
-                    [frequency_tooltip(), value_db_tooltip()]))
+                tooltip=alter_tooltips([frequency_tooltip()])))
 
 def frequency_response_chart(data, *kargs, **kwargs):
     data = (data
@@ -702,6 +701,12 @@ def frequency_response_chart(data, *kargs, **kwargs):
             .rename(columns={'Speaker': 'speaker'}),
         *kargs, **kwargs)
         .transform_flatten(data.columns.values))
+
+def frequency_response_db_chart(data, additional_tooltips=[], *kargs, **kwargs):
+    return frequency_response_chart(
+        data, *kargs,
+        alter_tooltips=lambda tooltips: additional_tooltips + tooltips + [value_db_tooltip()],
+        **kwargs)
 
 def frequency_xaxis(shorthand):
     return alt.X(
@@ -785,22 +790,15 @@ lsx.util.pipe(
         .pipe(np.log2)
         .pow(-1)
         .rename(columns={'Frequency [Hz]': 'Resolution (points/octave)'})
-        .reset_index()
         .pipe(lsx.pd.remap_columns, {
-            'Speaker': 'speaker',
-            'Frequency [Hz]': 'frequency',
             'Resolution (points/octave)': 'value',
         }),
-    lambda data: alt.Chart(data, title=common_title),
-    lambda chart:
-        set_chart_dimensions(chart)
-        .encode(
-            frequency_xaxis('frequency'),
-            alt.Y('value', title='Resolution (points/octave)', axis=alt.Axis(grid=True)),
-            tooltip=[
-                alt.Tooltip('speaker', title='Speaker'),
-                frequency_tooltip(),
-                alt.Tooltip('value', title='Resolution (points/octave)', format='.2f')]),
+    lambda data: frequency_response_chart(
+        data, alter_tooltips=lambda tooltips:
+        [alt.Tooltip('speaker', title='Speaker')] +
+        tooltips +
+        [alt.Tooltip('value', type='quantitative', title='Resolution (points/octave)', format='.2f')])
+        .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
     postprocess_chart)
 ```
@@ -830,7 +828,7 @@ speakers_fr_spinorama = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
 
 spinorama_chart_common = lsx.util.pipe(
     speakers_fr_spinorama,
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
         .transform_fold(speakers_fr_spinorama.columns.values))
@@ -870,7 +868,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('CEA2034', 'On Axis'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='On Axis')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -901,7 +899,7 @@ def off_axis_angles_chart(direction):
             .rename_axis(columns='Angle'))
     return lsx.util.pipe(
         speakers_fr_angles,
-        lambda data: frequency_response_chart(data,
+        lambda data: frequency_response_db_chart(data,
             sidebyside=True,
             additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')])
             .transform_fold(speakers_fr_angles.columns.values)
@@ -939,7 +937,7 @@ def reflection_responses_chart(axis):
     
     return lsx.util.pipe(
         fr,
-        lambda data: frequency_response_chart(data,
+        lambda data: frequency_response_db_chart(data,
             sidebyside=True,
             additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')])
             .transform_fold(fr.columns.values)
@@ -963,7 +961,7 @@ reflection_responses_chart('Vertical')
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('CEA2034', 'Listening Window'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Listening Window')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -977,7 +975,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('CEA2034', 'Early Reflections'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Early Reflections')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -991,7 +989,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('CEA2034', 'Sound Power'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Sound Power')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -1005,7 +1003,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Early Reflections DI'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Early Reflections')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -1019,7 +1017,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('Directivity Index', 'Sound Power DI'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(directivity_index_yaxis(title_prefix='Sound Power')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -1033,7 +1031,7 @@ lsx.util.pipe(
 lsx.util.pipe(
     speakers_fr_ready_offset
         .pipe(lsx.pd.remap_columns, {('Estimated In-Room Response', 'Estimated In-Room Response'): 'value'}),
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         additional_tooltips=[alt.Tooltip('speaker', title='Speaker')])
         .encode(sound_pressure_yaxis(title_prefix='Estimated In-Room Response')),
     lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
@@ -1067,7 +1065,7 @@ speakers_fr_listening_window = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
 
 lsx.util.pipe(
     speakers_fr_listening_window,
-    lambda data: frequency_response_chart(data,
+    lambda data: frequency_response_db_chart(data,
         sidebyside=True,
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')])
         .transform_fold(speakers_fr_listening_window.columns.values)
@@ -1282,7 +1280,7 @@ nbd_fr_chart_base = lsx.util.pipe(pd.concat([
             axis='columns')),
     lambda data: raw_frequency_response_chart(
         data, sidebyside=True,
-        additional_tooltips=[alt.Tooltip('layer', title='Layer')]))
+        alter_tooltips=lambda tooltips: [alt.Tooltip('layer', title='Layer')] + tooltips + [value_db_tooltip()]))
 
 nbd_fr_chart_color = alt.Color(
     'label', title=None,
