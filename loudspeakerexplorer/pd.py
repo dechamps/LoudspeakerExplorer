@@ -45,7 +45,7 @@ def implode(df):
     # i [10, 11] [11, 21]
     # j [30]     [31]
     return (df
-            .groupby(level=range(0, df.index.nlevels))
+            .groupby(level=list(range(0, df.index.nlevels)))
             # Wrap in a tuple to avoid Pandas interpreting the return value
             # as a list of rows.
             .apply(lambda df: df.aggregate(lambda column: (list(column.values),)))
