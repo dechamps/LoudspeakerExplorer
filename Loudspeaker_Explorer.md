@@ -522,7 +522,7 @@ form(widgets.HBox([smoothing_enabled, smoothing_params]))
 
 ```python
 # Appends a new index level with all identical values.
-def append_constant_index(df, value, name=None):
+def append_constant_index(df, value=pd.NA, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
 speakers_fr_smoothed = (speakers_fr_norm
@@ -1110,16 +1110,16 @@ def expand_olive_curve_label(curve):
 def expand_olive_label(variable, curve):
     return f'{variable}_{curve} {olive_curve_labels[curve]} {olive_variable_labels[variable]}'
 
-def expand_olive_labels(df, variable):
-    return df.rename(columns=lambda column: expand_olive_label(variable, column))
+def curve_selection(init):
+    return alt.selection_single(
+        fields=['curve'], init={'curve': init},
+        bind=alt.binding_select(
+            name='Curve: ',
+            options=list(olive_curve_labels.keys()),
+            labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()]))
 
 def curve_input(chart, init):
-    selection = alt.selection_single(
-            fields=['curve'], init={'curve': init},
-            bind=alt.binding_select(
-                name='Curve: ',
-                options=list(olive_curve_labels.keys()),
-                labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()]))
+    selection = curve_selection(init)
     return chart.transform_filter(selection).add_selection(selection)
 ```
 
@@ -1201,64 +1201,29 @@ speakers_nbd
 ### Results
 
 ```python
-def split_tuple_column(df, column, columns):
-    return pd.concat([
-        df,
-        pd.DataFrame(df.loc[:, column].tolist(), columns=columns, index=df.index),
-    ], axis='columns').drop(columns=column)
+nbd_fr_chart_data = (pd.concat({
+        'Curve': pd.concat([speakers_fr_olive, frequency_nbd_band], axis='columns')
+            .pipe(lambda df: df.set_index(df.loc[:, 'Band'].fillna(0).astype(int), append=True))
+            .drop(columns='Band')
+            .swaplevel('Frequency [Hz]', 'Band'),
+        'Band Mean': speakers_nbd_mean
+            .pipe(append_constant_index, name='Frequency [Hz]')
+    }, names=['Dataset'])
+    .assign(speaker_band=lambda df: df.index.droplevel(['Dataset', 'Frequency [Hz]']))
+    .set_index('speaker_band', append=True))
 
-def columns_to_tuple(df):
-    return pd.Series(list(df.to_records(index=False)), index=df.index)
+# We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
+nbd_curve_selection = curve_selection('ON')
 
-nbd_fr_chart_base = lsx.util.pipe(pd.concat([
-            speakers_fr_olive
-                .assign(layer='Curve')
-                .reset_index(),
-            pd.concat({
-                'Actual': speakers_fr_band,
-                'Value': speakers_fr_band - speakers_nbd_deviation,
-            }, axis='columns')
-                .swaplevel(axis='columns')
-                .groupby(axis='columns', level='Curve')
-                # Merge (Actual, Value) into a single tuple column so that it survives melt().
-                .apply(columns_to_tuple)
-                .reset_index()
-                .assign(layer='Deviation'),
-            speakers_nbd_mean
-                # TODO: could show band NBD here too
-                .merge(nbd_bands, left_index=True, right_index=True, validate='1:m')
-                .assign(layer='Band Mean')
-                .reset_index()
-                .rename(columns={'Start Frequency (Hz)': 'Frequency [Hz]'})
-        ])
-        .melt([
-            'layer',
-            'Speaker',
-            'Frequency [Hz]',
-            'Band',
-            'Center Frequency (Hz)',
-            'End Frequency (Hz)',
-        ], var_name='curve', value_name='actual_value')
-        # Unpack the tuples generated above.
-        .assign(actual_value=lambda df: df.loc[:, 'actual_value'].apply(
-            lambda actual_value: actual_value if type(actual_value) is np.record else ('', actual_value)))
-        .pipe(split_tuple_column, 'actual_value', ['actual', 'value'])
-        .rename(columns={
-            'Speaker': 'speaker',
-            'Frequency [Hz]': 'frequency',
-            'Band': 'band',
-            'Center Frequency (Hz)': 'frequency_center',
-            'End Frequency (Hz)': 'frequency_end',
-        })
-        .assign(label=lambda df: df.aggregate(
-            lambda row: ('NBD_' if row.loc['layer'] != 'Curve' else '') + row.loc['curve'] + ' ' + row.loc['layer'],
-            axis='columns')),
-    lambda data: raw_frequency_response_chart(
-        data, sidebyside=True,
-        alter_tooltips=lambda tooltips: [alt.Tooltip('layer', title='Layer')] + tooltips + [value_db_tooltip()]))
+nbd_fr_chart_base = lsx.util.pipe(
+    nbd_fr_chart_data,
+    lambda data: frequency_response_db_chart(data, sidebyside=True)
+    .transform_fold(nbd_fr_chart_data.columns.values, ['curve', 'value'])
+    .transform_filter(nbd_curve_selection))
 
 nbd_fr_chart_color = alt.Color(
-    'label', title=None,
+    'layer',
+    type='nominal', title=None,
     legend=alt.Legend(symbolType='stroke'),
     scale=alt.Scale(range=[
         '#2ca02c',  # category10[2]: Band Mean
@@ -1269,42 +1234,60 @@ nbd_fr_chart_color = alt.Color(
 lsx.util.pipe(
     alt.layer(
         lsx.util.pipe(nbd_fr_chart_base
-                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Curve'))
+                .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
+                .transform_calculate(layer='datum.curve + " Curve"')
                 .encode(sound_pressure_yaxis(), strokeWidth=alt.value(0.5)),
             lambda chart: lsx.alt.interactive_line(chart, nbd_fr_chart_color)),
         lsx.util.pipe(nbd_fr_chart_base
-                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Band Mean'))
+                .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Band Mean'))
+                .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
+                .transform_calculate(frequency='datum.band_info.start_frequency')
                 .encode(
-                    sound_pressure_yaxis(),
-                    alt.X2('frequency_end'),
+                    sound_pressure_yaxis(), alt.X2('band_info.end_frequency'),
                     tooltip=[
-                            alt.Tooltip('layer', title='Layer'),
-                            alt.Tooltip('band', title='Band'),
-                            frequency_tooltip('frequency', 'Start Frequency'),
-                            frequency_tooltip('frequency_center', 'Center Frequency'),
-                            frequency_tooltip('frequency_end', 'End Frequency'),
-                            value_db_tooltip(),
-                        ]),
+                        alt.Tooltip('Band'),
+                        frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
+                        frequency_tooltip('band_info.center_frequency', 'Center Frequency'),
+                        frequency_tooltip('band_info.end_frequency', 'End Frequency'),
+                        value_db_tooltip(title='Mean'),
+                    ]
+                ),
             lambda chart: lsx.alt.interactive_line(
                 chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule())
                 .interactive()),
         lsx.util.pipe(nbd_fr_chart_base
-                .transform_filter(alt.FieldEqualPredicate(field='layer', equal='Deviation'))
-                .transform_calculate(deviation=alt.datum.actual - alt.datum.value)
+                .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
+                .transform_calculate(band_mean=
+                    'isObject(datum.speaker_band_mean) ? datum.speaker_band_mean[datum.curve] : NaN')
+                .transform_filter(alt.FieldValidPredicate(field='band_mean', valid=True))
+                .transform_calculate(layer='"NBD_" + datum.curve + " Deviation"')
+                .transform_calculate(deviation='abs(datum.band_mean - datum.value)')
                 .encode(
-                    sound_pressure_yaxis(),
-                    alt.Y2('actual'),
+                    sound_pressure_yaxis(), alt.Y2('band_mean'),
                     strokeWidth=alt.value(2),
                     tooltip=[
-                            alt.Tooltip('layer', title='Layer'),
-                            alt.Tooltip('band', title='Band'),
-                            frequency_tooltip(),
-                            value_db_tooltip('deviation', 'Deviation'),
-                        ]),
+                        frequency_tooltip(),
+                        value_db_tooltip(),
+                        alt.Tooltip('Band'),
+                        value_db_tooltip('deviation', title='Deviation'),
+                    ]),
             lambda chart: lsx.alt.interactive_line(
-                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule()))),
+                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule())))
+    # Lookups are done here. If they are done in nbd_fr_chart_base, Altair seems to generate an invalid spec.
+    .transform_lookup(lookup='Band', as_='band_info', from_=alt.LookupData(
+        key='Band', data=nbd_bands
+            .pipe(lsx.pd.remap_columns, {
+                'Start Frequency (Hz)': 'start_frequency',
+                'Center Frequency (Hz)': 'center_frequency',
+                'End Frequency (Hz)': 'end_frequency',
+            })
+            .reset_index()))
+    .transform_lookup(lookup='speaker_band', as_='speaker_band_mean', from_=alt.LookupData(
+        key='speaker_band', data=speakers_nbd_mean
+            .assign(speaker_band=lambda df: df.index)
+            .reset_index(drop=True)))
+    .add_selection(nbd_curve_selection),
     speaker_facet, speaker_input,
-    lambda chart: curve_input(chart, 'ON'),
     postprocess_chart)
 ```
 
