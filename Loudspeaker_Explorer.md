@@ -1307,7 +1307,12 @@ lsx.util.pipe(
             .encode(
                 alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
                 alt.Color('Band', type='nominal', sort=None, title='Band'),
-                alt.Order('Band')),
+                alt.Order('Band'),
+                tooltip=[
+                        alt.Tooltip('Speaker', title='Speaker'),
+                        alt.Tooltip('Band'),
+                        alt.Tooltip('value', type='quantitative', title='Band NBD', format='.3f'),
+                    ]),
         nbd_chart_base
             .mark_text(align='left', dx=3)
             .encode(
