@@ -954,7 +954,9 @@ def reflection_responses_chart(axis):
 reflection_responses_chart('Horizontal')
 ```
 
+<!-- #region heading_collapsed=true -->
 ## Vertical reflection responses
+<!-- #endregion -->
 
 ```python
 reflection_responses_chart('Vertical')
