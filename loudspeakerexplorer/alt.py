@@ -44,33 +44,30 @@ def interactive_line(
     # that causes problems with faceted charts, see:
     #   https://github.com/vega/vega-lite/issues/6261
 
-    mouseover_selection = alt.selection_single(
-        on='mouseover', empty='none',
-        # We explicitly specify the encodings, as the defaults might not take
-        # new fields added by transforms into account. See:
-        #   https://github.com/vega/vega-lite/issues/6389
-        encodings=['x', 'y'])
-    legend_selection = alt.selection_multi(encodings=['color'], bind='legend')
     # This is equivalent to using the `point` line mark property.
     # The reason why we don't simply do that is because tooltips wouldn't work
     # as well due to this Vega-lite bug:
     #   https://github.com/vega/vega-lite/issues/6107
     return alt.layer(
         # Note: order is important. If the points chart comes first, legend selection doesn't work.
-        add_mark(chart)
-        .add_selection(legend_selection)
-        .encode(
-            legend_channel,
-            opacity=alt.condition(
-                legend_selection, alt.value(1), alt.value(0.2))
-        ),
-        chart
-        .mark_circle(clip=True, size=100)
-        .add_selection(mouseover_selection)
-        .encode(
+        lsx.util.pipe(
+            chart,
+            add_mark,
+            lambda chart: encode_selection(
+                chart, alt.selection_multi(encodings=['color'], bind='legend'),
+                'opacity', alt.value(1), alt.value(0.2))
+            .encode(legend_channel)),
+        lsx.util.pipe(
+            chart
+            .mark_circle(clip=True, size=100),
             # We don't use legend_selection for points. If we do, it seems to
             # break legend interactivity in weird ways on non-faceted charts.
-            legend_channel,
-            fillOpacity=alt.condition(
-                mouseover_selection, alt.value(0.3), alt.value(0)))
-        .interactive())
+            lambda chart: encode_selection(chart, alt.selection_single(
+                on='mouseover', empty='none',
+                # We explicitly specify the encodings, as the defaults might not take
+                # new fields added by transforms into account. See:
+                #   https://github.com/vega/vega-lite/issues/6389
+                encodings=['x', 'y']),
+                'fillOpacity', alt.value(0.3), alt.value(0))
+            .encode(legend_channel)
+            .interactive()))
