@@ -4,18 +4,17 @@ import numpy as np
 import loudspeakerexplorer as lsx
 
 
-def preprocess_chart_data(data, make_chart):
-    # Semantically equivalent to make_chart(data.reset_index()), where
-    # make_chart() returns an Altair chart. Optimizes for minimum Vega spec size
-    # by packing unique index values together and rounding long floating point
-    # numbers.
+def make_chart(data, *kargs, **kwargs):
+    # Semantically equivalent to alt.Chart(data.reset_index()). Optimizes for
+    # minimum Vega spec size by packing unique index values together and
+    # rounding long floating point numbers.
 
     data = (data
             # Round numbers like 0.999999999999 to prevent them from
             # unnecessarily increasing spec size.
             .apply(lambda column: np.around(column, 3), raw=True)
             .pipe(lsx.pd.implode))
-    return (make_chart(data.reset_index())
+    return (alt.Chart(data.reset_index(), *kargs, **kwargs)
             .transform_flatten(data.columns.values))
 
 

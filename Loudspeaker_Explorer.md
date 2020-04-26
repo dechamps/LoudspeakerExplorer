@@ -688,8 +688,7 @@ def frequency_response_chart(
             'Speaker': 'speaker',
         })
         .reset_index('frequency')
-        .pipe(lsx.alt.preprocess_chart_data, lambda data:
-              alt.Chart(data, title=common_title)),
+        .pipe(lsx.alt.make_chart, title=common_title),
         lambda chart:
             set_chart_dimensions(chart, sidebyside)
             .encode(
