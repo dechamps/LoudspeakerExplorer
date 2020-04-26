@@ -1301,7 +1301,7 @@ lsx.alt.make_chart(
             title=common_title),
         postprocess_chart),
     lambda chart: (
-        chart
+        lsx.util.pipe(chart
             .mark_bar()
             .transform_calculate(band_label=
                 'datum.Band + " (" + format(datum.band_info.start_frequency, ".02s") + " - " + format(datum.band_info.end_frequency, ".02s") + " Hz)"')
@@ -1310,13 +1310,16 @@ lsx.alt.make_chart(
                 alt.Color('band_label', type='nominal', sort=None, title='Band'),
                 alt.Order('Band'),
                 tooltip=[
-                    alt.Tooltip('Speaker', title='Speaker'),
                     alt.Tooltip('Band'),
+                    alt.Tooltip('Speaker', title='Speaker'),
                     frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
                     frequency_tooltip('band_info.center_frequency', 'Center Frequency'),
                     frequency_tooltip('band_info.end_frequency', 'End Frequency'),
                     alt.Tooltip('value', type='quantitative', title='Band NBD', format='.3f'),
                 ]),
+            lambda chart: lsx.alt.encode_selection(chart,
+                alt.selection_single(on='mouseover', clear='mouseout', fields=['Band']),
+                'fillOpacity', alt.value(1), alt.value(0.2))),
         chart
             .mark_text(align='left', dx=3)
             .encode(

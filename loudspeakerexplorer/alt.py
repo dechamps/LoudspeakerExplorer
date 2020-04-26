@@ -28,6 +28,12 @@ def make_chart(data, process_top_layer, make_layers=None, *kargs, **kwargs):
     return process_top_layer(chart.transform_flatten(data.columns.values))
 
 
+def encode_selection(chart, selection, channel_type, selected, unselected):
+    return (chart
+            .add_selection(selection)
+            .encode(**{channel_type: alt.condition(selection, selected, unselected)}))
+
+
 def interactive_line(
         chart, legend_channel,
         add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
