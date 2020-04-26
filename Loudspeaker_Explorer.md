@@ -680,6 +680,7 @@ def value_db_tooltip(shorthand='value', title='Value', **kwargs):
 
 def frequency_response_chart(
     data, process_top_layer, make_layers=None,
+    fold=None,
     sidebyside=False, alter_tooltips=lambda tooltips: tooltips):
     return lsx.util.pipe(data
         .rename_axis(index={
@@ -690,6 +691,7 @@ def frequency_response_chart(
         .pipe(lsx.alt.make_chart,
             title=common_title,
             process_top_layer=lambda chart: lsx.util.pipe(chart,
+                lambda chart: chart if fold is None else chart.transform_fold(data.columns.values, **fold),
                 lambda chart: set_chart_dimensions(chart, sidebyside)
                 .encode(
                     frequency_xaxis('frequency'),
@@ -829,15 +831,6 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-speakers_fr_spinorama = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
-    ('CEA2034', 'On Axis'): 'On Axis',
-    ('CEA2034', 'Listening Window'): 'Listening Window',
-    ('CEA2034', 'Early Reflections'): 'Early Reflections',
-    ('CEA2034', 'Sound Power'): 'Sound Power',
-    ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
-    ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
-})
-
 # Note that there are few subtleties here because of Altair/Vega quirks:
 # - To make the Y axes independent, `.resolve_scale()` has to be used *before
 #   and after* `.facet()`. (In Vega terms, there needs to be a Resolve property
@@ -849,9 +842,16 @@ speakers_fr_spinorama = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
 # - To make the two axes zoom and pan at the same time, `.interactive()` has to
 #   be used on each encoding, not on the overall view. Otherwise only the left
 #   axis will support zoom & pan.
-frequency_response_db_chart(speakers_fr_spinorama,
-    lambda chart: lsx.util.pipe(chart
-        .transform_fold(speakers_fr_spinorama.columns.values),
+frequency_response_db_chart(
+        speakers_fr_ready.pipe(lsx.pd.remap_columns, {
+        ('CEA2034', 'On Axis'): 'On Axis',
+        ('CEA2034', 'Listening Window'): 'Listening Window',
+        ('CEA2034', 'Early Reflections'): 'Early Reflections',
+        ('CEA2034', 'Sound Power'): 'Sound Power',
+        ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
+        ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
+    }),
+    lambda chart: lsx.util.pipe(chart,
         lambda chart: chart.resolve_scale(y='independent'),
         speaker_facet, speaker_input,
         lambda chart: chart.resolve_scale(y='independent')),
@@ -866,6 +866,7 @@ frequency_response_db_chart(speakers_fr_spinorama,
                 'Early Reflections DI', 'Sound Power DI']))
             .encode(directivity_index_yaxis(scale_domain=(-10, 40))),
             lambda chart: lsx.alt.interactive_line(chart, key_color()))),
+    fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
 ```
@@ -894,15 +895,13 @@ def off_axis_angles_chart(direction):
         fields=['angle'],
         bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
         clear='dblclick')
-    speakers_fr_angles = (speakers_fr_ready
+    return frequency_response_db_chart(
+        speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(lsx.data.convert_angles)
             .pipe(lambda df: df.pipe(lsx.pd.set_columns, df.columns.map(mapper=lambda column: f'{column:+.0f}')))
-            .rename_axis(columns='Angle'))
-    return frequency_response_db_chart(
-        speakers_fr_angles,
+            .rename_axis(columns='Angle'),
         lambda chart: lsx.util.pipe(chart
-            .transform_fold(speakers_fr_angles.columns.values)
             .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
             .transform_filter(off_axis_angle_selection)
             .encode(sound_pressure_yaxis()),
@@ -914,6 +913,7 @@ def off_axis_angles_chart(direction):
                     legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10)))))
             .add_selection(off_axis_angle_selection),
             speaker_facet, speaker_input),
+        fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
         sidebyside=True
     )
@@ -929,19 +929,17 @@ off_axis_angles_chart('Vertical')
 
 ```python
 def reflection_responses_chart(axis):
-    fr = (speakers_fr_ready
-        .loc[:, f'{axis} Reflections']
-        .rename_axis(columns=['Direction'])
-        .rename(columns=lambda column:
-                re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))))
-    
     return frequency_response_db_chart(
-        fr,
+        speakers_fr_ready
+            .loc[:, f'{axis} Reflections']
+            .rename_axis(columns=['Direction'])
+            .rename(columns=lambda column:
+                    re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))),
         lambda chart: lsx.util.pipe(chart
-                .transform_fold(fr.columns.values)
-                .encode(sound_pressure_yaxis()),
+            .encode(sound_pressure_yaxis()),
             lambda chart: lsx.alt.interactive_line(chart, key_color()),
             speaker_facet, speaker_input),
+        fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')],
         sidebyside=True)
 
@@ -1015,23 +1013,21 @@ The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-speakers_fr_listening_window = speakers_fr_ready.pipe(lsx.pd.remap_columns, {
-    ('SPL Vertical', '-10°'): '-10° Vertical',
-    ('SPL Vertical',  '10°'): '+10° Vertical',
-    ('SPL Horizontal', '-10°'): '-10° Horizontal',
-    ('SPL Horizontal',  '10°'): '+10° Horizontal',
-    ('SPL Horizontal', '-20°'): '-20° Horizontal',
-    ('SPL Horizontal',  '20°'): '+20° Horizontal',
-    ('SPL Horizontal', '-30°'): '-30° Horizontal',
-    ('SPL Horizontal',  '30°'): '+30° Horizontal',
-    ('CEA2034', 'Listening Window'): 'Listening Window',
-    ('CEA2034', 'On Axis'): 'On Axis',
-})
-
 frequency_response_db_chart(
-    speakers_fr_listening_window,
-    lambda chart: lsx.util.pipe(chart        
-        .transform_fold(speakers_fr_listening_window.columns.values)
+    speakers_fr_ready
+        .pipe(lsx.pd.remap_columns, {
+            ('SPL Vertical', '-10°'): '-10° Vertical',
+            ('SPL Vertical',  '10°'): '+10° Vertical',
+            ('SPL Horizontal', '-10°'): '-10° Horizontal',
+            ('SPL Horizontal',  '10°'): '+10° Horizontal',
+            ('SPL Horizontal', '-20°'): '-20° Horizontal',
+            ('SPL Horizontal',  '20°'): '+20° Horizontal',
+            ('SPL Horizontal', '-30°'): '-30° Horizontal',
+            ('SPL Horizontal',  '30°'): '+30° Horizontal',
+            ('CEA2034', 'Listening Window'): 'Listening Window',
+            ('CEA2034', 'On Axis'): 'On Axis',
+        }),
+    lambda chart: lsx.util.pipe(chart
         .encode(sound_pressure_yaxis())
         .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
             field='key', oneOf=['Listening Window', 'On Axis']),
@@ -1052,6 +1048,7 @@ frequency_response_db_chart(
                 '#2ca02c',
         ]))),
         speaker_facet, speaker_input),
+    fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
 ```
@@ -1229,8 +1226,7 @@ frequency_response_db_chart(
                     .reset_index('Speaker', drop=True)
                     .to_dict(orient='index'))
                 .rename('band_mean')
-                .reset_index()))
-        .transform_fold(nbd_fr_chart_data.columns.values, ['curve', 'value']),
+                .reset_index())),
         lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
     lambda chart: (
@@ -1274,6 +1270,7 @@ frequency_response_db_chart(
                 ]),
             lambda chart: lsx.alt.interactive_line(
                 chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule()))),
+    fold={'as_': ['curve', 'value']},
     sidebyside=True)
 ```
 
