@@ -678,27 +678,23 @@ def value_db_tooltip(shorthand='value', title='Value', **kwargs):
         title=f'{title} (dB)', format='.2f',
         **kwargs)
 
-def raw_frequency_response_chart(
+def frequency_response_chart(
     data,
     sidebyside=False,
     alter_tooltips=lambda tooltips: tooltips):
-    return lsx.util.pipe(
-        alt.Chart(data, title=common_title),
-        lambda chart:
-            set_chart_dimensions(chart, sidebyside)
-            .encode(
-                frequency_xaxis('frequency'),
-                tooltip=alter_tooltips([frequency_tooltip()])))
-
-def frequency_response_chart(data, *kargs, **kwargs):
-    return (data
+    return lsx.util.pipe(data
         .rename_axis(index={
             'Frequency [Hz]': 'frequency',
             'Speaker': 'speaker',
         })
         .reset_index('frequency')
         .pipe(lsx.alt.preprocess_chart_data, lambda data:
-              raw_frequency_response_chart(data, *kargs, **kwargs)))
+              alt.Chart(data, title=common_title)),
+        lambda chart:
+            set_chart_dimensions(chart, sidebyside)
+            .encode(
+                frequency_xaxis('frequency'),
+                tooltip=alter_tooltips([frequency_tooltip()])))
 
 def frequency_response_db_chart(data, additional_tooltips=[], *kargs, **kwargs):
     return frequency_response_chart(
