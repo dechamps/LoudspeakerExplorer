@@ -1289,16 +1289,9 @@ lsx.util.pipe(
 ```
 
 ```python
-# We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
+# We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done after facet().
 nbd_curve_selection = curve_selection('ON')
-    
-nbd_chart_base = lsx.util.pipe(speakers_nbd_band,
-    lsx.alt.make_chart,
-    lambda chart: chart
-        .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
-        .transform_filter(nbd_curve_selection)
-        .encode(alt.Y('Speaker', title=None)))
-
+nbd_chart_base = lsx.alt.make_chart(speakers_nbd_band)
 lsx.util.pipe(
     alt.layer(
         nbd_chart_base
@@ -1322,6 +1315,14 @@ lsx.util.pipe(
             .encode(
                 alt.X('value', type='quantitative', aggregate='sum'),
                 alt.Text('value', type='quantitative', aggregate='sum', format='.2f')))
+    .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
+    .transform_filter(nbd_curve_selection)
+    .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
+        key='curve', data=pd.Series(olive_curve_labels)
+            .rename_axis('curve')
+            .rename('label')
+            .reset_index()))
+    .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
     .transform_lookup(lookup='Band', as_='band_info', from_=alt.LookupData(
         key='Band', data=nbd_bands
             .pipe(lsx.pd.remap_columns, {
@@ -1330,8 +1331,9 @@ lsx.util.pipe(
                 'End Frequency (Hz)': 'end_frequency',
             })
             .reset_index()))
+    .encode(alt.Y('Speaker', title=None))
     .facet(
-        alt.Column('curve', type='nominal', title=None),
+        alt.Column('curve_label', type='nominal', title=None),
         title=common_title)
     .add_selection(nbd_curve_selection),
     postprocess_chart)
