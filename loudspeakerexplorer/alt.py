@@ -4,18 +4,28 @@ import numpy as np
 import loudspeakerexplorer as lsx
 
 
-def make_chart(data, *kargs, **kwargs):
-    # Semantically equivalent to alt.Chart(data.reset_index()). Optimizes for
-    # minimum Vega spec size by packing unique index values together and
-    # rounding long floating point numbers.
+def make_chart(data, process_top_layer, make_layers=None, *kargs, **kwargs):
+    # Semantically equivalent to:
+    #   base = alt.Chart(data.reset_index(), *kargs, **kwargs)
+    #   process_top_layer(alt.layer(make_layers(base)))
+    #
+    # Improves readability by making it possible to write the top layer
+    # processing code *before* the sublayers, which matches the order in which
+    # Vega processes the spec. This is especially important when it comes to
+    # the order in which transforms run.
+    #
+    # Optimizes for minimum Vega spec size by packing unique index values
+    # together and rounding long floating point numbers.
 
     data = (data
             # Round numbers like 0.999999999999 to prevent them from
             # unnecessarily increasing spec size.
             .apply(lambda column: np.around(column, 3), raw=True)
             .pipe(lsx.pd.implode))
-    return (alt.Chart(data.reset_index(), *kargs, **kwargs)
-            .transform_flatten(data.columns.values))
+    chart = alt.Chart(data.reset_index(), *kargs, **kwargs)
+    if make_layers is not None:
+        chart = alt.layer(*make_layers(chart))
+    return process_top_layer(chart.transform_flatten(data.columns.values))
 
 
 def interactive_line(
