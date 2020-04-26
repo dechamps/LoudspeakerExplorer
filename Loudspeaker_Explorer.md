@@ -1290,20 +1290,15 @@ lsx.util.pipe(
 
 ```python
 lsx.util.pipe(
-    alt.Chart(speakers_nbd_band
-            .reset_index()
-            .melt(['Speaker', 'Band'], var_name='curve')
-            .rename(columns={
-                'Speaker': 'speaker',
-                'Band': 'band',
-            }))
+    lsx.alt.make_chart(speakers_nbd_band.reset_index('Band'))
+        .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
         .mark_bar()
         .encode(
-            alt.Column('curve', title=None),
-            alt.X('value', title=['Narrow Band Deviation (NBD)', 'lower is better']),
-            alt.Y('speaker', title=None),
-            alt.Color('band', type='nominal', sort=None, title='Band'),
-            alt.Order('band')),
+            alt.Column('curve', type='nominal', title=None),
+            alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
+            alt.Y('Speaker', title=None),
+            alt.Color('Band', type='nominal', sort=None, title='Band'),
+            alt.Order('Band')),
     lambda chart: curve_input(chart, 'ON'),
     postprocess_chart)
 ```
