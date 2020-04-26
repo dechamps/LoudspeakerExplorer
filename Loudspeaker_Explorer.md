@@ -1289,16 +1289,33 @@ lsx.util.pipe(
 ```
 
 ```python
-lsx.util.pipe(
-    lsx.alt.make_chart(speakers_nbd_band.reset_index('Band'))
+# We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
+nbd_curve_selection = curve_selection('ON')
+    
+nbd_chart_base = lsx.util.pipe(speakers_nbd_band
+        .reset_index('Band'),
+    lsx.alt.make_chart,
+    lambda chart: chart
         .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
-        .mark_bar()
-        .encode(
-            alt.Column('curve', type='nominal', title=None),
-            alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
-            alt.Y('Speaker', title=None),
-            alt.Color('Band', type='nominal', sort=None, title='Band'),
-            alt.Order('Band')),
-    lambda chart: curve_input(chart, 'ON'),
+        .transform_filter(nbd_curve_selection)
+        .encode(alt.Y('Speaker', title=None)))
+
+lsx.util.pipe(
+    alt.layer(
+        nbd_chart_base
+            .mark_bar()
+            .encode(
+                alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
+                alt.Color('Band', type='nominal', sort=None, title='Band'),
+                alt.Order('Band')),
+        nbd_chart_base
+            .mark_text(align='left', dx=3)
+            .encode(
+                alt.X('value', type='quantitative', aggregate='sum'),
+                alt.Text('value', type='quantitative', aggregate='sum', format='.2f'))),
+    lambda chart: chart.facet(
+        alt.Column('curve', type='nominal', title=None),
+        title=common_title)
+        .add_selection(nbd_curve_selection),
     postprocess_chart)
 ```
