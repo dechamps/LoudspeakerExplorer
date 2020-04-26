@@ -63,7 +63,7 @@ def interactive_line(
             # We don't use legend_selection for points. If we do, it seems to
             # break legend interactivity in weird ways on non-faceted charts.
             lambda chart: encode_selection(chart, alt.selection_single(
-                on='mouseover', empty='none',
+                on='mouseover', clear='mouseout', empty='none',
                 # We explicitly specify the encodings, as the defaults might not take
                 # new fields added by transforms into account. See:
                 #   https://github.com/vega/vega-lite/issues/6389
