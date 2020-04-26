@@ -1199,9 +1199,6 @@ nbd_fr_chart_data = (pd.concat({
             .pipe(append_constant_index, name='Frequency [Hz]')
     }, names=['Dataset']))
 
-# We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
-nbd_fr_curve_selection = curve_selection('ON')
-
 nbd_fr_chart_color = alt.Color(
     'layer',
     type='nominal', title=None,
@@ -1231,9 +1228,8 @@ frequency_response_db_chart(
                     .to_dict(orient='index'))
                 .rename('band_mean')
                 .reset_index()))
-        .add_selection(nbd_fr_curve_selection)
-        .transform_fold(nbd_fr_chart_data.columns.values, ['curve', 'value'])
-        .transform_filter(nbd_fr_curve_selection),
+        .transform_fold(nbd_fr_chart_data.columns.values, ['curve', 'value']),
+        lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
     lambda chart: (
         lsx.util.pipe(chart
