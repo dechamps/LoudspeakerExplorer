@@ -1204,6 +1204,8 @@ nbd_fr_chart_color = alt.Color(
     type='nominal', title=None,
     legend=alt.Legend(symbolType='stroke'),
     scale=alt.Scale(range=[
+        # TODO: this doesn't quite work, presumably because the input is not interleaved in this way.
+        # Revisit once https://github.com/vega/vega-lite/issues/6392 is fixed.
         '#2ca02c',  # category10[2]: Band Mean
         '#ff7f0e',  # category10[1]: Deviation
         '#1f77b4',  # category10[0]: Curve
