@@ -1292,8 +1292,7 @@ lsx.util.pipe(
 # We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
 nbd_curve_selection = curve_selection('ON')
     
-nbd_chart_base = lsx.util.pipe(speakers_nbd_band
-        .reset_index('Band'),
+nbd_chart_base = lsx.util.pipe(speakers_nbd_band,
     lsx.alt.make_chart,
     lambda chart: chart
         .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
@@ -1304,23 +1303,36 @@ lsx.util.pipe(
     alt.layer(
         nbd_chart_base
             .mark_bar()
+            .transform_calculate(band_label=
+                'datum.Band + " (" + format(datum.band_info.start_frequency, ".02s") + " - " + format(datum.band_info.end_frequency, ".02s") + " Hz)"')
             .encode(
                 alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
-                alt.Color('Band', type='nominal', sort=None, title='Band'),
+                alt.Color('band_label', type='nominal', sort=None, title='Band'),
                 alt.Order('Band'),
                 tooltip=[
                         alt.Tooltip('Speaker', title='Speaker'),
                         alt.Tooltip('Band'),
+                        frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
+                        frequency_tooltip('band_info.center_frequency', 'Center Frequency'),
+                        frequency_tooltip('band_info.end_frequency', 'End Frequency'),
                         alt.Tooltip('value', type='quantitative', title='Band NBD', format='.3f'),
                     ]),
         nbd_chart_base
             .mark_text(align='left', dx=3)
             .encode(
                 alt.X('value', type='quantitative', aggregate='sum'),
-                alt.Text('value', type='quantitative', aggregate='sum', format='.2f'))),
-    lambda chart: chart.facet(
+                alt.Text('value', type='quantitative', aggregate='sum', format='.2f')))
+    .transform_lookup(lookup='Band', as_='band_info', from_=alt.LookupData(
+        key='Band', data=nbd_bands
+            .pipe(lsx.pd.remap_columns, {
+                'Start Frequency (Hz)': 'start_frequency',
+                'Center Frequency (Hz)': 'center_frequency',
+                'End Frequency (Hz)': 'end_frequency',
+            })
+            .reset_index()))
+    .facet(
         alt.Column('curve', type='nominal', title=None),
         title=common_title)
-        .add_selection(nbd_curve_selection),
+    .add_selection(nbd_curve_selection),
     postprocess_chart)
 ```
