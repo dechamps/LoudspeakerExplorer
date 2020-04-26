@@ -1281,7 +1281,8 @@ frequency_response_db_chart(
 
 ```python
 lsx.alt.make_chart(
-    speakers_nbd_band,
+    speakers_nbd_band
+        .reset_index('Band'),
     lambda chart: lsx.util.pipe(chart
         .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
         .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
