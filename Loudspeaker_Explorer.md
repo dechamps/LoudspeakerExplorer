@@ -1209,9 +1209,7 @@ nbd_fr_chart_data = (pd.concat({
             .swaplevel('Frequency [Hz]', 'Band'),
         'Band Mean': speakers_nbd_mean
             .pipe(append_constant_index, name='Frequency [Hz]')
-    }, names=['Dataset'])
-    .assign(speaker_band=lambda df: df.index.droplevel(['Dataset', 'Frequency [Hz]']))
-    .set_index('speaker_band', append=True))
+    }, names=['Dataset']))
 
 # We can't use curve_input() because, for some reason, the chart doesn't work if the filtering is done at the top level.
 nbd_curve_selection = curve_selection('ON')
@@ -1259,7 +1257,7 @@ lsx.util.pipe(
         lsx.util.pipe(nbd_fr_chart_base
                 .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
                 .transform_calculate(band_mean=
-                    'isObject(datum.speaker_band_mean) ? datum.speaker_band_mean[datum.curve] : NaN')
+                    'isValid(datum.speaker_band_mean.band_mean[datum.Band]) ? datum.speaker_band_mean.band_mean[datum.Band][datum.curve] : NaN')
                 .transform_filter(alt.FieldValidPredicate(field='band_mean', valid=True))
                 .transform_calculate(layer='"NBD_" + datum.curve + " Deviation"')
                 .transform_calculate(deviation='abs(datum.band_mean - datum.value)')
@@ -1283,10 +1281,14 @@ lsx.util.pipe(
                 'End Frequency (Hz)': 'end_frequency',
             })
             .reset_index()))
-    .transform_lookup(lookup='speaker_band', as_='speaker_band_mean', from_=alt.LookupData(
-        key='speaker_band', data=speakers_nbd_mean
-            .assign(speaker_band=lambda df: df.index)
-            .reset_index(drop=True)))
+    .transform_lookup(lookup='speaker', as_='speaker_band_mean', from_=alt.LookupData(
+        key='Speaker', data=speakers_nbd_mean
+            .groupby('Speaker')
+            .apply(lambda df: df
+                .reset_index('Speaker', drop=True)
+                .to_dict(orient='index'))
+            .rename('band_mean')
+            .reset_index()))
     .add_selection(nbd_curve_selection),
     speaker_facet, speaker_input,
     postprocess_chart)
