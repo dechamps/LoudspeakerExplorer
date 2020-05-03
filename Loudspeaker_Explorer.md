@@ -173,12 +173,13 @@ Note that the following speakers, despite having been measured by amirm, are not
  - [**Neumann KH80 (sample 2, low order)**](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/): the raw data was not published. The data shown here is from the [high order measurement](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-12#post-324456).
  - [**NHT Pro M-00**](https://www.audiosciencereview.com/forum/index.php?threads/nht-pro-m-00-powered-monitor-review.10859/): the raw data was not published.
  - [**Yamaha HS5**](https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/): the raw data published is incomplete and does not come in the standard zipfile format that the tool expects.
+ 
+Also keep in mind the following known issues with the measurements:
 
-Also note that the datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
-
-Also note that a [measurement artefact](https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/page-3#post-332136) in the form of a slight [ripple in high frequencies](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324189) (above 4 kHz or so) is present in all measurements made before 2020-02-23. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/#post-335109) starting from the Genelec 8341A measurement.
-
-Also note that the **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
+ - [Low frequency measurement errors](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/page-2#post-389147) (below 100 Hz or so) are present in measurements made before 2020-05-03. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/) in the JBL HDI-3600 measurement.
+ - A [measurement artefact](https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/page-3#post-332136) in the form of a slight [ripple in high frequencies](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324189) (above 4 kHz or so) is present in all measurements made before 2020-02-23. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/#post-335109) starting from the Genelec 8341A measurement.
+ - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
+ - The **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
 
 ```python scrolled=false
 speakers = {}
