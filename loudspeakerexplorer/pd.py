@@ -18,6 +18,19 @@ def append_constant_index(df, value=pd.NA, name=None):
     return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
 
 
+def apply_notna(df, func, *kargs, **kwargs):
+    def applyfunc(series):
+        series = series.dropna()
+        if series.empty:
+            return None
+        return func(series)
+    return df.apply(applyfunc, *kargs, **kwargs)
+
+
+def applymap_notna(df, func):
+    return df.applymap(lambda value: value if pd.isna(value) else func(value))
+
+
 def remap_columns(df, mapper):
     # Renames columns in `df` according to `columns_mapper`.
     #

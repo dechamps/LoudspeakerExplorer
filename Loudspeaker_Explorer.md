@@ -122,6 +122,7 @@ import ipywidgets as widgets
 import yattag
 import altair as alt
 import yaml
+import statsmodels.formula.api as smf
 
 import loudspeakerexplorer as lsx
 ```
@@ -1318,4 +1319,91 @@ lsx.alt.make_chart(
             .encode(
                 alt.X('value', type='quantitative', aggregate='sum'),
                 alt.Text('value', type='quantitative', aggregate='sum', format='.2f'))))
+```
+
+## Slope
+
+<!-- #region heading_collapsed=true -->
+### Calculation
+<!-- #endregion -->
+
+Slope is discussed in section 3.2.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0073 of the [patent](https://patents.google.com/patent/US20050195982A1). It involves computing an [Ordinary Least Squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) linear regression over the frequency response curve. More precisely, in the following model, $a$ and $b$ are chosen to minimize the sum of squared Y residuals among all measurement points between 100 Hz and 16 kHz:
+
+$$Y = b\ln(x) + a$$
+
+Where:
+
+- $Y$ is the predicted amplitude in dB.
+- $x$ is the frequency in Hz.
+- $b$ is the slope in $\ln(2)$dB/octave (multiply by $\ln(2) \approx 0.7$ to get dB/octave).
+- $a$ is the intercept, i.e. the prediction for $x$ = 1 Hz, in dB.
+
+Loudspeaker Explorer computes the above linear regression because that is a prerequisite for computing SM. The actual slope variable (SL) discussed in the paper is not computed because it isn't used in the final model.
+
+```python
+speakers_slope_min_frequency_hz = 100
+speakers_slope_max_frequency_hz = 16000
+speakers_slope_regression = (speakers_fr_olive
+    .pipe(lambda df: df.loc[lsx.util.pipe(
+        df.index.get_level_values('Frequency [Hz]'),
+        lambda freqs: (freqs >= speakers_slope_min_frequency_hz) & (freqs <= speakers_slope_max_frequency_hz))])
+    .groupby('Speaker')
+    .apply(lambda speaker: lsx.pd.apply_notna(speaker, lambda curve: smf.ols(
+            data=curve
+                .rename('value_db')
+                .reset_index('Frequency [Hz]')
+                .reset_index(drop=True)
+                .rename(columns={'Frequency [Hz]': 'frequency_hz'}),
+            formula='value_db ~ np.log(frequency_hz)').fit())))
+
+speakers_slope_b = speakers_slope_regression.pipe(lsx.pd.applymap_notna, lambda regression_results:
+    regression_results.params.loc['np.log(frequency_hz)'])
+speakers_slope_b
+```
+
+### Results
+
+```python
+def speakers_slope_value_at_frequency(frequency_hz):
+    return (speakers_slope_regression
+        .pipe(lsx.pd.applymap_notna, lambda regression_results:
+              regression_results.predict({'frequency_hz': frequency_hz}).squeeze())
+        .pipe(lsx.pd.append_constant_index, frequency_hz, name='Frequency [Hz]'))
+
+frequency_response_db_chart(
+    pd.concat({
+        'Curve': speakers_fr_olive,
+        'Slope': pd.concat([
+            speakers_slope_value_at_frequency(speakers_slope_min_frequency_hz),
+            speakers_slope_value_at_frequency(speakers_slope_max_frequency_hz),
+        ])
+    }, names=['Dataset']),
+    lambda chart: lsx.util.pipe(chart
+        .transform_lookup(lookup='speaker', as_='speaker_b', from_=alt.LookupData(
+            key='Speaker', data=speakers_slope_b
+                .apply(lambda df: df.to_dict(), axis='columns')
+                .rename('b')
+                .to_frame()
+                .reset_index()))
+        .transform_calculate(layer='datum.curve + " " + datum.Dataset')
+        .encode(
+            sound_pressure_yaxis(),
+            alt.Color(
+                'layer', type='nominal', title=None,
+                legend=alt.Legend(symbolType='stroke'))),
+        lambda chart: curve_input(chart, 'ON'),
+        speaker_facet, speaker_input),
+    lambda chart: alt.layer(
+        lsx.alt.interactive_line(chart)
+            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve')),
+        lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_line(clip=True))
+            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Slope'))
+            .transform_calculate(b='datum.speaker_b.b[datum.curve]')
+            .transform_calculate(db_per_octave='datum.b * LN2')
+            .encode(tooltip=[
+                    alt.Tooltip('b', title='b (ln(2)dB/octave)', type='quantitative', format='.2f'),
+                    alt.Tooltip('db_per_octave', title='Slope (dB/octave)', type='quantitative', format='.2f'),
+                ])),
+    fold={'as_': ['curve', 'value']},
+    sidebyside=True)
 ```

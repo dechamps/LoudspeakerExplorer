@@ -5,3 +5,4 @@ ipywidgets
 yattag
 altair
 pyyaml
+statsmodels
