@@ -180,7 +180,7 @@ Also keep in mind the following known issues with the measurements:
  - A [measurement artefact](https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/page-3#post-332136) in the form of a slight [ripple in high frequencies](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324189) (above 4 kHz or so) is present in all measurements made before 2020-02-23. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/#post-335109) starting from the Genelec 8341A measurement.
  - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
  - The **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
- - The **Revel F208** measurement [only comes in 10 points/octave resolution](https://www.audiosciencereview.com/forum/index.php?threads/revel-f208-tower-speaker-review.13192/page-7#post-394941) instead of the usual 20.
+ - The very first measurements (**JBL Control 1 Pro** and **JBL 305P MkII**) were only published in 10 points/octave resolution. [This is also the case](https://www.audiosciencereview.com/forum/index.php?threads/revel-f208-tower-speaker-review.13192/page-7#post-394941) for the **Revel F208**.
 
 ```python scrolled=false
 speakers = {}
