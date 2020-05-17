@@ -1313,10 +1313,10 @@ lsx.alt.make_chart(
                 alt.Order('Band'),
                 tooltip=[
                     alt.Tooltip('Band'),
-                    alt.Tooltip('Speaker', title='Speaker'),
                     frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
                     frequency_tooltip('band_info.center_frequency', 'Center Frequency'),
                     frequency_tooltip('band_info.end_frequency', 'End Frequency'),
+                    alt.Tooltip('Speaker', title='Speaker'),
                     alt.Tooltip('value', type='quantitative', title='Band NBD', format='.3f'),
                 ]),
             lambda chart: lsx.alt.encode_selection(chart,
