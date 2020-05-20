@@ -717,11 +717,10 @@ def standalone_speaker_frequency_response_db_chart(column, yaxis):
         .to_frame())
     return frequency_response_db_chart(
         data,
-        lambda chart: lsx.util.pipe(chart,
-            speaker_input),
         lambda chart: lsx.util.pipe(chart
             .encode(y=yaxis),
-            lambda chart: lsx.alt.interactive_line(chart, speaker_color())),
+            speaker_input),
+        lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
         additional_tooltips=
             [alt.Tooltip('speaker', type='nominal', title='Speaker')]
             if data.index.get_level_values('Speaker').nunique() > 1 else [])
@@ -811,11 +810,10 @@ frequency_response_chart(
         .pipe(lsx.pd.remap_columns, {
             'Resolution (points/octave)': 'value',
         }),
-    lambda chart: lsx.util.pipe(chart,
-        speaker_input),
     lambda chart: lsx.util.pipe(chart
         .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
-        lambda chart: lsx.alt.interactive_line(chart, speaker_color())),
+        speaker_input),
+    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
     alter_tooltips=lambda tooltips:
         ([alt.Tooltip('speaker', title='Speaker')]
             if speakers_fr_ready.index.get_level_values('Speaker').nunique() > 1 else []) +
@@ -910,17 +908,16 @@ def off_axis_angles_chart(direction):
             .rename_axis(columns='Angle'),
         lambda chart: lsx.util.pipe(chart
             .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
-            .transform_filter(off_axis_angle_selection),
-            speaker_facet, speaker_input),
-        lambda chart: lsx.util.pipe(chart
+            .transform_filter(off_axis_angle_selection)
             .encode(sound_pressure_yaxis()),
-            lambda chart: lsx.alt.interactive_line(chart,
+            speaker_facet, speaker_input),
+        lambda chart: lsx.alt.interactive_line(chart,
                 legend_channel=alt.Color(
                     'angle', title=direction + ' angle (°)', type='quantitative',
                     scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
                     # We have to explicitly set the legend type to 'gradient' because of https://github.com/vega/vega-lite/issues/6258
                     legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10)))))
-            .add_selection(off_axis_angle_selection)),
+            .add_selection(off_axis_angle_selection),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
         sidebyside=True
@@ -943,11 +940,10 @@ def reflection_responses_chart(axis):
             .rename_axis(columns=['Direction'])
             .rename(columns=lambda column:
                     re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))),
-        lambda chart: lsx.util.pipe(chart,
-            speaker_facet, speaker_input),
         lambda chart: lsx.util.pipe(chart
             .encode(sound_pressure_yaxis()),
-            lambda chart: lsx.alt.interactive_line(chart, key_color())),
+            speaker_facet, speaker_input),
+        lambda chart: lsx.alt.interactive_line(chart, key_color()),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')],
         sidebyside=True)
@@ -1036,14 +1032,13 @@ frequency_response_db_chart(
             ('CEA2034', 'Listening Window'): 'Listening Window',
             ('CEA2034', 'On Axis'): 'On Axis',
         }),
-    lambda chart: lsx.util.pipe(chart,
-        speaker_facet, speaker_input),
     lambda chart: lsx.util.pipe(chart
         .encode(sound_pressure_yaxis())
         .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
             field='key', oneOf=['Listening Window', 'On Axis']),
             if_true=alt.value(2), if_false=alt.value(1.5))),
-        lambda chart: lsx.alt.interactive_line(chart,
+        speaker_facet, speaker_input),
+    lambda chart: lsx.alt.interactive_line(chart,
             key_color(scale=alt.Scale(range=[
                 # Vertical ±10°: purples(2)
                 '#796db2', '#aeadd3', 
@@ -1057,7 +1052,7 @@ frequency_response_db_chart(
                 '#ff7f0e',
                 # On Axis: category10(2)
                 '#2ca02c',
-        ])))),
+        ]))),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
@@ -1236,21 +1231,22 @@ frequency_response_db_chart(
                     .reset_index('Speaker', drop=True)
                     .to_dict(orient='index'))
                 .rename('band_mean')
-                .reset_index())),
+                .reset_index()))
+        .encode(sound_pressure_yaxis()),
         lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
             .transform_calculate(layer='datum.curve + " Curve"')
-            .encode(sound_pressure_yaxis(), strokeWidth=alt.value(0.5)),
+            .encode(strokeWidth=alt.value(0.5)),
             lambda chart: lsx.alt.interactive_line(chart, nbd_fr_chart_color)),
         lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Band Mean'))
             .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
             .transform_calculate(frequency='datum.band_info.start_frequency')
             .encode(
-                sound_pressure_yaxis(), alt.X2('band_info.end_frequency'),
+                alt.X2('band_info.end_frequency'),
                 tooltip=[
                     alt.Tooltip('Band'),
                     frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
@@ -1270,7 +1266,7 @@ frequency_response_db_chart(
             .transform_calculate(layer='"NBD_" + datum.curve + " Deviation"')
             .transform_calculate(deviation='abs(datum.band_mean - datum.value)')
             .encode(
-                sound_pressure_yaxis(), alt.Y2('band_mean'),
+                alt.Y2('band_mean'),
                 strokeWidth=alt.value(2),
                 tooltip=[
                     frequency_tooltip(),
