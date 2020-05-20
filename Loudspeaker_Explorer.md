@@ -811,7 +811,9 @@ frequency_response_chart(
         .pipe(lsx.pd.remap_columns, {
             'Resolution (points/octave)': 'value',
         }),
-    process_after=lambda chart: lsx.util.pipe(chart
+    lambda chart: lsx.util.pipe(chart,
+        speaker_input),
+    lambda chart: lsx.util.pipe(chart
         .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
         lambda chart: lsx.alt.interactive_line(chart, speaker_color())),
     alter_tooltips=lambda tooltips:
