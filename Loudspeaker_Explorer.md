@@ -681,7 +681,9 @@ def value_db_tooltip(shorthand='value', title='Value', **kwargs):
         **kwargs)
 
 def frequency_response_chart(
-    data, process_top_layer, make_layers=None,
+    data,
+    process_before=lambda chart: chart,
+    process_after=lambda chart: chart,
     fold=None,
     sidebyside=False, alter_tooltips=lambda tooltips: tooltips):
     return lsx.util.pipe(data
@@ -692,14 +694,14 @@ def frequency_response_chart(
         .reset_index('frequency')
         .pipe(lsx.alt.make_chart,
             title=common_title,
-            process_top_layer=lambda chart: lsx.util.pipe(chart,
+            process_before=lambda chart: lsx.util.pipe(chart,
                 lambda chart: chart if fold is None else chart.transform_fold(data.columns.values, **fold),
                 lambda chart: set_chart_dimensions(chart, sidebyside)
                 .encode(
                     frequency_xaxis('frequency'),
                     tooltip=alter_tooltips([frequency_tooltip()])),
-                process_top_layer),
-            make_layers=make_layers),
+                process_before),
+            process_after=process_after),
         postprocess_chart)
 
 def frequency_response_db_chart(*kargs, additional_tooltips=[], **kwargs):
@@ -715,10 +717,11 @@ def standalone_speaker_frequency_response_db_chart(column, yaxis):
         .to_frame())
     return frequency_response_db_chart(
         data,
+        lambda chart: lsx.util.pipe(chart,
+            speaker_input),
         lambda chart: lsx.util.pipe(chart
             .encode(y=yaxis),
-            lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
-            speaker_input),
+            lambda chart: lsx.alt.interactive_line(chart, speaker_color())),
         additional_tooltips=
             [alt.Tooltip('speaker', type='nominal', title='Speaker')]
             if data.index.get_level_values('Speaker').nunique() > 1 else [])
@@ -808,7 +811,7 @@ frequency_response_chart(
         .pipe(lsx.pd.remap_columns, {
             'Resolution (points/octave)': 'value',
         }),
-    lambda chart: lsx.util.pipe(chart
+    process_after=lambda chart: lsx.util.pipe(chart
         .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
         lambda chart: lsx.alt.interactive_line(chart, speaker_color())),
     alter_tooltips=lambda tooltips:
@@ -857,7 +860,7 @@ frequency_response_db_chart(
         lambda chart: chart.resolve_scale(y='independent'),
         speaker_facet, speaker_input,
         lambda chart: chart.resolve_scale(y='independent')),
-    lambda chart: (
+    lambda chart: alt.layer(
         lsx.util.pipe(chart
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
@@ -905,7 +908,9 @@ def off_axis_angles_chart(direction):
             .rename_axis(columns='Angle'),
         lambda chart: lsx.util.pipe(chart
             .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
-            .transform_filter(off_axis_angle_selection)
+            .transform_filter(off_axis_angle_selection),
+            speaker_facet, speaker_input),
+        lambda chart: lsx.util.pipe(chart
             .encode(sound_pressure_yaxis()),
             lambda chart: lsx.alt.interactive_line(chart,
                 legend_channel=alt.Color(
@@ -913,8 +918,7 @@ def off_axis_angles_chart(direction):
                     scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
                     # We have to explicitly set the legend type to 'gradient' because of https://github.com/vega/vega-lite/issues/6258
                     legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10)))))
-            .add_selection(off_axis_angle_selection),
-            speaker_facet, speaker_input),
+            .add_selection(off_axis_angle_selection)),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
         sidebyside=True
@@ -937,10 +941,11 @@ def reflection_responses_chart(axis):
             .rename_axis(columns=['Direction'])
             .rename(columns=lambda column:
                     re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))),
+        lambda chart: lsx.util.pipe(chart,
+            speaker_facet, speaker_input),
         lambda chart: lsx.util.pipe(chart
             .encode(sound_pressure_yaxis()),
-            lambda chart: lsx.alt.interactive_line(chart, key_color()),
-            speaker_facet, speaker_input),
+            lambda chart: lsx.alt.interactive_line(chart, key_color())),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')],
         sidebyside=True)
@@ -1029,6 +1034,8 @@ frequency_response_db_chart(
             ('CEA2034', 'Listening Window'): 'Listening Window',
             ('CEA2034', 'On Axis'): 'On Axis',
         }),
+    lambda chart: lsx.util.pipe(chart,
+        speaker_facet, speaker_input),
     lambda chart: lsx.util.pipe(chart
         .encode(sound_pressure_yaxis())
         .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
@@ -1048,8 +1055,7 @@ frequency_response_db_chart(
                 '#ff7f0e',
                 # On Axis: category10(2)
                 '#2ca02c',
-        ]))),
-        speaker_facet, speaker_input),
+        ])))),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
@@ -1231,7 +1237,7 @@ frequency_response_db_chart(
                 .reset_index())),
         lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
-    lambda chart: (
+    lambda chart: alt.layer(
         lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
             .transform_calculate(layer='datum.curve + " Curve"')
@@ -1302,7 +1308,7 @@ lsx.alt.make_chart(
             alt.Column('curve_label', type='nominal', title=None),
             title=common_title),
         postprocess_chart),
-    lambda chart: (
+    lambda chart: alt.layer(
         lsx.util.pipe(chart
             .mark_bar()
             .transform_calculate(band_label=

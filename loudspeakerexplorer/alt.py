@@ -4,10 +4,14 @@ import numpy as np
 import loudspeakerexplorer as lsx
 
 
-def make_chart(data, process_top_layer, make_layers=None, *kargs, **kwargs):
+def make_chart(
+        data,
+        process_before=lambda chart: chart,
+        process_after=lambda chart: chart,
+        *kargs, **kwargs):
     # Semantically equivalent to:
     #   base = alt.Chart(data.reset_index(), *kargs, **kwargs)
-    #   process_top_layer(alt.layer(make_layers(base)))
+    #   process_before(process_after(base))
     #
     # Improves readability by making it possible to write the top layer
     # processing code *before* the sublayers, which matches the order in which
@@ -22,10 +26,11 @@ def make_chart(data, process_top_layer, make_layers=None, *kargs, **kwargs):
             # unnecessarily increasing spec size.
             .apply(lambda column: np.around(column, 3), raw=True)
             .pipe(lsx.pd.implode))
-    chart = alt.Chart(data.reset_index(), *kargs, **kwargs)
-    if make_layers is not None:
-        chart = alt.layer(*make_layers(chart))
-    return process_top_layer(chart.transform_flatten(data.columns.values))
+    return lsx.util.pipe(
+        alt.Chart(data.reset_index(), *kargs, **kwargs),
+        process_after,
+        lambda chart: chart.transform_flatten(data.columns.values),
+        process_before)
 
 
 def encode_selection(chart, selection, channel_type, selected, unselected):
