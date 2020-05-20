@@ -718,9 +718,9 @@ def standalone_speaker_frequency_response_db_chart(column, yaxis):
     return frequency_response_db_chart(
         data,
         lambda chart: lsx.util.pipe(chart
-            .encode(y=yaxis),
+            .encode(speaker_color(), y=yaxis),
             speaker_input),
-        lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
+        lambda chart: lsx.alt.interactive_line(chart),
         additional_tooltips=
             [alt.Tooltip('speaker', type='nominal', title='Speaker')]
             if data.index.get_level_values('Speaker').nunique() > 1 else [])
@@ -811,9 +811,11 @@ frequency_response_chart(
             'Resolution (points/octave)': 'value',
         }),
     lambda chart: lsx.util.pipe(chart
-        .encode(alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True))),
+        .encode(
+            alt.Y('value', type='quantitative', title='Resolution (points/octave)', axis=alt.Axis(grid=True)),
+            speaker_color()),
         speaker_input),
-    lambda chart: lsx.alt.interactive_line(chart, speaker_color()),
+    lambda chart: lsx.alt.interactive_line(chart),
     alter_tooltips=lambda tooltips:
         ([alt.Tooltip('speaker', title='Speaker')]
             if speakers_fr_ready.index.get_level_values('Speaker').nunique() > 1 else []) +
@@ -856,7 +858,8 @@ frequency_response_db_chart(
         ('Directivity Index', 'Early Reflections DI'): 'Early Reflections DI',
         ('Directivity Index', 'Sound Power DI'): 'Sound Power DI',
     }),
-    lambda chart: lsx.util.pipe(chart,
+    lambda chart: lsx.util.pipe(chart
+        .encode(key_color()),
         lambda chart: chart.resolve_scale(y='independent'),
         speaker_facet, speaker_input,
         lambda chart: chart.resolve_scale(y='independent')),
@@ -865,12 +868,12 @@ frequency_response_db_chart(
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
             .encode(sound_pressure_yaxis()),
-            lambda chart: lsx.alt.interactive_line(chart, key_color())),
+            lambda chart: lsx.alt.interactive_line(chart)),
         lsx.util.pipe(chart
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'Early Reflections DI', 'Sound Power DI']))
             .encode(directivity_index_yaxis(scale_domain=(-10, 40))),
-            lambda chart: lsx.alt.interactive_line(chart, key_color()))),
+            lambda chart: lsx.alt.interactive_line(chart))),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
@@ -909,14 +912,15 @@ def off_axis_angles_chart(direction):
         lambda chart: lsx.util.pipe(chart
             .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
             .transform_filter(off_axis_angle_selection)
-            .encode(sound_pressure_yaxis()),
-            speaker_facet, speaker_input),
-        lambda chart: lsx.alt.interactive_line(chart,
-                legend_channel=alt.Color(
+            .encode(
+                sound_pressure_yaxis(),
+                alt.Color(
                     'angle', title=direction + ' angle (°)', type='quantitative',
                     scale=alt.Scale(scheme='sinebow', domain=(-180, 180)),
                     # We have to explicitly set the legend type to 'gradient' because of https://github.com/vega/vega-lite/issues/6258
-                    legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10)))))
+                    legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10))))),
+            speaker_facet, speaker_input),
+        lambda chart: lsx.alt.interactive_line(chart)
             .add_selection(off_axis_angle_selection),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
@@ -941,9 +945,9 @@ def reflection_responses_chart(axis):
             .rename(columns=lambda column:
                     re.sub(f' ?{axis} ?', '', re.sub(' ?Reflection ?', '', column))),
         lambda chart: lsx.util.pipe(chart
-            .encode(sound_pressure_yaxis()),
+            .encode(sound_pressure_yaxis(), key_color()),
             speaker_facet, speaker_input),
-        lambda chart: lsx.alt.interactive_line(chart, key_color()),
+        lambda chart: lsx.alt.interactive_line(chart),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')],
         sidebyside=True)
@@ -1033,12 +1037,8 @@ frequency_response_db_chart(
             ('CEA2034', 'On Axis'): 'On Axis',
         }),
     lambda chart: lsx.util.pipe(chart
-        .encode(sound_pressure_yaxis())
-        .encode(strokeWidth=alt.condition(alt.FieldOneOfPredicate(
-            field='key', oneOf=['Listening Window', 'On Axis']),
-            if_true=alt.value(2), if_false=alt.value(1.5))),
-        speaker_facet, speaker_input),
-    lambda chart: lsx.alt.interactive_line(chart,
+        .encode(
+            sound_pressure_yaxis(),
             key_color(scale=alt.Scale(range=[
                 # Vertical ±10°: purples(2)
                 '#796db2', '#aeadd3', 
@@ -1052,7 +1052,12 @@ frequency_response_db_chart(
                 '#ff7f0e',
                 # On Axis: category10(2)
                 '#2ca02c',
-        ]))),
+            ])),
+            strokeWidth=alt.condition(alt.FieldOneOfPredicate(
+                field='key', oneOf=['Listening Window', 'On Axis']),
+                if_true=alt.value(2), if_false=alt.value(1.5))),
+        speaker_facet, speaker_input),
+    lambda chart: lsx.alt.interactive_line(chart),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
@@ -1201,18 +1206,6 @@ nbd_fr_chart_data = (pd.concat({
             .pipe(append_constant_index, name='Frequency [Hz]')
     }, names=['Dataset']))
 
-nbd_fr_chart_color = alt.Color(
-    'layer',
-    type='nominal', title=None,
-    legend=alt.Legend(symbolType='stroke'),
-    scale=alt.Scale(range=[
-        # TODO: this doesn't quite work, presumably because the input is not interleaved in this way.
-        # Revisit once https://github.com/vega/vega-lite/issues/6392 is fixed.
-        '#2ca02c',  # category10[2]: Band Mean
-        '#ff7f0e',  # category10[1]: Deviation
-        '#1f77b4',  # category10[0]: Curve
-    ]))
-
 frequency_response_db_chart(
     nbd_fr_chart_data,
     lambda chart: lsx.util.pipe(chart
@@ -1232,7 +1225,19 @@ frequency_response_db_chart(
                     .to_dict(orient='index'))
                 .rename('band_mean')
                 .reset_index()))
-        .encode(sound_pressure_yaxis()),
+        .encode(
+            sound_pressure_yaxis(),
+            alt.Color(
+                'layer',
+                type='nominal', title=None,
+                legend=alt.Legend(symbolType='stroke'),
+                scale=alt.Scale(range=[
+                    # TODO: this doesn't quite work, presumably because the input is not interleaved in this way.
+                    # Revisit once https://github.com/vega/vega-lite/issues/6392 is fixed.
+                    '#2ca02c',  # category10[2]: Band Mean
+                    '#ff7f0e',  # category10[1]: Deviation
+                    '#1f77b4',  # category10[0]: Curve
+                ]))),
         lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
@@ -1240,7 +1245,7 @@ frequency_response_db_chart(
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
             .transform_calculate(layer='datum.curve + " Curve"')
             .encode(strokeWidth=alt.value(0.5)),
-            lambda chart: lsx.alt.interactive_line(chart, nbd_fr_chart_color)),
+            lambda chart: lsx.alt.interactive_line(chart)),
         lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Band Mean'))
             .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
@@ -1256,7 +1261,7 @@ frequency_response_db_chart(
                 ]
             ),
             lambda chart: lsx.alt.interactive_line(
-                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule())
+                chart, add_mark=lambda chart: chart.mark_rule())
                 .interactive()),
         lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
@@ -1275,7 +1280,7 @@ frequency_response_db_chart(
                     value_db_tooltip('deviation', title='Deviation'),
                 ]),
             lambda chart: lsx.alt.interactive_line(
-                chart, nbd_fr_chart_color, add_mark=lambda chart: chart.mark_rule()))),
+                chart, add_mark=lambda chart: chart.mark_rule()))),
     fold={'as_': ['curve', 'value']},
     sidebyside=True)
 ```

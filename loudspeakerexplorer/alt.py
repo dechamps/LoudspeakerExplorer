@@ -40,13 +40,13 @@ def encode_selection(chart, selection, channel_type, selected, unselected):
 
 
 def interactive_line(
-        chart, legend_channel,
+        chart,
         add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
-    # Note that `legend_channel` should explicitly override the legend
-    # symbolType to 'stroke', otherwise it gets set to 'circle' from the hidden
-    # layer, which is wrong. A clear way to avoid this problem would be to make
-    # the legends independent and disable the legend on the hidden layer, but
-    # that causes problems with faceted charts, see:
+    # Note that the channels should explicitly override the legend symbolType to
+    #  'stroke', otherwise it gets set to 'circle' from the hidden layer, which
+    # is wrong. A clear way to avoid this problem would be to make the legends
+    # independent and disable the legend on the hidden layer, but that causes
+    # problems with faceted charts, see:
     #   https://github.com/vega/vega-lite/issues/6261
 
     # This is equivalent to using the `point` line mark property.
@@ -60,8 +60,7 @@ def interactive_line(
             add_mark,
             lambda chart: encode_selection(
                 chart, alt.selection_multi(encodings=['color'], bind='legend'),
-                'opacity', alt.value(1), alt.value(0.2))
-            .encode(legend_channel)),
+                'opacity', alt.value(1), alt.value(0.2))),
         lsx.util.pipe(
             chart
             .mark_circle(clip=True, size=100),
@@ -74,5 +73,4 @@ def interactive_line(
                 #   https://github.com/vega/vega-lite/issues/6389
                 encodings=['x', 'y']),
                 'fillOpacity', alt.value(0.3), alt.value(0))
-            .encode(legend_channel)
             .interactive()))
