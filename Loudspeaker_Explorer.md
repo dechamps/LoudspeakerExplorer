@@ -524,13 +524,9 @@ form(widgets.HBox([smoothing_enabled, smoothing_params]))
 ```
 
 ```python
-# Appends a new index level with all identical values.
-def append_constant_index(df, value=pd.NA, name=None):
-    return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
-
 speakers_fr_smoothed = (speakers_fr_norm
     .unstack(level='Frequency [Hz]')
-    .pipe(append_constant_index, 'No smoothing', name='Smoothing')
+    .pipe(lsx.pd.append_constant_index, 'No smoothing', name='Smoothing')
     .stack()
 )
 if smoothing_enabled.value:
@@ -538,7 +534,7 @@ if smoothing_enabled.value:
         .groupby('Speaker')
         .apply(lsx.fr.smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
-        .pipe(append_constant_index,
+        .pipe(lsx.pd.append_constant_index,
               lsx.widgets.lookup_option_label(smoothing_octaves) + ' smoothing',
               name='Smoothing')
         .stack())
@@ -619,7 +615,7 @@ if single_speaker_mode:
     # Re-add an empty Speaker index level.
     # The alternative would be to handle this case specially in every single graph, which gets annoying fast.
     speakers_fr_ready = (speakers_fr_ready
-        .pipe(append_constant_index, '', name='Speaker')
+        .pipe(lsx.pd.append_constant_index, '', name='Speaker')
         .swaplevel(0, -1)
     )
 else:
@@ -1193,7 +1189,7 @@ nbd_fr_chart_data = (pd.concat({
             .drop(columns='Band')
             .swaplevel('Frequency [Hz]', 'Band'),
         'Band Mean': speakers_nbd_mean
-            .pipe(append_constant_index, name='Frequency [Hz]')
+            .pipe(lsx.pd.append_constant_index, name='Frequency [Hz]')
     }, names=['Dataset']))
 
 frequency_response_db_chart(

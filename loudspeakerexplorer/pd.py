@@ -13,6 +13,11 @@ def set_columns(df, columns):
     return df
 
 
+def append_constant_index(df, value=pd.NA, name=None):
+    # Appends a new index level with all identical values.
+    return df.set_index(pd.Index([value] * df.shape[0], name=name), append=True)
+
+
 def remap_columns(df, mapper):
     # Renames columns in `df` according to `columns_mapper`.
     #
