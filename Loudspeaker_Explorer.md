@@ -864,16 +864,14 @@ frequency_response_db_chart(
         speaker_facet, speaker_input,
         lambda chart: chart.resolve_scale(y='independent')),
     lambda chart: alt.layer(
-        lsx.util.pipe(chart
+        lsx.util.pipe(lsx.alt.interactive_line(chart)
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'On Axis', 'Listening Window', 'Early Reflections', 'Sound Power']))
-            .encode(sound_pressure_yaxis()),
-            lambda chart: lsx.alt.interactive_line(chart)),
-        lsx.util.pipe(chart
+            .encode(sound_pressure_yaxis())),
+        lsx.util.pipe(lsx.alt.interactive_line(chart)
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'Early Reflections DI', 'Sound Power DI']))
-            .encode(directivity_index_yaxis(scale_domain=(-10, 40))),
-            lambda chart: lsx.alt.interactive_line(chart))),
+            .encode(directivity_index_yaxis(scale_domain=(-10, 40))))),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)
@@ -1241,12 +1239,12 @@ frequency_response_db_chart(
         lambda chart: curve_input(chart, 'ON'),
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
-        lsx.util.pipe(chart
+        lsx.util.pipe(lsx.alt.interactive_line(chart)
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
             .transform_calculate(layer='datum.curve + " Curve"')
-            .encode(strokeWidth=alt.value(0.5)),
-            lambda chart: lsx.alt.interactive_line(chart)),
-        lsx.util.pipe(chart
+            .encode(strokeWidth=alt.value(0.5))),
+        lsx.util.pipe(lsx.alt.interactive_line(
+                chart, add_mark=lambda chart: chart.mark_rule())
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Band Mean'))
             .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
             .transform_calculate(frequency='datum.band_info.start_frequency')
@@ -1259,11 +1257,10 @@ frequency_response_db_chart(
                     frequency_tooltip('band_info.end_frequency', 'End Frequency'),
                     value_db_tooltip(title='Mean'),
                 ]
-            ),
-            lambda chart: lsx.alt.interactive_line(
+            )
+            .interactive()),
+        lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
-                .interactive()),
-        lsx.util.pipe(chart
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
             .transform_calculate(band_mean=
                 'isValid(datum.speaker_band_mean.band_mean[datum.Band]) ? datum.speaker_band_mean.band_mean[datum.Band][datum.curve] : NaN')
@@ -1278,9 +1275,7 @@ frequency_response_db_chart(
                     value_db_tooltip(),
                     alt.Tooltip('Band'),
                     value_db_tooltip('deviation', title='Deviation'),
-                ]),
-            lambda chart: lsx.alt.interactive_line(
-                chart, add_mark=lambda chart: chart.mark_rule()))),
+                ]))),
     fold={'as_': ['curve', 'value']},
     sidebyside=True)
 ```
