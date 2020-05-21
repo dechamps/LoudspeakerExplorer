@@ -694,7 +694,8 @@ def frequency_response_chart(
         .reset_index('frequency')
         .pipe(lsx.alt.make_chart,
             title=common_title,
-            process_before=lambda chart: lsx.util.pipe(chart,
+            process_before=lambda chart: lsx.util.pipe(chart
+                .interactive(),
                 lambda chart: chart if fold is None else chart.transform_fold(data.columns.values, **fold),
                 lambda chart: set_chart_dimensions(chart, sidebyside)
                 .encode(
@@ -838,19 +839,8 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-# Note that there are few subtleties here because of Altair/Vega quirks:
-# - To make the Y axes independent, `.resolve_scale()` has to be used *before
-#   and after* `.facet()`. (In Vega terms, there needs to be a Resolve property
-#   in *every* view composition specification.)
-#   - If the first `.resolve_scale()` is removed from the layer spec, the axes
-#     are not made independent.
-#   - If the second `.resolve_scale()` is removed from the facet spec, Vega
-#     throws a weird `Unrecognized scale name: "child_layer_0_y"` error.
-# - To make the two axes zoom and pan at the same time, `.interactive()` has to
-#   be used on each encoding, not on the overall view. Otherwise only the left
-#   axis will support zoom & pan.
 frequency_response_db_chart(
-        speakers_fr_ready.pipe(lsx.pd.remap_columns, {
+    speakers_fr_ready.pipe(lsx.pd.remap_columns, {
         ('CEA2034', 'On Axis'): 'On Axis',
         ('CEA2034', 'Listening Window'): 'Listening Window',
         ('CEA2034', 'Early Reflections'): 'Early Reflections',
@@ -860,6 +850,13 @@ frequency_response_db_chart(
     }),
     lambda chart: lsx.util.pipe(chart
         .encode(key_color()),
+        # To make the Y axes independent, `.resolve_scale()` has to be used *before
+        # and after* `.facet()`. (In Vega terms, there needs to be a Resolve property
+        # in *every* view composition specification.)
+        #  - If the first `.resolve_scale()` is removed from the layer spec, the axes
+        #    are not made independent.
+        #  - If the second `.resolve_scale()` is removed from the facet spec, Vega
+        #    throws a weird `Unrecognized scale name: "child_layer_0_y"` error.
         lambda chart: chart.resolve_scale(y='independent'),
         speaker_facet, speaker_input,
         lambda chart: chart.resolve_scale(y='independent')),
@@ -871,7 +868,8 @@ frequency_response_db_chart(
         lsx.util.pipe(lsx.alt.interactive_line(chart)
             .transform_filter(alt.FieldOneOfPredicate(field='key', oneOf=[
                 'Early Reflections DI', 'Sound Power DI']))
-            .encode(directivity_index_yaxis(scale_domain=(-10, 40))))),
+            .encode(directivity_index_yaxis(scale_domain=(-10, 40)))
+            .interactive())),  # Required, otherwise only left axis scales.
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
     sidebyside=True)

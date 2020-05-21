@@ -78,5 +78,4 @@ def interactive_line(
                 # new fields added by transforms into account. See:
                 #   https://github.com/vega/vega-lite/issues/6389
                 encodings=['x', 'y']),
-                'fillOpacity', alt.value(0.3), alt.value(0))
-            .interactive()))
+                'fillOpacity', alt.value(0.3), alt.value(0))))
