@@ -897,10 +897,6 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 
 ```python
 def off_axis_angles_chart(direction):
-    off_axis_angle_selection = alt.selection_single(
-        fields=['angle'],
-        bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
-        clear='dblclick')
     return frequency_response_db_chart(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
@@ -908,8 +904,11 @@ def off_axis_angles_chart(direction):
             .pipe(lambda df: df.pipe(lsx.pd.set_columns, df.columns.map(mapper=lambda column: f'{column:+.0f}')))
             .rename_axis(columns='Angle'),
         lambda chart: lsx.util.pipe(chart
-            .transform_calculate(angle=alt.expr.toNumber(alt.datum.key))
-            .transform_filter(off_axis_angle_selection)
+            .transform_calculate(angle=alt.expr.toNumber(alt.datum.key)),
+            lambda chart: lsx.alt.filter_selection(chart, alt.selection_single(
+                fields=['angle'],
+                bind=alt.binding_range(min=-170, max=180, step=10, name=direction + ' angle selector (°)'),
+                clear='dblclick'))
             .encode(
                 sound_pressure_yaxis(),
                 alt.Color(
@@ -918,8 +917,7 @@ def off_axis_angles_chart(direction):
                     # We have to explicitly set the legend type to 'gradient' because of https://github.com/vega/vega-lite/issues/6258
                     legend=alt.Legend(type='gradient', gradientLength=300, values=list(range(-180, 180+10, 10))))),
             speaker_facet, speaker_input),
-        lambda chart: lsx.alt.interactive_line(chart)
-            .add_selection(off_axis_angle_selection),
+        lambda chart: lsx.alt.interactive_line(chart),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
         sidebyside=True
@@ -1104,17 +1102,13 @@ def expand_olive_curve_label(curve):
 def expand_olive_label(variable, curve):
     return f'{variable}_{curve} {olive_curve_labels[curve]} {olive_variable_labels[variable]}'
 
-def curve_selection(init):
-    return alt.selection_single(
+def curve_input(chart, init):
+    return lsx.alt.filter_selection(chart, alt.selection_single(
         fields=['curve'], init={'curve': init},
         bind=alt.binding_select(
             name='Curve: ',
             options=list(olive_curve_labels.keys()),
-            labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()]))
-
-def curve_input(chart, init):
-    selection = curve_selection(init)
-    return chart.transform_filter(selection).add_selection(selection)
+            labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()])))
 ```
 
 ## Narrow Band Deviation (NBD)

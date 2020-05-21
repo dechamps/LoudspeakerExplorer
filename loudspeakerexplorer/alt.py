@@ -39,6 +39,12 @@ def encode_selection(chart, selection, channel_type, selected, unselected):
             .encode(**{channel_type: alt.condition(selection, selected, unselected)}))
 
 
+def filter_selection(chart, selection):
+    return (chart
+            .add_selection(selection)
+            .transform_filter(selection))
+
+
 def interactive_line(
         chart,
         add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
