@@ -1251,8 +1251,7 @@ frequency_response_db_chart(
                     frequency_tooltip('band_info.end_frequency', 'End Frequency'),
                     value_db_tooltip(title='Mean'),
                 ]
-            )
-            .interactive()),
+            )),
         lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
             .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
