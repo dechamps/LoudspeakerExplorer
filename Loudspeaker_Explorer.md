@@ -726,7 +726,7 @@ def standalone_speaker_frequency_response_db_chart(column, yaxis):
 def frequency_xaxis(shorthand):
     return alt.X(
         shorthand, type='quantitative', title='Frequency (Hz)',
-        scale=alt.Scale(type='log', base=10, nice=False),
+        scale=alt.Scale(type='log', base=10, domain=[20, 20000], nice=False),
         axis=alt.Axis(format='s'))
 
 def sound_pressure_yaxis(title_prefix=None):
