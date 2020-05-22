@@ -1343,10 +1343,12 @@ Loudspeaker Explorer computes the above linear regression because that is a prer
 ```python
 speakers_slope_min_frequency_hz = 100
 speakers_slope_max_frequency_hz = 16000
-speakers_slope_regression = (speakers_fr_olive
-    .pipe(lambda df: df.loc[lsx.util.pipe(
-        df.index.get_level_values('Frequency [Hz]'),
-        lambda freqs: (freqs >= speakers_slope_min_frequency_hz) & (freqs <= speakers_slope_max_frequency_hz))])
+
+speakers_fr_slope = speakers_fr_olive.loc[lsx.util.pipe(
+    speakers_fr_olive.index.get_level_values('Frequency [Hz]'),
+    lambda freqs: (freqs >= speakers_slope_min_frequency_hz) & (freqs <= speakers_slope_max_frequency_hz))]
+
+speakers_slope_regression = (speakers_fr_slope
     .groupby('Speaker')
     .apply(lambda speaker: lsx.pd.apply_notna(speaker, lambda curve: smf.ols(
             data=curve
@@ -1406,4 +1408,182 @@ frequency_response_db_chart(
                 ])),
     fold={'as_': ['curve', 'value']},
     sidebyside=True)
+```
+
+## SM
+
+
+**CAUTION: interpreting SM is very tricky and fraught with peril.** The Olive paper describes SM as the "smoothness" of the response, which is misleading at best. The real meaning of SM as mathematically defined in the paper is way more subtle and hard to describe. In reality, SM describes how much of the curve deviation from a flat, *horizontal* line can be explained by the overall slope (as opposed to just jagginess). This leads to some counter-intuitive results - for example, a roughly horizontal curve with negligible deviations can have an SM of zero! (For more debate on this topic, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-8#post-308028), [this](https://www.audiosciencereview.com/forum/index.php?threads/selah-audio-rc3r-3-way-speaker-review.11218/page-4#post-320082), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-7#post-322879), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-8#post-325872) and especially [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-14#post-377457).)
+
+<!-- #region heading_collapsed=true -->
+### Calculation
+<!-- #endregion -->
+
+SM is discussed in section 3.2.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0071 of the [patent](https://patents.google.com/patent/US20050195982A1). It is defined as the [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) ($r^2$) of the linear regression model computed in the previous Slope section.
+
+```python
+speakers_sm = speakers_slope_regression.pipe(lsx.pd.applymap_notna, lambda regression_results:
+    regression_results.rsquared)
+speakers_sm
+```
+
+### Results
+
+```python
+def compensate_mean(speakers_fr):
+    return speakers_fr.sub(speakers_fr_slope
+        .groupby('Speaker')
+        .mean())
+
+def compensate_slope(speakers_fr):
+    return speakers_fr.sub(speakers_fr
+        .groupby('Speaker')
+        .apply(lambda speaker: lsx.pd.apply_notna(speaker, lambda curve:
+                speakers_slope_regression
+                    .loc[speaker.name, curve.name]
+                    .predict({'frequency_hz': curve
+                        .index
+                        .get_level_values('Frequency [Hz]')
+                        .to_series()}))))
+
+frequency_response_db_chart(
+    pd.concat({
+        'Mean': compensate_mean(speakers_fr_olive),
+        'Slope': compensate_slope(speakers_fr_olive),
+    }, names=['reference']),
+    lambda chart: lsx.util.pipe(chart
+        .transform_calculate(layer='datum.curve + " relative to " + datum.reference')
+        .encode(
+            alt.Y(
+                'value', type='quantitative',
+                title='Deviation (dBr)',
+                scale=alt.Scale(domain=[-40, 10]),
+                axis=alt.Axis(grid=True)),
+            alt.Color(
+                'layer', type='nominal', title=None, sort='descending',
+                legend=alt.Legend(symbolType='stroke'))),
+        lambda chart: curve_input(chart, 'PIR'),
+        speaker_facet, speaker_input),
+    lambda chart: lsx.alt.interactive_line(chart),
+    fold={'as_': ['curve', 'value']},
+    additional_tooltips=[alt.Tooltip('reference', title='Relative to', type='nominal')],
+    sidebyside=True)
+```
+
+```python
+frequency_response_chart(
+    pd.concat({
+        'Mean': compensate_mean(speakers_fr_slope),
+        'Slope': compensate_slope(speakers_fr_slope),
+    }, names=['reference']),
+    lambda chart: lsx.util.pipe(chart
+        .transform_calculate(layer=
+            '[datum.curve + " relative to " + datum.reference + ";",' +
+            '(datum.reference == "Mean" ? "TSS (Total Sum of Squares)" : "RSS (Residual Sum of Squares)"),'
+            '"contribution"]')
+        .transform_calculate(deviation='datum.value')
+        .transform_calculate(deviation_squared='pow(datum.deviation, 2)')
+        .transform_calculate(value='datum.deviation_squared * (datum.reference == "Slope" ? -1 : 1)')
+        .encode(
+            alt.Y(
+                'value', type='quantitative',
+                title='Squared deviation (dB²)',
+                scale=alt.Scale(domain=[-30, 30]),
+                axis=alt.Axis(grid=True)),
+            alt.Color(
+                'layer', type='nominal', title=None,
+                legend=alt.Legend(symbolType='square'))),
+        lambda chart: curve_input(chart, 'PIR'),
+        speaker_facet, speaker_input),
+    lambda chart: lsx.alt.interactive_line(
+        chart, lambda chart: chart.mark_bar().encode(size=alt.value(2))),
+    fold={'as_': ['curve', 'value']},
+    alter_tooltips=lambda tooltips:
+        [alt.Tooltip('reference', title='Relative to', type='nominal')] +
+        tooltips +
+        [
+            alt.Tooltip('deviation', title='Deviation (dB)', type='quantitative', format='.2f'),
+            alt.Tooltip('deviation_squared', title='Squared deviation (dB²)', type='quantitative', format='.2f'),
+        ],
+    sidebyside=True)
+```
+
+```python
+frequency_response_chart(
+    pd.concat({
+        'mean': compensate_mean(speakers_fr_slope),
+        'slope': compensate_slope(speakers_fr_slope),
+    }, names=['reference']),
+    lambda chart: lsx.util.pipe(chart
+        .transform_calculate(deviation='datum.value')
+        .transform_calculate(value='pow(datum.deviation, 2)')
+        .transform_pivot(pivot='reference', groupby=['speaker', 'curve', 'frequency'], value='value')
+        .transform_joinaggregate(tss='sum(mean)', groupby=['speaker', 'curve'])
+        .transform_joinaggregate(count='count(mean)', groupby=['speaker', 'curve'])
+        .transform_calculate(sm='- datum.slope / datum.tss')
+        .transform_calculate(value='datum.sm * datum.count')
+        .encode(
+            alt.Color(
+                'curve', type='nominal',
+                title=None, legend=alt.Legend(symbolType='square')), 
+            alt.Y(
+                'value', type='quantitative',
+                title=[
+                    'Scaled SM-1 contribution',
+                    'Scaled -RSS/TSS contribution',
+                    'Scaled fraction of variance explained contribution'],
+                scale=alt.Scale(domain=[-5, 0]))),
+        lambda chart: curve_input(chart, 'PIR'),
+        speaker_facet, speaker_input),
+    lambda chart: lsx.alt.interactive_line(
+        chart, lambda chart: chart.mark_bar().encode(size=alt.value(2))),
+    fold={'as_': ['curve', 'value']},
+    alter_tooltips=lambda tooltips:
+        [alt.Tooltip('tss', title='TSS (dB²)', type='quantitative', format='.2f')] +
+        tooltips +
+        [
+            alt.Tooltip('slope', title='RSS (dB²)', type='quantitative', format='.2f'),
+            alt.Tooltip('sm', title='SM-1 contribution', type='quantitative', format='.4f'),
+            alt.Tooltip('value', title='Scaled SM-1 contribution', type='quantitative', format='.2f'),
+        ],
+    sidebyside=True)
+```
+
+```python
+lsx.alt.make_chart(
+    speakers_sm,
+    lambda chart: lsx.util.pipe(chart
+        .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
+        .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
+            key='curve', data=pd.Series(olive_curve_labels)
+                .rename_axis('curve')
+                .rename('label')
+                .reset_index()))
+        .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
+        .encode(alt.Y('Speaker', title=None)),
+        lambda chart: curve_input(chart, 'PIR')
+        .facet(
+            alt.Column('curve_label', type='nominal', title=None),
+            title=common_title),
+        postprocess_chart),
+    lambda chart: alt.layer(
+        lsx.util.pipe(chart
+            .mark_bar()
+            .encode(
+                alt.X(
+                    'value', type='quantitative',
+                    title='SM (higher is better)',
+                    scale=alt.Scale(domain=[0, 1])),
+                tooltip=[
+                    alt.Tooltip('Speaker'),
+                    alt.Tooltip('value', title='SM', type='quantitative', format='.2f')
+                ]),
+            lambda chart: lsx.alt.encode_selection(chart,
+                    alt.selection_single(on='mouseover', clear='mouseout'),
+                    'fillOpacity', alt.value(1), alt.value(0.2))),
+        chart
+            .mark_text(align='left', dx=3)
+            .encode(
+                alt.X('value', type='quantitative'),
+                alt.Text('value', type='quantitative', format='.2f'))))
 ```
