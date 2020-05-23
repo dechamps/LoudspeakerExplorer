@@ -57,7 +57,7 @@ If you don't have a Google account, or don't want to use Colab for any other rea
 
 None of this would have been possible without [amirm](https://www.audiosciencereview.com/forum/index.php?members/amirm.2/)'s [tremendous work](https://www.audiosciencereview.com/forum/index.php?threads/announcement-asr-will-be-measuring-speakers.10725/) in measuring speakers. All the data used by this tool is from measurements made by amirm for [AudioScienceReview](https://www.audiosciencereview.com/). If you like what you see, [consider making a donation](https://www.audiosciencereview.com/forum/index.php?threads/how-to-support-audio-science-review.8150/).
 
-This notebook is powered by amazing software: [Google Colaboratory](https://colab.research.google.com/), [Jupyter](https://jupyter.org/), [Jupytext](https://github.com/mwouts/jupytext), [Pandas](https://pandas.pydata.org/), and [Altair](https://altair-viz.github.io/).
+This notebook is powered by amazing software: [Google Colaboratory](https://colab.research.google.com/), [Jupyter](https://jupyter.org/), [Jupytext](https://github.com/mwouts/jupytext), [Pandas](https://pandas.pydata.org/), [Altair](https://altair-viz.github.io/), and [statsmodels](https://www.statsmodels.org/).
 
 ## License
 
