@@ -1391,7 +1391,7 @@ frequency_response_db_chart(
             alt.Color(
                 'layer', type='nominal', title=None,
                 legend=alt.Legend(symbolType='stroke'))),
-        lambda chart: curve_input(chart, 'ON'),
+        lambda chart: curve_input(chart, 'PIR'),
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.alt.interactive_line(chart)
