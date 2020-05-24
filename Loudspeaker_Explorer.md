@@ -1435,6 +1435,9 @@ speakers_sm
 
 ### Results
 
+
+See [here](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-20#post-409739) for a guided tour on how SM works and how to interpret the following charts.
+
 ```python
 def compensate_mean(speakers_fr):
     return speakers_fr.sub(speakers_fr_slope
