@@ -1321,6 +1321,10 @@ lsx.alt.make_chart(
                 alt.Text('value', type='quantitative', aggregate='sum', format='.2f'))))
 ```
 
+```python
+speakers_nbd
+```
+
 ## Slope
 
 <!-- #region heading_collapsed=true -->
@@ -1586,4 +1590,8 @@ lsx.alt.make_chart(
             .encode(
                 alt.X('value', type='quantitative'),
                 alt.Text('value', type='quantitative', format='.2f'))))
+```
+
+```python
+speakers_sm
 ```
