@@ -1289,7 +1289,7 @@ lsx.alt.make_chart(
                     'End Frequency (Hz)': 'end_frequency',
                 })
                 .reset_index()))
-        .encode(alt.Y('Speaker', title=None)),
+        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right'))),
         lambda chart: curve_input(chart, 'ON')
         .facet(
             alt.Column('curve_label', type='nominal', title=None),
@@ -1301,9 +1301,12 @@ lsx.alt.make_chart(
             .transform_calculate(band_label=
                 'datum.Band + " (" + format(datum.band_info.start_frequency, ".02s") + " - " + format(datum.band_info.end_frequency, ".02s") + " Hz)"')
             .encode(
-                alt.X('value', type='quantitative', title=['Narrow Band Deviation (NBD)', 'lower is better']),
+                alt.X(
+                    'value', type='quantitative',
+                    scale=alt.Scale(reverse=True),
+                    title=['Narrow Band Deviation (NBD)', 'lower is better']),
                 alt.Color('band_label', type='nominal', sort=None, title='Band'),
-                alt.Order('Band'),
+                alt.Order('Band', sort='descending'),
                 tooltip=[
                     alt.Tooltip('Band'),
                     frequency_tooltip('band_info.start_frequency', 'Start Frequency'),
@@ -1314,7 +1317,7 @@ lsx.alt.make_chart(
                 ]),
             lambda chart: lsx.alt.highlight_mouseover(chart, fields=['Band'])),
         chart
-            .mark_text(align='left', dx=3)
+            .mark_text(align='right', dx=-3)
             .encode(
                 alt.X('value', type='quantitative', aggregate='sum'),
                 alt.Text('value', type='quantitative', aggregate='sum', format='.2f'))))
