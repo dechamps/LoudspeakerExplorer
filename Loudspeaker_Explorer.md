@@ -1311,9 +1311,7 @@ lsx.alt.make_chart(
                     alt.Tooltip('Speaker', title='Speaker'),
                     alt.Tooltip('value', type='quantitative', title='Band NBD', format='.3f'),
                 ]),
-            lambda chart: lsx.alt.encode_selection(chart,
-                alt.selection_single(on='mouseover', clear='mouseout', fields=['Band']),
-                'fillOpacity', alt.value(1), alt.value(0.2))),
+            lambda chart: lsx.alt.highlight_mouseover(chart, fields=['Band'])),
         chart
             .mark_text(align='left', dx=3)
             .encode(
@@ -1582,9 +1580,7 @@ lsx.alt.make_chart(
                     alt.Tooltip('Speaker'),
                     alt.Tooltip('value', title='SM', type='quantitative', format='.2f')
                 ]),
-            lambda chart: lsx.alt.encode_selection(chart,
-                    alt.selection_single(on='mouseover', clear='mouseout'),
-                    'fillOpacity', alt.value(1), alt.value(0.2))),
+            lsx.alt.highlight_mouseover),
         chart
             .mark_text(align='left', dx=3)
             .encode(

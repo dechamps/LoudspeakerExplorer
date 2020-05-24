@@ -45,6 +45,17 @@ def filter_selection(chart, selection):
             .transform_filter(selection))
 
 
+def highlight_mouseover(chart, fields=None):
+    additional_args = {}
+    if fields is not None:
+        additional_args['fields'] = fields
+    return lsx.alt.encode_selection(
+        chart,
+        alt.selection_single(
+            on='mouseover', clear='mouseout', **additional_args),
+        'fillOpacity', alt.value(1), alt.value(0.2))
+
+
 def interactive_line(
         chart,
         add_mark=lambda chart: chart.mark_line(clip=True, interpolate='monotone')):
