@@ -1466,7 +1466,7 @@ frequency_response_db_chart(
                 scale=alt.Scale(domain=[-40, 10]),
                 axis=alt.Axis(grid=True)),
             alt.Color(
-                'layer', type='nominal', title=None, sort='descending',
+                'layer', type='nominal', title=None,
                 legend=alt.Legend(symbolType='stroke'))),
         lambda chart: curve_input(chart, 'PIR'),
         speaker_facet, speaker_input),
