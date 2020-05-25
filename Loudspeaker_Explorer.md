@@ -1426,7 +1426,8 @@ frequency_response_db_chart(
 ### Calculation
 <!-- #endregion -->
 
-SM is discussed in section 3.2.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0071 of the [patent](https://patents.google.com/patent/US20050195982A1). It is defined as the [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) ($r^2$) of the linear regression model computed in the previous Slope section.
+
+SM is discussed in section 3.2.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0071 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses an interpretation in which SM is the [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) ($r^2$) of the linear regression model computed in the previous Slope section.
 
 ```python
 speakers_sm = speakers_slope_regression.pipe(lsx.pd.applymap_notna, lambda regression_results:
