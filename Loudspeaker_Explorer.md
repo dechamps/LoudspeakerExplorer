@@ -1600,3 +1600,174 @@ lsx.alt.make_chart(
 ```python
 speakers_sm
 ```
+
+## Low Frequency Extension (LFX)
+
+<!-- #region heading_collapsed=true -->
+### Calculation
+<!-- #endregion -->
+
+LFX is discussed in section 3.2.4 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0078 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses the following interpretation:
+
+$$\mathrm{LFX} = \log_{10} \max \{ x : x \lt 300 \land SP_x \lt \overline{LW}-6 \}$$
+
+Where:
+
+ - $\mathrm{LFX}$ is the low frequency extension in $\log_{10}\mathrm{Hz}$. Bring $10$ to the power of $\mathrm{LFX}$ to get the cutoff frequency in Hz.
+ - $SP_x$ is the sound pressure of the Sound Power curve in dB at frequency $x$ in Hz.
+ - $\overline{LW}$ is the mean sound pressure of the Listening Window curve in dB between 300 Hz and 10 kHz.
+
+In plain English, LFX is the logarithm base 10 of the highest frequency below 300 Hz where the sound power is more than 6 dB below the Listening Window 300Hz-10kHz average.
+
+For some debate on the definition of this metric, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306831), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-8#post-307638) and [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-9#post-308320).
+
+```python
+lfx_reference_curve = 'LW'
+lfx_reference_min_frequency = 300
+lfx_reference_max_frequency = 10000
+
+speakers_lfx_reference = (speakers_fr_olive
+    .loc[:, lfx_reference_curve]
+    .pipe(lambda speakers_reference: speakers_reference.loc[lsx.util.pipe(speakers_reference
+        .index
+        .get_level_values('Frequency [Hz]'),
+        lambda freqs: (freqs >= lfx_reference_min_frequency) & (freqs <= lfx_reference_max_frequency))])
+    .groupby('Speaker')
+    .mean())
+speakers_lfx_reference.rename(f'{lfx_reference_curve} average (dB)').to_frame()
+```
+
+```python
+lfx_curve = 'SP'
+lfx_max_frequency = 300
+lfx_cutoff_threshold = -6
+
+speakers_lfx_cutoff = (speakers_fr_olive
+    .loc[:, lfx_curve]
+    .pipe(lambda speakers_curve: speakers_curve.loc[speakers_curve
+        .index.get_level_values('Frequency [Hz]') < lfx_max_frequency])
+    .pipe(lambda speakers_below_cutoff: speakers_below_cutoff.loc[
+        speakers_below_cutoff.lt(speakers_lfx_reference + lfx_cutoff_threshold)])
+    .reset_index('Frequency [Hz]')
+    .groupby('Speaker')
+    .max()
+)
+speakers_lfx_cutoff
+```
+
+```python
+speakers_lfx = (speakers_lfx_cutoff
+    .pipe(lsx.pd.remap_columns, {'Frequency [Hz]': 'LFX'})
+    .pipe(np.log10))
+speakers_lfx
+```
+
+### Results
+
+
+Note that the LFX cutoff frequency can appear slightly below the threshold in the following chart. That's because the calculation is made on the set of measurement points in their original resolution, not the interpolated curve that is drawn on the chart.
+
+```python
+frequency_response_db_chart(
+    speakers_fr_olive.loc[:, [lfx_curve, lfx_reference_curve]],
+    lambda chart: lsx.util.pipe(chart
+        .transform_lookup(lookup='speaker', as_='speaker_cutoff', from_=alt.LookupData(
+                    key='Speaker', data=speakers_lfx_cutoff
+                        .pipe(lsx.pd.remap_columns, {
+                            'Frequency [Hz]': 'frequency',
+                            lfx_curve: 'value',
+                        })
+                        .reset_index()))
+        .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
+            key='curve', data=pd.Series(olive_curve_labels)
+                .rename_axis('curve')
+                .rename('label')
+                .reset_index()))
+        .encode(
+            sound_pressure_yaxis(),
+            alt.Color(
+                'curve_label', type='nominal', title=None,
+                legend=alt.Legend(symbolType='stroke')),
+            strokeDash=alt.condition(alt.LogicalOrPredicate(**{'or': [
+                    alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
+                    alt.FieldEqualPredicate(field='is_reference', equal=True),
+                ]}),
+                alt.value([4, 2]), alt.value([1, 0])),
+            strokeWidth=alt.condition(
+                alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
+                alt.value(1), alt.value(2))),
+        speaker_facet, speaker_input),
+    lambda chart: alt.layer(
+        lsx.alt.interactive_line(chart)
+            .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label'),
+        (lambda chart: chart
+        .transform_filter({'and': [
+            alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
+            alt.FieldRangePredicate(field='frequency', range=[
+                lfx_reference_min_frequency, lfx_reference_max_frequency])]
+        })
+        .transform_aggregate(
+            value='mean(value)', groupby=['reference_curve', 'speaker', 'speaker_cutoff']))(alt.layer(
+            lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
+                .transform_calculate(is_reference='true')
+                .transform_calculate(curve_label='"Reference"')
+                .transform_calculate(frequency=str(lfx_reference_min_frequency))
+                .transform_calculate(max_frequency=str(lfx_reference_max_frequency))
+                .encode(
+                    alt.X2('max_frequency'), strokeWidth=alt.value(2),
+                    tooltip=[alt.Tooltip('value', type='quantitative', title='Reference level (dB)', format='.2f')]),
+            lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
+                .transform_calculate(curve_label='"LFX Cutoff threshold"')
+                .transform_calculate(frequency='0')
+                .transform_calculate(max_frequency=str(lfx_max_frequency))
+                .transform_calculate(value=f'datum.value + {lfx_cutoff_threshold}')
+                .encode(
+                    alt.X2('max_frequency'), strokeWidth=alt.value(2),
+                    tooltip=[alt.Tooltip('value', type='quantitative', title='LFX Cutoff threshold (dB)', format='.2f')]
+                ),
+            lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_point(shape='triangle', size=200, opacity=1, filled=True))
+                .transform_calculate(curve_label='"LFX Cutoff"')
+                .transform_calculate(frequency='datum.speaker_cutoff.frequency')
+                .transform_calculate(value='datum.speaker_cutoff.value')
+                .transform_calculate(lfx='log(datum.frequency) / log(10)')
+                .encode(tooltip=[
+                    alt.Tooltip('value', type='quantitative', title='LFX Cutoff Level (dB)', format='.03s'),
+                    alt.Tooltip('frequency', type='quantitative', title='LFX Cutoff Frequency (Hz)', format='.02s'),
+                    alt.Tooltip('lfx', type='quantitative', title='LFX', format='.02f')])))),
+    fold={'as_': ['curve', 'value']},
+    additional_tooltips=[alt.Tooltip('curve_label', title='Curve', type='nominal')],
+    sidebyside=True)
+```
+
+```python
+lsx.alt.make_chart(speakers_lfx_cutoff
+        .pipe(lsx.pd.remap_columns, {
+            'Frequency [Hz]': 'frequency',
+            lfx_curve: 'cutoff',
+        }),
+    lambda chart: lsx.util.pipe(chart
+        .transform_calculate(value='log(datum.frequency) / log(10)')
+        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right'))),
+        postprocess_chart),
+    lambda chart: alt.layer(
+        lsx.util.pipe(chart
+            .mark_bar()
+            .encode(
+                alt.X(
+                    'value', type='quantitative',
+                    title='LFX (lower is better)',
+                    scale=alt.Scale(domain=[0, np.log10(lfx_max_frequency)], reverse=True)),
+                tooltip=[
+                    alt.Tooltip('Speaker'),
+                    alt.Tooltip('cutoff', title='LFX Cutoff Level (dB)', type='quantitative', format='.3s'),
+                    alt.Tooltip('frequency', title='LFX Cutoff Frequency (Hz)', type='quantitative', format='.2s'),
+                    alt.Tooltip('value', title='LFX', type='quantitative', format='.2f'),
+                ]),
+            lsx.alt.highlight_mouseover),
+        chart
+            .mark_text(align='right', dx=-3)
+            .encode(
+                alt.X('value', type='quantitative'),
+                alt.Text('value', type='quantitative', format='.2f'))),
+    title=common_title)
+```
