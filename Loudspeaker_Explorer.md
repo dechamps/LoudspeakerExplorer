@@ -1513,7 +1513,7 @@ frequency_response_chart(
         [alt.Tooltip('reference', title='Relative to', type='nominal')] +
         tooltips +
         [
-            alt.Tooltip('deviation', title='Deviation (dB)', type='quantitative', format='.2f'),
+            value_db_tooltip('deviation', title='Deviation'),
             alt.Tooltip('deviation_squared', title='Squared deviation (dB²)', type='quantitative', format='.2f'),
         ],
     sidebyside=True)
@@ -1715,7 +1715,7 @@ frequency_response_db_chart(
                 .transform_calculate(max_frequency=str(lfx_reference_max_frequency))
                 .encode(
                     alt.X2('max_frequency'), strokeWidth=alt.value(2),
-                    tooltip=[alt.Tooltip('value', type='quantitative', title='Reference level (dB)', format='.2f')]),
+                    tooltip=[value_db_tooltip(title='Reference level (dB)')]),
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
                 .transform_calculate(curve_label='"LFX Cutoff threshold"')
                 .transform_calculate(frequency='0')
@@ -1723,7 +1723,7 @@ frequency_response_db_chart(
                 .transform_calculate(value=f'datum.value + {lfx_cutoff_threshold}')
                 .encode(
                     alt.X2('max_frequency'), strokeWidth=alt.value(2),
-                    tooltip=[alt.Tooltip('value', type='quantitative', title='LFX Cutoff threshold (dB)', format='.2f')]
+                    tooltip=[value_db_tooltip(title='LFX Cutoff threshold')]
                 ),
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_point(shape='triangle', size=200, opacity=1, filled=True))
                 .transform_calculate(curve_label='"LFX Cutoff"')
@@ -1731,8 +1731,8 @@ frequency_response_db_chart(
                 .transform_calculate(value='datum.speaker_cutoff.value')
                 .transform_calculate(lfx='log(datum.frequency) / log(10)')
                 .encode(tooltip=[
-                    alt.Tooltip('value', type='quantitative', title='LFX Cutoff Level (dB)', format='.03s'),
-                    alt.Tooltip('frequency', type='quantitative', title='LFX Cutoff Frequency (Hz)', format='.02s'),
+                    value_db_tooltip(title='LFX Cutoff Level'),
+                    frequency_tooltip(title='LFX Cutoff Frequency'),
                     alt.Tooltip('lfx', type='quantitative', title='LFX', format='.02f')])))),
     fold={'as_': ['curve', 'value']},
     additional_tooltips=[alt.Tooltip('curve_label', title='Curve', type='nominal')],
@@ -1759,8 +1759,8 @@ lsx.alt.make_chart(speakers_lfx_cutoff
                     scale=alt.Scale(domain=[0, np.log10(lfx_max_frequency)], reverse=True)),
                 tooltip=[
                     alt.Tooltip('Speaker'),
-                    alt.Tooltip('cutoff', title='LFX Cutoff Level (dB)', type='quantitative', format='.3s'),
-                    alt.Tooltip('frequency', title='LFX Cutoff Frequency (Hz)', type='quantitative', format='.2s'),
+                    value_db_tooltip('cutoff', title='LFX Cutoff Level'),
+                    frequency_tooltip(title='LFX Cutoff Frequency'),
                     alt.Tooltip('value', title='LFX', type='quantitative', format='.2f'),
                 ]),
             lsx.alt.highlight_mouseover),
