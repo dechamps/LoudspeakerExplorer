@@ -1564,7 +1564,7 @@ frequency_response_chart(
 lsx.alt.make_chart(
     speakers_sm,
     lambda chart: lsx.util.pipe(chart
-        .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
+        .transform_fold(speakers_sm.columns.values, ['curve', 'value'])
         .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
             key='curve', data=pd.Series(olive_curve_labels)
                 .rename_axis('curve')
