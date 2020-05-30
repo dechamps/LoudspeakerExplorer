@@ -1057,7 +1057,7 @@ frequency_response_db_chart(
 ```
 
 <!-- #region heading_collapsed=true -->
-# Olive Preference Score (work in progress)
+# Olive Preference Rating (work in progress)
 <!-- #endregion -->
 
 This section describes the calculation of a loudspeaker preference score based on [research by Sean Olive](http://www.aes.org/e-lib/browse.cfm?elib=12847) (also available as a [patent](https://patents.google.com/patent/US20050195982A1)).
@@ -1770,4 +1770,122 @@ lsx.alt.make_chart(speakers_lfx_cutoff
                 alt.X('value', type='quantitative'),
                 alt.Text('value', type='quantitative', format='.2f'))),
     title=common_title)
+```
+
+## Preference Rating
+
+<!-- #region heading_collapsed=true -->
+### Calculation
+<!-- #endregion -->
+
+The definition of the final preference rating is discussed in section 5.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0101 of the [patent](https://patents.google.com/patent/US20050195982A1). It is a simple linear combination of some of the variables that were computed in the previous sections:
+
+$$\mathrm{PR} = 12.69-2.49\cdot\mathrm{NBD}_\mathrm{ON}-2.99\cdot\mathrm{NBD}_\mathrm{PIR}+2.32\cdot\mathrm{SM}_\mathrm{PIR}-4.31\cdot\mathrm{LFX}$$
+
+```python
+speakers_olive_components = pd.concat({
+    'NBD': [-2.49, -2.99] * speakers_nbd.loc[:, ['ON', 'PIR']],
+    'SM': +2.32 * speakers_sm.loc[:, ['PIR']],
+    'LFX': -4.31 * speakers_lfx.loc[:, 'LFX'],
+}, axis='columns').rename_axis(columns=['Variable', 'Curve'])
+speakers_olive_components
+```
+
+```python
+speakers_olive_curves = (speakers_olive_components
+    .groupby('Curve', axis='columns')
+    .sum())
+speakers_olive_curves
+```
+
+```python
+speakers_olive = (
+    speakers_olive_curves
+    .sum(axis='columns')
+    .add(12.69)
+    .rename('Olive Preference Rating'))
+speakers_olive.to_frame()
+```
+
+### Results
+
+
+In the following chart, $\mathrm{NBD}_\mathrm{PIR}$ and $\mathrm{SM}_\mathrm{PIR}$ are summed into a single $\mathrm{PIR}$ metric. This makes the numbers easier to reason about, as $\mathrm{SM}_\mathrm{PIR}$ is difficult to interpret in isolation.
+
+To make the below chart more readable, the LFX scale has been adjusted to be relative to a speaker with a low frequency extension of 40 Hz ($\mathrm{LFX} \approx 1.60$, scaled $\mathrm{LFX} \approx -6.90$).
+
+```python
+lsx.alt.make_chart(
+    speakers_olive_curves,
+    lambda chart: lsx.util.pipe(chart
+        .transform_fold(speakers_olive_curves.columns.values, ['curve', 'raw_value'])
+        .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
+            key='curve', data=pd.Series({**olive_curve_labels, **{'LFX': 'Low Frequency Extension'}})
+                .rename_axis('curve')
+                .rename('label')
+                .reset_index()))
+        .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
+        .transform_calculate(value='datum.raw_value + (datum.curve == "LFX" ? 4.31 * log(40) / log(10) : 0)')
+        .encode(
+            alt.X(
+                    'value', type='quantitative',
+                    title='Scaled Olive Preference Rating contribution (higher is better)'),
+            alt.Y('Speaker', type='nominal', title=None))
+        .facet(
+            row=alt.Row('curve', title=None, type='nominal'),
+            title=common_title),
+        postprocess_chart),
+    lambda chart: alt.layer(
+        lsx.util.pipe(chart
+            .mark_bar()
+            .encode(
+                tooltip=[
+                    alt.Tooltip('Speaker'),
+                    alt.Tooltip('curve_label', title='Curve', type='nominal'),
+                    alt.Tooltip('raw_value', title='Scaled rating contribution', type='quantitative', format='.2f')
+                ]),
+            lsx.alt.highlight_mouseover),
+        chart
+            .transform_filter(alt.FieldLTPredicate(field='value', lt=0))
+            .mark_text(align='right', dx=-3)
+            .encode(
+                alt.Text('raw_value', type='quantitative', format='.2f')),
+        chart
+            .transform_filter(alt.FieldGTEPredicate(field='value', gte=0))
+            .mark_text(align='left', dx=3)
+            .encode(
+                alt.Text('raw_value', type='quantitative', format='.2f'))))
+```
+
+```python
+lsx.alt.make_chart(
+    speakers_olive
+        .rename('value')
+        .to_frame(),
+    lambda chart: lsx.util.pipe(chart
+        .encode(
+            alt.X(
+                'value', type='quantitative',
+                title='Olive Preference Rating (higher is better)'),
+            alt.Y('Speaker', type='nominal', title=None)),
+        postprocess_chart),
+    lambda chart: alt.layer(
+        lsx.util.pipe(chart
+            .mark_bar()
+            .encode(
+                tooltip=[
+                    alt.Tooltip('Speaker'),
+                    alt.Tooltip('value', title='Olive Preference Rating', type='quantitative', format='.2f')
+                ]),
+            lsx.alt.highlight_mouseover),
+        chart
+            .transform_filter(alt.FieldLTPredicate(field='value', lt=0))
+            .mark_text(align='right', dx=-3)
+            .encode(
+                alt.Text('value', type='quantitative', format='.1f')),
+        chart
+            .transform_filter(alt.FieldGTEPredicate(field='value', gte=0))
+            .mark_text(align='left', dx=3)
+            .encode(
+                alt.Text('value', type='quantitative', format='.1f'))))
 ```
