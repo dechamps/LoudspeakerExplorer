@@ -1056,15 +1056,12 @@ frequency_response_db_chart(
     sidebyside=True)
 ```
 
-<!-- #region heading_collapsed=true -->
-# Olive Preference Rating (work in progress)
-<!-- #endregion -->
+# Olive Preference Rating
+
 
 This section describes the calculation of a loudspeaker preference score based on [research by Sean Olive](http://www.aes.org/e-lib/browse.cfm?elib=12847) (also available as a [patent](https://patents.google.com/patent/US20050195982A1)).
 
 This research involves 268 listeners evaluating 70 loudspeakers in rigorous controlled conditions. Statistical methods were used to correlate subjective ratings with the speakers anechoic measurement data. The result is a statistical model in the form of a formula that can be used to fairly accurately predict loudspeaker preference ratings from spinorama data alone. This research is widely considered to be the state of the art when it comes to assessing speakers based on measurements.
-
-**This section is a work in progress. It does not yet include a complete score calculation.**
 
 **Note that scores are calculated based on post-processed data. For example, if smoothing or detrending are enabled, they will affect the calculated scores.**
 
@@ -1108,7 +1105,9 @@ def curve_input(chart, init):
             labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()])))
 ```
 
+<!-- #region heading_collapsed=true -->
 ## Narrow Band Deviation (NBD)
+<!-- #endregion -->
 
 <!-- #region heading_collapsed=true -->
 ### Calculation
@@ -1328,7 +1327,9 @@ lsx.alt.make_chart(
 speakers_nbd
 ```
 
+<!-- #region heading_collapsed=true -->
 ## Slope
+<!-- #endregion -->
 
 <!-- #region heading_collapsed=true -->
 ### Calculation
@@ -1417,8 +1418,9 @@ frequency_response_db_chart(
     sidebyside=True)
 ```
 
+<!-- #region heading_collapsed=true -->
 ## SM
-
+<!-- #endregion -->
 
 **CAUTION: interpreting SM is very tricky and fraught with peril.** The Olive paper describes SM as the "smoothness" of the response, which is misleading at best. The real meaning of SM as mathematically defined in the paper is way more subtle and hard to describe. In reality, SM describes how much of the curve deviation from a flat, *horizontal* line can be explained by the overall slope (as opposed to just jagginess). This leads to some counter-intuitive results - for example, a roughly horizontal curve with negligible deviations can have an SM of zero! (For more debate on this topic, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-8#post-308028), [this](https://www.audiosciencereview.com/forum/index.php?threads/selah-audio-rc3r-3-way-speaker-review.11218/page-4#post-320082), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-7#post-322879), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-8#post-325872) and especially [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-14#post-377457) and [this](https://www.audiosciencereview.com/forum/index.php?threads/sony-ss-cs5-3-way-speaker-review.13562/page-13#post-411179).)
 
@@ -1601,7 +1603,9 @@ lsx.alt.make_chart(
 speakers_sm
 ```
 
+<!-- #region heading_collapsed=true -->
 ## Low Frequency Extension (LFX)
+<!-- #endregion -->
 
 <!-- #region heading_collapsed=true -->
 ### Calculation
