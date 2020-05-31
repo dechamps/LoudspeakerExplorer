@@ -927,7 +927,9 @@ off_axis_angles_chart('Horizontal')
 off_axis_angles_chart('Vertical')
 ```
 
+<!-- #region heading_collapsed=true -->
 ## Horizontal reflection responses
+<!-- #endregion -->
 
 ```python
 def reflection_responses_chart(axis):
