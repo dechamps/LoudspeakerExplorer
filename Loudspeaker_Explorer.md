@@ -1105,7 +1105,7 @@ frequency_response_db_chart(
 # Olive Preference Rating
 
 
-This section describes the calculation of a loudspeaker preference score based on [research by Sean Olive](http://www.aes.org/e-lib/browse.cfm?elib=12847) (also available as a [patent](https://patents.google.com/patent/US20050195982A1)).
+This section describes the calculation of a loudspeaker preference score based on [research by Sean Olive](http://www.aes.org/e-lib/browse.cfm?elib=12847), also available as a [patent](https://patents.google.com/patent/US20050195982A1).
 
 This research involves 268 listeners evaluating 70 loudspeakers in rigorous controlled conditions. Statistical methods were used to correlate subjective ratings with the speakers anechoic measurement data. The result is a statistical model in the form of a formula that can be used to fairly accurately predict loudspeaker preference ratings from spinorama data alone. This research is widely considered to be the state of the art when it comes to assessing speakers based on measurements.
 
