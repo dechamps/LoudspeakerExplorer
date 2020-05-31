@@ -179,7 +179,7 @@ Also keep in mind the following known issues with the measurements:
 
  - **[Low frequency measurement errors](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/page-2#post-389147)** (below 100 Hz or so) are present in measurements made before 2020-05-03. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/) in the JBL HDI-3600 measurement.
  - A [measurement artefact](https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/page-3#post-332136) in the form of a slight **[ripple in high frequencies](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324189)** (above 4 kHz or so) is present in all measurements made before 2020-02-23. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/#post-335109) starting from the Genelec 8341A measurement.
- - Klippel uses slightly wrong weights to compute the **Early Reflections** average. This also affects the **Estimated In-Room Response** as it includes Early Reflections in its own average. For details, see [this](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-2#post-323270), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-12#post-389656), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-16#post-395073), and [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-18#post-397135).
+ - Klippel uses slightly wrong weights to compute the **Early Reflections** and **Estimated In-Room Response** curves. See the Early Reflections and Estimated In-Room Response sections, below, for details. Loudspeaker Explorer displays the Klippel data as-is and does not (yet) attempt to correct it.
  - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
  - The **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
  - The **Sony SS-CS5** measurement is inaccurate at high frequencies because [an erroneous measurement axis was used](https://www.audiosciencereview.com/forum/index.php?threads/sony-ss-cs5-3-way-speaker-review.13562/page-5#post-409981).
@@ -833,6 +833,8 @@ Note that all the data shown in this section is a direct representation of the i
 
 The famous CEA/CTA-2034 charts, popularized by Dr. Floyd Toole. These provide a good summary of the measurements from a perceptual perspective. Speakers are presented side-by-side for easy comparison.
 
+The curves that make up this chart are described in more detail in the following sections.
+
 Remember:
  - **All the charts are interactive.** Use the mousewheel to zoom, and drag & drop to pan. Click on a legend entry to highlight a single response; hold shift to highlight multiple responses. Double-click to reset the view. (PROTIP: to quickly switch back and forth between speakers, select the speaker dropdown, then use the left-right arrow keys on your keyboard.)
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
@@ -875,6 +877,9 @@ frequency_response_db_chart(
 ```
 
 ## On-axis response
+
+
+On-axis (**ON**) is is the response at a 0° horizontal and vertical angle, i.e. on the reference axis of measurement. Note that in all measurements done thus far, the reference axis is the same as the tweeter axis.
 
 ```python
 standalone_speaker_frequency_response_db_chart(
@@ -931,6 +936,12 @@ off_axis_angles_chart('Vertical')
 ## Horizontal reflection responses
 <!-- #endregion -->
 
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the following Horizontal Reflection curves as the power average of the responses at the following horizontal angles:
+
+- **Front**: ±0-30°
+- **Side**: ±40-80°
+- **Rear**: ±90-180° (i.e. rear semicircle)
+
 ```python
 def reflection_responses_chart(axis):
     return frequency_response_db_chart(
@@ -954,11 +965,19 @@ reflection_responses_chart('Horizontal')
 ## Vertical reflection responses
 <!-- #endregion -->
 
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the following Vertical Reflection curves as the power average of the responses at the following vertical angles:
+
+- **Floor**: -20° to -40°
+- **Ceiling**: +40° to +60°
+
 ```python
 reflection_responses_chart('Vertical')
 ```
 
 ## Listening Window response
+
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Listening Window (**LW**) curve as the power average of the responses at **±0-10° vertical and ±0-30° horizontal angles**.
 
 ```python
 standalone_speaker_frequency_response_db_chart(
@@ -968,6 +987,11 @@ standalone_speaker_frequency_response_db_chart(
 
 ## Early Reflections response
 
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Early Reflections (**ER**) curve as the average of all Reflection curves described previously (**Floor**, **Ceiling**, **Front**, **Side**, **Rear**).
+
+**Note:** CTA-2034-A is actually ambiguous as to the definition of this curve - the text could also be interpreted to refer to the average of the *individual responses* from all the angles that make up the aforementioned curves. A clearer definition can be found in the [seminal paper](http://www.aes.org/e-lib/browse.cfm?elib=11234) the standard is based on, which does define the Early Reflections curve as an average of averages, and this was [confirmed by Todd Welti](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970) who worked with the author of the paper. **Sadly, Klippel uses the wrong definition (average of individual responses), and for that reason, the data shown here is slightly wrong.** For details, see [this](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-2#post-323270), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-16#post-395073), and [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-18#post-397135).
+
 ```python
 standalone_speaker_frequency_response_db_chart(
     ('CEA2034', 'Early Reflections'),
@@ -975,6 +999,9 @@ standalone_speaker_frequency_response_db_chart(
 ```
 
 ## Sound Power response
+
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Sound Power (**SP**) curve as the power average of the responses at all horizontal and vertical angles, weighted according to the portion of the spherical surface they represent.
 
 ```python
 standalone_speaker_frequency_response_db_chart(
@@ -984,6 +1011,9 @@ standalone_speaker_frequency_response_db_chart(
 
 ## Early Reflections Directivity Index
 
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Early Reflections Directivity Index (**ERDI**) curve as the Listening Window curve minus the Early Reflection Curve. An ERDI of 0 dB means early reflections are as loud as the direct sound.
+
 ```python
 standalone_speaker_frequency_response_db_chart(
     ('Directivity Index', 'Early Reflections DI'),
@@ -992,6 +1022,9 @@ standalone_speaker_frequency_response_db_chart(
 
 ## Sound Power Directivity Index
 
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Sound Power Directivity Index (**SPDI**) curve as the Listening Window curve minus the Sound Power Curve. An SPDI of 0 dB means the speaker is effectively omnidirectional.
+
 ```python
 standalone_speaker_frequency_response_db_chart(
     ('Directivity Index', 'Sound Power DI'),
@@ -999,6 +1032,17 @@ standalone_speaker_frequency_response_db_chart(
 ```
 
 ## Estimated In-Room Response
+
+
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 13 defines the Estimated In-Room Response curve, also known as the Predicted In-Room Response or PIR, as a weighted average of the following curves:
+
+- **12% Listening Window**
+- **44% Early Reflections**
+- **44% Sound Power**
+
+It [has been shown](http://www.aes.org/e-lib/browse.cfm?elib=12847) (section 6) that, in practice, there is good agreement between the Estimated In-Room Response curve and the In-Situ Response, i.e. the response that would be picked up by an omnidirectional measurement microphone at a typical listener location in a typical room, between 300 Hz and 10 kHz.
+
+**Note:** because the Predicted In-Room Response curve is calculated using the Early Reflections curve, it suffers from the same problem described in the Early Reflection section, meaning that the data shown here is [slightly wrong](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-12#post-389656).
 
 ```python
 standalone_speaker_frequency_response_db_chart(
@@ -1012,7 +1056,7 @@ standalone_speaker_frequency_response_db_chart(
 
 ## Listening Window detail
 
-The Listening Window is defined by CTA-2034-A as the average of on-axis, ±10° vertical responses, and ±10º, ±20º and ±30º horizontal responses. Averages can be misleading as they can hide significant variation between angles.
+[ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Listening Window curve as the average of the responses at ±0-10° vertical and ±0-30° horizontal angles. Averages can be misleading as they can hide significant variation between angles.
 
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
