@@ -605,7 +605,7 @@ def fold_speakers_info(speakers_fr):
                   .pipe(pd.MultiIndex.from_frame)))
         .stack())
 
-(speakers_fr_ready, common_title) = (speakers_fr_smoothed
+(speakers_fr_ready, speakers_common_properties) = (speakers_fr_smoothed
     .rename(
         level='Mean resolution (freqs/octave)',
         index=lambda freqs_per_octave: 'Mean {:.2g} pts/octave'.format(freqs_per_octave))
@@ -622,9 +622,7 @@ if single_speaker_mode:
     )
 else:
     speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
-common_title = alt.TitleParams(
-    text='; '.join(common_title.to_list()),
-    anchor='start')
+chart_fineprint = ['; '.join(f'{key}: {value}' for key, value in speakers_common_properties.items())]
 
 speaker_offsets = (speakers_fr_ready.index
     .get_level_values('Speaker')
@@ -648,14 +646,14 @@ speakers_fr_ready_offset = (speakers_fr_ready
 speakers_license = speakers.loc[
     speakers_fr_smoothed.index.get_level_values('Speaker').drop_duplicates(),
     'Data License']
-credits = ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer']
+chart_fineprint.append('Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer')
 if speakers_license.nunique(dropna=False) == 1:
     (unique_license,) = speakers_license.unique()
     if (pd.notna(unique_license)):
-        credits.append('Data licensed under {}'.format(unique_license))
+        chart_fineprint.append('Data licensed under {}'.format(unique_license))
 else:
     for speaker, license in speakers_license.dropna().items():
-        credits.append('{} data licensed under {}'.format(speaker, license))
+        chart_fineprint.append('{} data licensed under {}'.format(speaker, license))
 
 alt.data_transformers.disable_max_rows()
 # In Altair 4.1.0, alt.datum[foo][bar] doesn't work. That was fixed in Altair commit bdef95b,
@@ -696,7 +694,6 @@ def frequency_response_chart(
         })
         .reset_index('frequency')
         .pipe(lsx.alt.make_chart,
-            title=common_title,
             process_before=lambda chart: lsx.util.pipe(chart
                 .interactive(),
                 lambda chart: chart if fold is None else chart.transform_fold(data.columns.values, **fold),
@@ -762,9 +759,7 @@ def speaker_color(**kwargs):
         **kwargs)
 
 def speaker_facet(chart):
-    return chart.facet(
-        alt.Column('speaker', title=None, type='nominal'),
-        title=common_title)
+    return chart.facet(alt.Column('speaker', title=None, type='nominal'))
 
 def speaker_input(chart):
     speakers = list(speakers_fr_ready.index.get_level_values('Speaker').drop_duplicates().values)
@@ -782,7 +777,7 @@ def postprocess_chart(chart):
     return (alt.vconcat(
         chart,
         alt.Chart(title=alt.TitleParams(
-            credits, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
+            chart_fineprint, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
             width=600, height=1)
             .mark_text())
         .resolve_legend(color='independent')
@@ -1340,11 +1335,9 @@ lsx.alt.make_chart(
                     'End Frequency (Hz)': 'end_frequency',
                 })
                 .reset_index()))
-        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right'))),
+        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right', labelLimit=0))),
         lambda chart: curve_input(chart, 'ON')
-        .facet(
-            alt.Column('curve_label', type='nominal', title=None),
-            title=common_title),
+        .facet(alt.Column('curve_label', type='nominal', title=None)),
         postprocess_chart),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
@@ -1629,9 +1622,7 @@ lsx.alt.make_chart(
         .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label'])
         .encode(alt.Y('Speaker', title=None, axis=alt.Axis(labelLimit=0))),
         lambda chart: curve_input(chart, 'PIR')
-        .facet(
-            alt.Column('curve_label', type='nominal', title=None),
-            title=common_title),
+        .facet(alt.Column('curve_label', type='nominal', title=None)),
         postprocess_chart),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
@@ -1822,8 +1813,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
             .mark_text(align='right', dx=-3)
             .encode(
                 alt.X('value', type='quantitative'),
-                alt.Text('value', type='quantitative', format='.2f'))),
-    title=common_title)
+                alt.Text('value', type='quantitative', format='.2f'))))
 ```
 
 ## Preference Rating
@@ -1885,9 +1875,7 @@ lsx.alt.make_chart(
                     'value', type='quantitative',
                     title='Scaled Olive Preference Rating contribution (higher is better)'),
             alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0)))
-        .facet(
-            row=alt.Row('curve', title=None, type='nominal'),
-            title=common_title),
+        .facet(row=alt.Row('curve', title=None, type='nominal')),
         postprocess_chart),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
