@@ -590,21 +590,6 @@ form(widgets.VBox([
 ```
 
 ```python
-# Rearranges the index, folding metadata such as resolution and smoothing into the "Speaker" index level.
-def fold_speakers_info(speakers_fr):
-    return (speakers_fr
-        .unstack(level='Frequency [Hz]')
-        .pipe(lambda df: df
-              .pipe(lsx.pd.set_index, df
-                  .index
-                  .to_frame()
-                  .apply(
-                      # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
-                      lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
-                      axis='columns')
-                  .pipe(pd.MultiIndex.from_frame)))
-        .stack())
-
 (speakers_fr_ready, speakers_common_properties) = (speakers_fr_smoothed
     .rename(
         level='Mean resolution (freqs/octave)',
@@ -619,12 +604,46 @@ if single_speaker_mode:
         .swaplevel(0, -1)
     )
     speakers_common_properties = speakers_common_properties.drop('Speaker')
-else:
-    speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
+
+# Add the properties common to all speakers to the fine print.
 chart_fineprint = [
     '; '.join(f'{key}: {value}'
     for key, value
     in speakers_common_properties.items())]
+
+# Then, add properties that are common to every instance of a given speaker as a list in the fine print.
+speakers_specific_properties = (speakers_fr_ready
+    .index
+    .droplevel('Frequency [Hz]')
+    .drop_duplicates()
+    .to_frame()
+    .reset_index(drop=True)
+    .set_index('Speaker'))
+for speaker_property in speakers_specific_properties.columns:
+    values = (speakers_specific_properties
+        .loc[:, speaker_property]
+        .groupby('Speaker')
+        .unique()
+        .apply(lambda speaker_values: speaker_values[0] if len(speaker_values) == 1 else None))
+    if values.isna().any(): continue
+    chart_fineprint += ([f'{speaker_property}:'] +
+        [f'- {speaker}: {value}' for speaker, value in values.items()])
+    speakers_fr_ready.index = speakers_fr_ready.index.droplevel(speaker_property)
+
+# Finally, append any remaining properties to the speaker name in the data itself.
+# (In practice, this only happens when side-by-side smoothing is enabled.)
+speakers_fr_ready = (speakers_fr_ready
+        .unstack(level='Frequency [Hz]')
+        .pipe(lambda df: df
+              .pipe(lsx.pd.set_index, df
+                  .index
+                  .to_frame()
+                  .apply(
+                      # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
+                      lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
+                      axis='columns')
+                  .pipe(pd.MultiIndex.from_frame)))
+        .stack())
 
 speaker_offsets = (speakers_fr_ready.index
     .get_level_values('Speaker')
