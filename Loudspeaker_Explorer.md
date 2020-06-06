@@ -1627,7 +1627,7 @@ lsx.alt.make_chart(
                 .rename('label')
                 .reset_index()))
         .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label'])
-        .encode(alt.Y('Speaker', title=None)),
+        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(labelLimit=0))),
         lambda chart: curve_input(chart, 'PIR')
         .facet(
             alt.Column('curve_label', type='nominal', title=None),
@@ -1801,7 +1801,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
         }),
     lambda chart: lsx.util.pipe(chart
         .transform_calculate(value=alt.expr.log(alt.datum['frequency']) / alt.expr.LN10)
-        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right'))),
+        .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right', labelLimit=0))),
         postprocess_chart),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
@@ -1884,7 +1884,7 @@ lsx.alt.make_chart(
             alt.X(
                     'value', type='quantitative',
                     title='Scaled Olive Preference Rating contribution (higher is better)'),
-            alt.Y('Speaker', type='nominal', title=None))
+            alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0)))
         .facet(
             row=alt.Row('curve', title=None, type='nominal'),
             title=common_title),
@@ -1921,7 +1921,7 @@ lsx.alt.make_chart(
             alt.X(
                 'value', type='quantitative',
                 title='Olive Preference Rating (higher is better)'),
-            alt.Y('Speaker', type='nominal', title=None)),
+            alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0))),
         postprocess_chart),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
