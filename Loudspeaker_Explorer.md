@@ -1275,12 +1275,12 @@ frequency_response_db_chart(
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.util.pipe(lsx.alt.interactive_line(chart)
-            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
+            .transform_filter(alt.datum.Dataset == 'Curve')
             .transform_calculate(layer='datum.curve + " Curve"')
             .encode(strokeWidth=alt.value(0.5))),
         lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
-            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Band Mean'))
+            .transform_filter(alt.datum.Dataset == 'Band Mean')
             .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
             .transform_calculate(frequency='datum.band_info.start_frequency')
             .encode(
@@ -1295,7 +1295,7 @@ frequency_response_db_chart(
             )),
         lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
-            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve'))
+            .transform_filter(alt.datum.Dataset == 'Curve')
             .transform_calculate(band_mean=
                 'isValid(datum.speaker_band_mean.band_mean[datum.Band]) ? datum.speaker_band_mean.band_mean[datum.Band][datum.curve] : NaN')
             .transform_filter(alt.FieldValidPredicate(field='band_mean', valid=True))
@@ -1450,9 +1450,9 @@ frequency_response_db_chart(
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.alt.interactive_line(chart)
-            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Curve')),
+            .transform_filter(alt.datum.Dataset == 'Curve'),
         lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_line(clip=True))
-            .transform_filter(alt.FieldEqualPredicate(field='Dataset', equal='Slope'))
+            .transform_filter(alt.datum.Dataset == 'Slope')
             .transform_calculate(b='datum.speaker_b.b[datum.curve]')
             .transform_calculate(db_per_octave='datum.b * LN2')
             .encode(tooltip=[
@@ -1737,24 +1737,20 @@ frequency_response_db_chart(
             alt.Color(
                 'curve_label', type='nominal', title=None,
                 legend=alt.Legend(symbolType='stroke')),
-            strokeDash=alt.condition(alt.LogicalOrPredicate(**{'or': [
-                    alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
-                    alt.FieldEqualPredicate(field='is_reference', equal=True),
-                ]}),
+            strokeDash=alt.condition(
+                (alt.datum.curve == lfx_reference_curve) | alt.datum.is_reference,
                 alt.value([4, 2]), alt.value([1, 0])),
             strokeWidth=alt.condition(
-                alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
+                alt.datum.curve == lfx_reference_curve,
                 alt.value(1), alt.value(2))),
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.alt.interactive_line(chart)
             .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label'),
         (lambda chart: chart
-        .transform_filter({'and': [
-            alt.FieldEqualPredicate(field='curve', equal=lfx_reference_curve),
-            alt.FieldRangePredicate(field='frequency', range=[
-                lfx_reference_min_frequency, lfx_reference_max_frequency])]
-        })
+        .transform_filter(
+            (alt.datum.curve == lfx_reference_curve) &
+            alt.expr.inrange(alt.datum.frequency, [lfx_reference_min_frequency, lfx_reference_max_frequency]))
         .transform_aggregate(
             value='mean(value)', groupby=['reference_curve', 'speaker', 'speaker_cutoff']))(alt.layer(
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
@@ -1895,12 +1891,12 @@ lsx.alt.make_chart(
                 ]),
             lsx.alt.highlight_mouseover),
         chart
-            .transform_filter(alt.FieldLTPredicate(field='value', lt=0))
+            .transform_filter(alt.datum.value < 0)
             .mark_text(align='right', dx=-3)
             .encode(
                 alt.Text('raw_value', type='quantitative', format='.2f')),
         chart
-            .transform_filter(alt.FieldGTEPredicate(field='value', gte=0))
+            .transform_filter(alt.datum.value >= 0)
             .mark_text(align='left', dx=3)
             .encode(
                 alt.Text('raw_value', type='quantitative', format='.2f'))))
@@ -1928,12 +1924,12 @@ lsx.alt.make_chart(
                 ]),
             lsx.alt.highlight_mouseover),
         chart
-            .transform_filter(alt.FieldLTPredicate(field='value', lt=0))
+            .transform_filter(alt.datum.value < 0)
             .mark_text(align='right', dx=-3)
             .encode(
                 alt.Text('value', type='quantitative', format='.1f')),
         chart
-            .transform_filter(alt.FieldGTEPredicate(field='value', gte=0))
+            .transform_filter(alt.datum.value >= 0)
             .mark_text(align='left', dx=3)
             .encode(
                 alt.Text('value', type='quantitative', format='.1f'))))
