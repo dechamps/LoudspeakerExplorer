@@ -658,6 +658,11 @@ else:
         credits.append('{} data licensed under {}'.format(speaker, license))
 
 alt.data_transformers.disable_max_rows()
+# In Altair 4.1.0, alt.datum[foo][bar] doesn't work. That was fixed in Altair commit bdef95b,
+# but that's not released yet. In the mean time, dynamically patch the method as a workaround.
+if alt.expr.Expression.__getitem__ == alt.utils.schemapi.SchemaBase.__getitem__:
+    alt.expr.core.Expression.__getitem__ = lambda self, val: alt.expr.core.GetItemExpression(self, val)
+    alt.expr.core.GetItemExpression.__repr__ = lambda self: '{}[{!r}]'.format(self.group, self.name)
 
 def set_chart_dimensions(chart, sidebyside=False):
     if single_speaker_mode:
@@ -1276,13 +1281,13 @@ frequency_response_db_chart(
     lambda chart: alt.layer(
         lsx.util.pipe(lsx.alt.interactive_line(chart)
             .transform_filter(alt.datum['Dataset'] == 'Curve')
-            .transform_calculate(layer='datum.curve + " Curve"')
+            .transform_calculate(layer=alt.datum['curve'] + ' Curve')
             .encode(strokeWidth=alt.value(0.5))),
         lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
             .transform_filter(alt.datum['Dataset'] == 'Band Mean')
-            .transform_calculate(layer='"NBD_" + datum.curve + " Band Mean"')
-            .transform_calculate(frequency='datum.band_info.start_frequency')
+            .transform_calculate(layer='NBD_' + alt.datum['curve'] + ' Band Mean')
+            .transform_calculate(frequency=alt.datum['band_info']['start_frequency'])
             .encode(
                 alt.X2('band_info.end_frequency'),
                 tooltip=[
@@ -1296,11 +1301,12 @@ frequency_response_db_chart(
         lsx.util.pipe(lsx.alt.interactive_line(
                 chart, add_mark=lambda chart: chart.mark_rule())
             .transform_filter(alt.datum['Dataset'] == 'Curve')
-            .transform_calculate(band_mean=
-                'isValid(datum.speaker_band_mean.band_mean[datum.Band]) ? datum.speaker_band_mean.band_mean[datum.Band][datum.curve] : NaN')
+            .transform_calculate(band_mean=lsx.util.pipe(
+                alt.datum['speaker_band_mean']['band_mean'][alt.datum['Band']],
+                lambda band: alt.expr.if_(alt.expr.isObject(band), band[alt.datum['curve']], alt.expr.NaN)))
             .transform_filter(alt.FieldValidPredicate(field='band_mean', valid=True))
-            .transform_calculate(layer='"NBD_" + datum.curve + " Deviation"')
-            .transform_calculate(deviation='abs(datum.band_mean - datum.value)')
+            .transform_calculate(layer='NBD_' + alt.datum['curve'] + ' Deviation')
+            .transform_calculate(deviation=alt.expr.abs(alt.datum['band_mean'] - alt.datum['value']))
             .encode(
                 alt.Y2('band_mean'),
                 strokeWidth=alt.value(2),
@@ -1325,7 +1331,7 @@ lsx.alt.make_chart(
                 .rename_axis('curve')
                 .rename('label')
                 .reset_index()))
-        .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
+        .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label'])
         .transform_lookup(lookup='Band', as_='band_info', from_=alt.LookupData(
             key='Band', data=nbd_bands
                 .pipe(lsx.pd.remap_columns, {
@@ -1344,7 +1350,9 @@ lsx.alt.make_chart(
         lsx.util.pipe(chart
             .mark_bar()
             .transform_calculate(band_label=
-                'datum.Band + " (" + format(datum.band_info.start_frequency, ".02s") + " - " + format(datum.band_info.end_frequency, ".02s") + " Hz)"')
+                alt.datum['Band'] + ' (' +
+                alt.expr.format(alt.datum['band_info']['start_frequency'], '.02s') + ' - ' +
+                alt.expr.format(alt.datum['band_info']['end_frequency'], '.02s') + ' Hz)')
             .encode(
                 alt.X(
                     'value', type='quantitative',
@@ -1440,7 +1448,7 @@ frequency_response_db_chart(
                 .rename('b')
                 .to_frame()
                 .reset_index()))
-        .transform_calculate(layer='datum.curve + " " + datum.Dataset')
+        .transform_calculate(layer=alt.datum['curve'] + ' ' + alt.datum['Dataset'])
         .encode(
             sound_pressure_yaxis(),
             alt.Color(
@@ -1453,8 +1461,8 @@ frequency_response_db_chart(
             .transform_filter(alt.datum['Dataset'] == 'Curve'),
         lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_line(clip=True))
             .transform_filter(alt.datum['Dataset'] == 'Slope')
-            .transform_calculate(b='datum.speaker_b.b[datum.curve]')
-            .transform_calculate(db_per_octave='datum.b * LN2')
+            .transform_calculate(b=alt.datum['speaker_b']['b'][alt.datum['curve']])
+            .transform_calculate(db_per_octave=alt.datum['b'] * alt.expr.LN2)
             .encode(tooltip=[
                     alt.Tooltip('b', title='b (ln(2)dB/octave)', type='quantitative', format='.2f'),
                     alt.Tooltip('db_per_octave', title='Slope (dB/octave)', type='quantitative', format='.2f'),
@@ -1510,7 +1518,7 @@ frequency_response_db_chart(
         'Slope': compensate_slope(speakers_fr_olive),
     }, names=['reference']),
     lambda chart: lsx.util.pipe(chart
-        .transform_calculate(layer='datum.curve + " relative to " + datum.reference')
+        .transform_calculate(layer=alt.datum['curve'] + ' relative to ' + alt.datum['reference'])
         .encode(
             alt.Y(
                 'value', type='quantitative',
@@ -1536,12 +1544,13 @@ frequency_response_chart(
     }, names=['reference']),
     lambda chart: lsx.util.pipe(chart
         .transform_calculate(layer=
+            # This can't be expressed using an Altair expression due to https://github.com/altair-viz/altair/issues/2194
             '[datum.curve + " relative to " + datum.reference + ";",' +
             '(datum.reference == "Mean" ? "TSS (Total Sum of Squares)" : "RSS (Residual Sum of Squares)"),'
             '"contribution"]')
-        .transform_calculate(deviation='datum.value')
-        .transform_calculate(deviation_squared='pow(datum.deviation, 2)')
-        .transform_calculate(value='datum.deviation_squared * (datum.reference == "Slope" ? -1 : 1)')
+        .transform_calculate(deviation=alt.datum['value'])
+        .transform_calculate(deviation_squared=alt.datum['deviation'] ** 2)
+        .transform_calculate(value=alt.datum['deviation_squared'] * alt.expr.if_(alt.datum['reference'] == 'Slope', -1, 1))
         .encode(
             alt.Y(
                 'value', type='quantitative',
@@ -1573,13 +1582,13 @@ frequency_response_chart(
         'slope': compensate_slope(speakers_fr_slope),
     }, names=['reference']),
     lambda chart: lsx.util.pipe(chart
-        .transform_calculate(deviation='datum.value')
-        .transform_calculate(value='pow(datum.deviation, 2)')
+        .transform_calculate(deviation=alt.datum['value'])
+        .transform_calculate(value=alt.datum['deviation'] ** 2)
         .transform_pivot(pivot='reference', groupby=['speaker', 'curve', 'frequency'], value='value')
         .transform_joinaggregate(tss='sum(mean)', groupby=['speaker', 'curve'])
         .transform_joinaggregate(count='count(mean)', groupby=['speaker', 'curve'])
-        .transform_calculate(sm='- datum.slope / datum.tss')
-        .transform_calculate(value='datum.sm * datum.count')
+        .transform_calculate(sm=-alt.datum['slope'] / alt.datum['tss'])
+        .transform_calculate(value=alt.datum['sm'] * alt.datum['count'])
         .encode(
             alt.Color(
                 'curve', type='nominal',
@@ -1617,7 +1626,7 @@ lsx.alt.make_chart(
                 .rename_axis('curve')
                 .rename('label')
                 .reset_index()))
-        .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
+        .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label'])
         .encode(alt.Y('Speaker', title=None)),
         lambda chart: curve_input(chart, 'PIR')
         .facet(
@@ -1746,7 +1755,7 @@ frequency_response_db_chart(
         speaker_facet, speaker_input),
     lambda chart: alt.layer(
         lsx.alt.interactive_line(chart)
-            .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label'),
+            .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label']),
         (lambda chart: chart
         .transform_filter(
             (alt.datum['curve'] == lfx_reference_curve) &
@@ -1754,27 +1763,27 @@ frequency_response_db_chart(
         .transform_aggregate(
             value='mean(value)', groupby=['reference_curve', 'speaker', 'speaker_cutoff']))(alt.layer(
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
-                .transform_calculate(is_reference='true')
-                .transform_calculate(curve_label='"Reference"')
-                .transform_calculate(frequency=str(lfx_reference_min_frequency))
-                .transform_calculate(max_frequency=str(lfx_reference_max_frequency))
+                .transform_calculate(is_reference=alt.expr.toBoolean(True))
+                .transform_calculate(curve_label=alt.expr.toString('Reference'))
+                .transform_calculate(frequency=alt.expr.toNumber(lfx_reference_min_frequency))
+                .transform_calculate(max_frequency=alt.expr.toNumber(lfx_reference_max_frequency))
                 .encode(
                     alt.X2('max_frequency'), strokeWidth=alt.value(2),
                     tooltip=[value_db_tooltip(title='Reference level (dB)')]),
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
-                .transform_calculate(curve_label='"LFX Cutoff threshold"')
-                .transform_calculate(frequency='0')
-                .transform_calculate(max_frequency=str(lfx_max_frequency))
-                .transform_calculate(value=f'datum.value + {lfx_cutoff_threshold}')
+                .transform_calculate(curve_label=alt.expr.toString('LFX Cutoff threshold'))
+                .transform_calculate(frequency=alt.expr.toNumber(0))
+                .transform_calculate(max_frequency=alt.expr.toNumber(lfx_max_frequency))
+                .transform_calculate(value=alt.datum['value'] + lfx_cutoff_threshold)
                 .encode(
                     alt.X2('max_frequency'), strokeWidth=alt.value(2),
                     tooltip=[value_db_tooltip(title='LFX Cutoff threshold')]
                 ),
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_point(shape='triangle', size=200, opacity=1, filled=True))
-                .transform_calculate(curve_label='"LFX Cutoff"')
-                .transform_calculate(frequency='datum.speaker_cutoff.frequency')
-                .transform_calculate(value='datum.speaker_cutoff.value')
-                .transform_calculate(lfx='log(datum.frequency) / log(10)')
+                .transform_calculate(curve_label=alt.expr.toString('LFX Cutoff'))
+                .transform_calculate(frequency=alt.datum['speaker_cutoff']['frequency'])
+                .transform_calculate(value=alt.datum['speaker_cutoff']['value'])
+                .transform_calculate(lfx=alt.expr.log(alt.datum['frequency']) / alt.expr.LN10)
                 .encode(tooltip=[
                     value_db_tooltip(title='LFX Cutoff Level'),
                     frequency_tooltip(title='LFX Cutoff Frequency'),
@@ -1791,7 +1800,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
             lfx_curve: 'cutoff',
         }),
     lambda chart: lsx.util.pipe(chart
-        .transform_calculate(value='log(datum.frequency) / log(10)')
+        .transform_calculate(value=alt.expr.log(alt.datum['frequency']) / alt.expr.LN10)
         .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right'))),
         postprocess_chart),
     lambda chart: alt.layer(
@@ -1869,8 +1878,8 @@ lsx.alt.make_chart(
                 .rename_axis('curve')
                 .rename('label')
                 .reset_index()))
-        .transform_calculate(curve_label='datum.curve + " " + datum.curve_info.label')
-        .transform_calculate(value='datum.raw_value + (datum.curve == "LFX" ? 4.31 * log(40) / log(10) : 0)')
+        .transform_calculate(curve_label=alt.datum['curve'] + ' ' + alt.datum['curve_info']['label'])
+        .transform_calculate(value=alt.datum['raw_value'] + alt.expr.if_(alt.datum['curve'] == 'LFX', 4.31 * np.log(40) / np.log(10), 0))
         .encode(
             alt.X(
                     'value', type='quantitative',
