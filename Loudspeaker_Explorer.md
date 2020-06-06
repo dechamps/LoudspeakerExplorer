@@ -528,7 +528,7 @@ form(widgets.HBox([smoothing_enabled, smoothing_params]))
 ```python
 speakers_fr_smoothed = (speakers_fr_norm
     .unstack(level='Frequency [Hz]')
-    .pipe(lsx.pd.append_constant_index, 'No smoothing', name='Smoothing')
+    .pipe(lsx.pd.append_constant_index, 'None', name='Smoothing')
     .stack()
 )
 if smoothing_enabled.value:
@@ -537,7 +537,7 @@ if smoothing_enabled.value:
         .apply(lsx.fr.smooth, smoothing_octaves.value)
         .unstack(level='Frequency [Hz]')
         .pipe(lsx.pd.append_constant_index,
-              lsx.widgets.lookup_option_label(smoothing_octaves) + ' smoothing',
+              lsx.widgets.lookup_option_label(smoothing_octaves),
               name='Smoothing')
         .stack())
     speakers_fr_smoothed = (
@@ -593,8 +593,8 @@ form(widgets.VBox([
 (speakers_fr_ready, speakers_common_properties) = (speakers_fr_smoothed
     .rename(
         level='Mean resolution (freqs/octave)',
-        index=lambda freqs_per_octave: 'Mean {:.2g} pts/octave'.format(freqs_per_octave))
-    .rename_axis(index={'Mean resolution (freqs/octave)': 'Resolution'})
+        index=lambda freqs_per_octave: '{:.3g} pts/octave'.format(freqs_per_octave))
+    .rename_axis(index={'Mean resolution (freqs/octave)': 'Mean resolution'})
     .pipe(lsx.pd.extract_common_index_levels)
 )
 single_speaker_mode = 'Speaker' in speakers_common_properties
@@ -640,7 +640,10 @@ speakers_fr_ready = (speakers_fr_ready
                   .to_frame()
                   .apply(
                       # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
-                      lambda speaker: pd.Series({'Speaker': '; '.join(speaker)}),
+                      lambda speaker: pd.Series({'Speaker': '; '.join(
+                          [f'{value}' if speaker_property == 'Speaker' else f'{speaker_property}: {value}'
+                           for speaker_property, value
+                           in speaker.items()])}),
                       axis='columns')
                   .pipe(pd.MultiIndex.from_frame)))
         .stack())
