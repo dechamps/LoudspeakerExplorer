@@ -612,17 +612,19 @@ def fold_speakers_info(speakers_fr):
     .rename_axis(index={'Mean resolution (freqs/octave)': 'Resolution'})
     .pipe(lsx.pd.extract_common_index_levels)
 )
-single_speaker_mode = speakers_fr_ready.index.names == ['Frequency [Hz]']
+single_speaker_mode = 'Speaker' in speakers_common_properties
 if single_speaker_mode:
-    # Re-add an empty Speaker index level.
-    # The alternative would be to handle this case specially in every single graph, which gets annoying fast.
     speakers_fr_ready = (speakers_fr_ready
-        .pipe(lsx.pd.append_constant_index, '', name='Speaker')
+        .pipe(lsx.pd.append_constant_index, speakers_common_properties.loc['Speaker'], name='Speaker')
         .swaplevel(0, -1)
     )
+    speakers_common_properties = speakers_common_properties.drop('Speaker')
 else:
     speakers_fr_ready = fold_speakers_info(speakers_fr_ready)
-chart_fineprint = ['; '.join(f'{key}: {value}' for key, value in speakers_common_properties.items())]
+chart_fineprint = [
+    '; '.join(f'{key}: {value}'
+    for key, value
+    in speakers_common_properties.items())]
 
 speaker_offsets = (speakers_fr_ready.index
     .get_level_values('Speaker')
@@ -754,7 +756,7 @@ def key_color(**kwargs):
 def speaker_color(**kwargs):
     return alt.Color(
         'speaker', type='nominal', title=None,
-        legend=None if single_speaker_mode else alt.Legend(
+        legend=alt.Legend(
             orient='top', direction='vertical', labelLimit=600, symbolType='stroke'),
         **kwargs)
 
