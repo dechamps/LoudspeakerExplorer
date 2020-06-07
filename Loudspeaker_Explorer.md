@@ -598,42 +598,31 @@ speakers_properties = (pd.concat([
         speakers.loc[:, 'Data License'],
     ], axis='columns', join='inner')
     .dropna(axis='columns', how='all'))
-speakers_common_properties = (speakers_properties
-    .loc[:, speakers_properties.nunique(dropna=False).eq(1)]
-    .apply(lambda speakers_property: speakers_property.unique().squeeze()))
 speakers_specific_properties = (speakers_properties
-    .drop(columns=speakers_common_properties.index)
-    .pipe(lambda speakers_specific_properties: speakers_specific_properties.loc[:,
-        [] if speakers_specific_properties.empty else
-        speakers_specific_properties.groupby('Speaker').nunique(dropna=False).eq(1).all()])
+    .pipe(lambda speakers_properties: speakers_properties.loc[:,
+        speakers_properties.groupby('Speaker').nunique(dropna=False).eq(1).all()])
     .groupby('Speaker')
     .apply(lambda speaker_properties: speaker_properties.apply(
         lambda speaker_property: speaker_property.unique().squeeze())))
 
 single_speaker_mode = speakers_properties.index.nunique() <= 1
 
-chart_fineprint = (np.concatenate((
-        [] if speakers_common_properties.empty else [speakers_common_properties
+chart_fineprint = (speakers_specific_properties
+    .pipe(lsx.pd.rollup, lambda speakers_property:
+        [f'{speakers_property.name}: {speakers_property.unique().squeeze()}']
+        if speakers_property.nunique(dropna=False) == 1
+        else [f'{speakers_property.name}:'] + list('- ' + speakers_property
+            .dropna()
             .reset_index()
-            .apply(lambda prop: ': '.join(prop), axis='columns').str.cat(sep='; ')],
-        lsx.util.pipe(speakers_specific_properties
-            .apply(lambda speakers_property: speakers_property
-                .groupby('Speaker')
-                .apply(lambda speaker_property:
-                    None if speaker_property.isna().any() else
-                    '- ' + speaker_property.reset_index().squeeze().str.cat(sep=': '))
-                .pipe(lambda speakers_property: np.concatenate(([speakers_property.name + ':'], speakers_property.values))))
-            .values
-            .flatten('F'),
-            lambda array: array[array != None]),
-        ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer']))
-    .tolist())
+            .apply(
+                lambda speaker_property: speaker_property.str.cat(sep=': '),
+                axis='columns')))
+    .sum() + ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer'])
 
 speakers_fr_ready = speakers_fr_smoothed.copy()
 speakers_fr_ready.index = (speakers_fr_ready.index
     .droplevel(
-        speakers_common_properties.index
-        .append(speakers_specific_properties.columns)
+        speakers_specific_properties.columns
         .intersection(speakers_fr_ready.index.names)
         .to_list())
     .to_frame()

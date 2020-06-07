@@ -48,6 +48,14 @@ def index_as_columns(df):
     return df.index.to_frame().reset_index(drop=True)
 
 
+def rollup(df, func, *kargs, **kwargs):
+    # Similar to df.apply(), with the subtle difference that if `func` returns
+    # a collection, the collection type is preserved instead of being expanded.
+    return (df
+            .apply(func=lambda df: (func(df),), *kargs, **kwargs)
+            .apply(lambda value: value[0]))
+
+
 def implode(df):
     # Merge identical index entries, resulting in list-valued cells. The
     # opposite of df.explode().
