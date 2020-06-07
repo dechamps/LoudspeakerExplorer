@@ -584,26 +584,28 @@ form(widgets.VBox([
 ```
 
 ```python
-speakers_properties = pd.concat([
-    speakers_fr_smoothed
-        .index
-        .droplevel('Frequency [Hz]')
-        .drop_duplicates()
-        .to_frame()
-        .reset_index(drop=True)
-        .set_index('Speaker'),
-    speakers_freqs_per_octave
-        .rename('Mean resolution')
-        .apply(lambda resolution: f'{resolution:.3g} pts/octave'),
-], axis='columns')
+speakers_properties = (pd.concat([
+        speakers_fr_smoothed
+            .index
+            .droplevel('Frequency [Hz]')
+            .drop_duplicates()
+            .to_frame()
+            .reset_index(drop=True)
+            .set_index('Speaker'),
+        speakers_freqs_per_octave
+            .rename('Mean resolution')
+            .apply(lambda resolution: f'{resolution:.3g} pts/octave'),
+        speakers.loc[:, 'Data License'],
+    ], axis='columns', join='inner')
+    .dropna(axis='columns', how='all'))
 speakers_common_properties = (speakers_properties
-    .loc[:, speakers_properties.nunique().eq(1)]
+    .loc[:, speakers_properties.nunique(dropna=False).eq(1)]
     .apply(lambda speakers_property: speakers_property.unique().squeeze()))
 speakers_specific_properties = (speakers_properties
     .drop(columns=speakers_common_properties.index)
     .pipe(lambda speakers_specific_properties: speakers_specific_properties.loc[:,
         [] if speakers_specific_properties.empty else
-        speakers_specific_properties.groupby('Speaker').nunique().eq(1).all()])
+        speakers_specific_properties.groupby('Speaker').nunique(dropna=False).eq(1).all()])
     .groupby('Speaker')
     .apply(lambda speaker_properties: speaker_properties.apply(
         lambda speaker_property: speaker_property.unique().squeeze())))
@@ -614,13 +616,17 @@ chart_fineprint = (np.concatenate((
         [] if speakers_common_properties.empty else [speakers_common_properties
             .reset_index()
             .apply(lambda prop: ': '.join(prop), axis='columns').str.cat(sep='; ')],
-        speakers_specific_properties
+        lsx.util.pipe(speakers_specific_properties
             .apply(lambda speakers_property: speakers_property
                 .groupby('Speaker')
-                .apply(lambda speaker_property: '- ' + speaker_property.reset_index().squeeze().str.cat(sep=': '))
+                .apply(lambda speaker_property:
+                    None if speaker_property.isna().any() else
+                    '- ' + speaker_property.reset_index().squeeze().str.cat(sep=': '))
                 .pipe(lambda speakers_property: np.concatenate(([speakers_property.name + ':'], speakers_property.values))))
-             .values
-             .flatten('F')))
+            .values
+            .flatten('F'),
+            lambda array: array[array != None]),
+        ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer']))
     .tolist())
 
 speakers_fr_ready = speakers_fr_smoothed.copy()
@@ -660,18 +666,6 @@ speakers_fr_ready_offset = (speakers_fr_ready
     .add(speaker_offsets, axis='index', level='Speaker')
     .rename(relabel_speaker_with_offset, level='Speaker')
 )
-
-speakers_license = speakers.loc[
-    speakers_fr_smoothed.index.get_level_values('Speaker').drop_duplicates(),
-    'Data License']
-chart_fineprint.append('Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer')
-if speakers_license.nunique(dropna=False) == 1:
-    (unique_license,) = speakers_license.unique()
-    if (pd.notna(unique_license)):
-        chart_fineprint.append('Data licensed under {}'.format(unique_license))
-else:
-    for speaker, license in speakers_license.dropna().items():
-        chart_fineprint.append('{} data licensed under {}'.format(speaker, license))
 
 alt.data_transformers.disable_max_rows()
 # In Altair 4.1.0, alt.datum[foo][bar] doesn't work. That was fixed in Altair commit bdef95b,
