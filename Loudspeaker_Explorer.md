@@ -590,48 +590,48 @@ form(widgets.VBox([
 ```
 
 ```python
-(speakers_fr_ready, speakers_common_properties) = (speakers_fr_smoothed
+speakers_fr_ready = (speakers_fr_smoothed
     .rename(
         level='Mean resolution (freqs/octave)',
         index=lambda freqs_per_octave: '{:.3g} pts/octave'.format(freqs_per_octave))
     .rename_axis(index={'Mean resolution (freqs/octave)': 'Mean resolution'})
-    .unstack('Speaker')
-    .pipe(lsx.pd.extract_common_index_levels)
 )
-speakers_fr_ready = (speakers_fr_ready
-    .stack('Speaker')
-    .swaplevel(0, -1))
-single_speaker_mode = (speakers_fr_ready.index
-    .get_level_values('Speaker')
-    .nunique() <= 1)
-
-# Add the properties common to all speakers to the fine print.
-chart_fineprint = [
-    '; '.join(f'{key}: {value}'
-    for key, value
-    in speakers_common_properties.items())]
-
-# Then, add properties that are common to every instance of a given speaker as a list in the fine print.
-speakers_specific_properties = (speakers_fr_ready
+speakers_properties = (speakers_fr_ready
     .index
     .droplevel('Frequency [Hz]')
     .drop_duplicates()
     .to_frame()
     .reset_index(drop=True)
     .set_index('Speaker'))
-for speaker_property in speakers_specific_properties.columns:
-    values = (speakers_specific_properties
-        .loc[:, speaker_property]
-        .groupby('Speaker')
-        .unique()
-        .apply(lambda speaker_values: speaker_values[0] if len(speaker_values) == 1 else None))
-    if values.isna().any(): continue
-    chart_fineprint += ([f'{speaker_property}:'] +
-        [f'- {speaker}: {value}' for speaker, value in values.items()])
-    speakers_fr_ready.index = speakers_fr_ready.index.droplevel(speaker_property)
+speakers_common_properties = (speakers_properties
+    .loc[:, speakers_properties.nunique().eq(1)]
+    .apply(lambda speakers_property: speakers_property.unique().squeeze()))
+speakers_specific_properties = (speakers_properties
+    .drop(columns=speakers_common_properties.index)
+    .pipe(lambda speakers_specific_properties: speakers_specific_properties.loc[:,
+        [] if speakers_specific_properties.empty else
+        speakers_specific_properties.groupby('Speaker').nunique().eq(1).all()])
+    .groupby('Speaker')
+    .apply(lambda speaker_properties: speaker_properties.apply(
+        lambda speaker_property: speaker_property.unique().squeeze())))
 
-# Finally, append any remaining properties to the speaker name in the data itself.
-# (In practice, this only happens when side-by-side smoothing is enabled.)
+single_speaker_mode = speakers_properties.index.nunique() <= 1
+
+chart_fineprint = (np.concatenate((
+        [] if speakers_common_properties.empty else [speakers_common_properties
+            .reset_index()
+            .apply(lambda prop: ': '.join(prop), axis='columns').str.cat(sep='; ')],
+        speakers_specific_properties
+            .apply(lambda speakers_property: speakers_property
+                .groupby('Speaker')
+                .apply(lambda speaker_property: '- ' + speaker_property.reset_index().squeeze().str.cat(sep=': '))
+                .pipe(lambda speakers_property: np.concatenate(([speakers_property.name + ':'], speakers_property.values))))
+             .values
+             .flatten('F')))
+    .tolist())
+
+speakers_fr_ready.index = speakers_fr_ready.index.droplevel(
+    speakers_common_properties.index.append(speakers_specific_properties.columns).to_list())
 speakers_fr_ready = (speakers_fr_ready
         .unstack(level='Frequency [Hz]')
         .pipe(lambda df: df
