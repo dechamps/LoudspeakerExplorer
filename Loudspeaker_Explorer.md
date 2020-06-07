@@ -595,15 +595,15 @@ form(widgets.VBox([
         level='Mean resolution (freqs/octave)',
         index=lambda freqs_per_octave: '{:.3g} pts/octave'.format(freqs_per_octave))
     .rename_axis(index={'Mean resolution (freqs/octave)': 'Mean resolution'})
+    .unstack('Speaker')
     .pipe(lsx.pd.extract_common_index_levels)
 )
-single_speaker_mode = 'Speaker' in speakers_common_properties
-if single_speaker_mode:
-    speakers_fr_ready = (speakers_fr_ready
-        .pipe(lsx.pd.append_constant_index, speakers_common_properties.loc['Speaker'], name='Speaker')
-        .swaplevel(0, -1)
-    )
-    speakers_common_properties = speakers_common_properties.drop('Speaker')
+speakers_fr_ready = (speakers_fr_ready
+    .stack('Speaker')
+    .swaplevel(0, -1))
+single_speaker_mode = (speakers_fr_ready.index
+    .get_level_values('Speaker')
+    .nunique() <= 1)
 
 # Add the properties common to all speakers to the fine print.
 chart_fineprint = [
