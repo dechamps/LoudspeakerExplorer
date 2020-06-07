@@ -1699,8 +1699,8 @@ speakers_lfx_cutoff = (speakers_fr_olive
     .pipe(lambda speakers_below_cutoff: speakers_below_cutoff.loc[
         speakers_below_cutoff.lt(speakers_lfx_reference + lfx_cutoff_threshold)])
     .reset_index('Frequency [Hz]')
-    .groupby('Speaker')
-    .max()
+    .groupby('Speaker', group_keys=False)
+    .apply(lambda speaker: speaker.nlargest(1, 'Frequency [Hz]'))
 )
 speakers_lfx_cutoff
 ```
