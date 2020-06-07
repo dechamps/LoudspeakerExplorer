@@ -629,24 +629,21 @@ chart_fineprint = (np.concatenate((
              .values
              .flatten('F')))
     .tolist())
-
-speakers_fr_ready.index = speakers_fr_ready.index.droplevel(
-    speakers_common_properties.index.append(speakers_specific_properties.columns).to_list())
-speakers_fr_ready = (speakers_fr_ready
-        .unstack(level='Frequency [Hz]')
-        .pipe(lambda df: df
-              .pipe(lsx.pd.set_index, df
-                  .index
-                  .to_frame()
-                  .apply(
-                      # Ideally this should be on multiple lines, but it's not clear if that's feasible: https://github.com/vega/vega-lite/issues/5994
-                      lambda speaker: pd.Series({'Speaker': '; '.join(
-                          [f'{value}' if speaker_property == 'Speaker' else f'{speaker_property}: {value}'
-                           for speaker_property, value
-                           in speaker.items()])}),
-                      axis='columns')
-                  .pipe(pd.MultiIndex.from_frame)))
-        .stack())
+speakers_fr_ready.index = (speakers_fr_ready.index
+    .droplevel(
+        speakers_common_properties.index
+        .append(speakers_specific_properties.columns).to_list())
+    .to_frame()
+    .reset_index(drop=True)
+    .set_index(['Speaker', 'Frequency [Hz]'])
+    .apply(lambda speakers_property: speakers_property.name + ': ' + speakers_property)
+    .reset_index('Speaker')
+    .apply(lambda speaker: speaker.str.cat(sep='; '), axis='columns')
+    .rename('Speaker')
+    .to_frame()
+    .set_index('Speaker', append=True)
+    .swaplevel(0, -1)
+    .index)
 
 speaker_offsets = (speakers_fr_ready.index
     .get_level_values('Speaker')
