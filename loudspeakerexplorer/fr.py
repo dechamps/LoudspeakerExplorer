@@ -1,8 +1,5 @@
-def smooth(fr, octaves):
-    (freqs_per_octave,) = fr.index.to_frame(
-    ).loc[:, 'Mean resolution (freqs/octave)'].unique()
-    span = freqs_per_octave*octaves
-    if span <= 1:
+def smooth(fr, frequency_span):
+    if frequency_span <= 1:
         # Data resolution is lower than requested smoothing - nothing to do.
         return fr
     return (
@@ -12,5 +9,5 @@ def smooth(fr, octaves):
         # regardless.
         .sort_index()
         # Note that this assumes points are equally spaced in log-frequency.
-        .ewm(span=span).mean()
+        .ewm(span=frequency_span).mean()
     )

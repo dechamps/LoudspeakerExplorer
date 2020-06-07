@@ -318,14 +318,6 @@ pd.concat([
 ], axis='columns')
 ```
 
-```python
-speakers_fr_annotated = (speakers_fr_raw
-    .unstack(level='Frequency [Hz]')
-    .pipe(lsx.pd.join_index, speakers_freqs_per_octave.to_frame())
-    .stack()
-)
-```
-
 <!-- #region heading_collapsed=true -->
 # Sensitivity
 
@@ -437,8 +429,8 @@ form(widgets.HBox([normalization_mode, detrend]))
 ```
 
 ```python
-speakers_fr_splnorm = speakers_fr_annotated.loc[:, 'Sound Pessure Level [dB]']
-speakers_fr_dinorm = speakers_fr_annotated.loc[:, '[dB] Directivity Index ']
+speakers_fr_splnorm = speakers_fr_raw.loc[:, 'Sound Pessure Level [dB]']
+speakers_fr_dinorm = speakers_fr_raw.loc[:, '[dB] Directivity Index ']
 spl_axis_label = ['Absolute Sound Pressure Level (dB SPL)']
 di_axis_label = ['Directivity Index (dBr)']
 spl_domain = (55, 105)
@@ -460,24 +452,25 @@ if normalization_mode.value == 'listening_window':
     spl_domain = (-40, 10)
 if normalization_mode.value == 'detrend':
     detrend_octaves_label = lsx.widgets.lookup_option_label(detrend_octaves)
-    if detrend_individually.value:
-        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm
+    def smooth(fr):
+        return (fr
             .groupby('Speaker')
-            .apply(lsx.fr.smooth, detrend_octaves.value))
+            .apply(lambda speaker: lsx.fr.smooth(
+                speaker, speakers_freqs_per_octave.loc[speaker.name] * detrend_octaves.value)))
+    if detrend_individually.value:
+        speakers_fr_splnorm = speakers_fr_splnorm.sub(smooth(speakers_fr_splnorm))
         spl_axis_label = ['Sound Pressure (dBr)', detrend_octaves_label + ' detrended']
         spl_domain = (-25, 25)
-        speakers_fr_dinorm = speakers_fr_dinorm.sub(speakers_fr_dinorm
-            .groupby('Speaker')
-            .apply(lsx.fr.smooth, detrend_octaves.value))
+        speakers_fr_dinorm = speakers_fr_dinorm.sub(smooth(speakers_fr_dinorm))
         di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label + ' detrended']
         di_domain = (-7.5, 7.5)
     else:
-        speakers_fr_splnorm = speakers_fr_splnorm.sub(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]
-            .groupby('Speaker')                     
-            .apply(lsx.fr.smooth, detrend_octaves.value), axis='index')
+        speakers_fr_splnorm = speakers_fr_splnorm.sub(
+            smooth(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]),
+            axis='index')
         spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves_label, detrend_reference.value)]
         spl_domain = (-40, 10)
-        
+
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
 speakers_fr_norm
 ```
@@ -534,7 +527,8 @@ speakers_fr_smoothed = (speakers_fr_norm
 if smoothing_enabled.value:
     speakers_fr_smoothed_only = (speakers_fr_norm
         .groupby('Speaker')
-        .apply(lsx.fr.smooth, smoothing_octaves.value)
+        .apply(lambda speaker: lsx.fr.smooth(
+            speaker, speakers_freqs_per_octave.loc[speaker.name] * smoothing_octaves.value))
         .unstack(level='Frequency [Hz]')
         .pipe(lsx.pd.append_constant_index,
               lsx.widgets.lookup_option_label(smoothing_octaves),
@@ -590,19 +584,18 @@ form(widgets.VBox([
 ```
 
 ```python
-speakers_fr_ready = (speakers_fr_smoothed
-    .rename(
-        level='Mean resolution (freqs/octave)',
-        index=lambda freqs_per_octave: '{:.3g} pts/octave'.format(freqs_per_octave))
-    .rename_axis(index={'Mean resolution (freqs/octave)': 'Mean resolution'})
-)
-speakers_properties = (speakers_fr_ready
-    .index
-    .droplevel('Frequency [Hz]')
-    .drop_duplicates()
-    .to_frame()
-    .reset_index(drop=True)
-    .set_index('Speaker'))
+speakers_properties = pd.concat([
+    speakers_fr_smoothed
+        .index
+        .droplevel('Frequency [Hz]')
+        .drop_duplicates()
+        .to_frame()
+        .reset_index(drop=True)
+        .set_index('Speaker'),
+    speakers_freqs_per_octave
+        .rename('Mean resolution')
+        .apply(lambda resolution: f'{resolution:.3g} pts/octave'),
+], axis='columns')
 speakers_common_properties = (speakers_properties
     .loc[:, speakers_properties.nunique().eq(1)]
     .apply(lambda speakers_property: speakers_property.unique().squeeze()))
@@ -629,10 +622,14 @@ chart_fineprint = (np.concatenate((
              .values
              .flatten('F')))
     .tolist())
+
+speakers_fr_ready = speakers_fr_smoothed.copy()
 speakers_fr_ready.index = (speakers_fr_ready.index
     .droplevel(
         speakers_common_properties.index
-        .append(speakers_specific_properties.columns).to_list())
+        .append(speakers_specific_properties.columns)
+        .intersection(speakers_fr_ready.index.names)
+        .to_list())
     .to_frame()
     .reset_index(drop=True)
     .set_index(['Speaker', 'Frequency [Hz]'])
