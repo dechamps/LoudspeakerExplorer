@@ -124,12 +124,7 @@ def extract_common_index_levels(df):
     # And:
     # B b
     # C c
-    index_df = (
-        df
-        .index
-        .to_frame()
-        .reset_index(drop=True)
-    )
+    index_df = index_as_columns(df)
     index_has_distinct_values = index_df.nunique() > 1
     index_common_names = index_has_distinct_values.loc[~index_has_distinct_values].index
 
