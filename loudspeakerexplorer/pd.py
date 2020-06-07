@@ -124,17 +124,16 @@ def extract_common_index_levels(df):
     # And:
     # B b
     # C c
-    index_df = index_as_columns(df)
-    index_has_distinct_values = index_df.nunique() > 1
-    index_common_names = index_has_distinct_values.loc[~index_has_distinct_values].index
+    index = df.index
+    common_levels = []
 
-    def extract_unique_index_value(index_name):
-        (unique_index_value,) = index_df.loc[:, index_name].unique()
-        return unique_index_value
-    common_info = (
-        index_common_names
-        .to_series()
-        .apply(extract_unique_index_value)
-    )
-    return df.pipe(set_index, pd.MultiIndex.from_frame(
-        index_df.drop(columns=index_common_names))), common_info
+    def get_common_index_level(level):
+        index_level = index.get_level_values(level)
+        index_level_unique = index_level.unique()
+        if index_level_unique.size > 1:
+            return pd.Series([], index=[], dtype='object')
+        common_levels.append(level)
+        return pd.Series(index_level_unique, index=[index_level.name])
+    common = pd.concat([get_common_index_level(level)
+                        for level in range(0, index.nlevels)])
+    return df.pipe(set_index, index.droplevel(common_levels)), common
