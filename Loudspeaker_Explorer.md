@@ -641,20 +641,18 @@ speakers_fr_ready.index = (speakers_fr_ready.index
 speaker_offsets = (speakers_fr_ready.index
     .get_level_values('Speaker')
     .drop_duplicates()
-    .to_frame()
-    .reset_index(drop=True)
-    .reset_index()
-    .set_index('Speaker')
-    .loc[:, 'index']
-    * (speaker_offset_db.value if speaker_offset_enabled.value else 0)
+    .to_series()
+    .groupby('Speaker')
+    .ngroup()
+    .mul(speaker_offset_db.value if speaker_offset_enabled.value else 0)
 )
-def relabel_speaker_with_offset(speaker_name):
-    speaker_offset = speaker_offsets.loc[speaker_name]
-    return speaker_name + ('' if speaker_offset == 0 else ' [{:+.0f} dB]'.format(speaker_offsets.loc[speaker_name]))
 speakers_fr_ready_offset = (speakers_fr_ready
     # Arguably it would cleaner to use some kind of "Y offset" encoding channel in charts, but that doesn't seem to be supported yet: https://github.com/vega/vega-lite/issues/4703
     .add(speaker_offsets, axis='index', level='Speaker')
-    .rename(relabel_speaker_with_offset, level='Speaker')
+    .rename(lambda speaker_name: speaker_name +
+        (lambda speaker_offset: '' if speaker_offset == 0 else f' [{speaker_offset:+.0f} dB]')(
+            speaker_offsets.loc[speaker_name]),
+        level='Speaker')
 )
 
 alt.data_transformers.disable_max_rows()
