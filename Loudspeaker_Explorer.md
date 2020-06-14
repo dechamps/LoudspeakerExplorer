@@ -436,6 +436,7 @@ spl_axis_label = ['Absolute Sound Pressure Level (dB SPL)']
 di_axis_label = ['Directivity Index (dBr)']
 spl_domain = (55, 105)
 di_domain = (-5, 10)
+detrending_info = None
 if normalization_mode.value == 'sensitivity':
     speakers_fr_splnorm = speakers_fr_splnorm.sub(
         speakers_sensitivity, axis='index', level='Speaker')
@@ -465,12 +466,14 @@ if normalization_mode.value == 'detrend':
         speakers_fr_dinorm = speakers_fr_dinorm.sub(smooth(speakers_fr_dinorm))
         di_axis_label = ['Directivity Index (dBr)', detrend_octaves_label + ' detrended']
         di_domain = (-7.5, 7.5)
+        detrending_info = f'Each curve individually {detrend_octaves_label} detrended'
     else:
         speakers_fr_splnorm = speakers_fr_splnorm.sub(
             smooth(speakers_fr_splnorm.loc[:, ('CEA2034', detrend_reference.value)]),
             axis='index')
-        spl_axis_label = ['Sound Pressure (dBr)', 'relative to {} smoothed {} (dBr)'.format(detrend_octaves_label, detrend_reference.value)]
+        spl_axis_label = ['Sound Pressure (dBr)', f'relative to {detrend_octaves_label} smoothed {detrend_reference.value} (dBr)']
         spl_domain = (-40, 10)
+        detrending_info = f'Curves relative to {detrend_octaves_label} smoothed {detrend_reference.value}'
 
 speakers_fr_norm = pd.concat([speakers_fr_splnorm, speakers_fr_dinorm], axis='columns')
 speakers_fr_norm
@@ -608,7 +611,7 @@ speakers_specific_properties = (speakers_properties
 
 single_speaker_mode = speakers_properties.index.nunique() <= 1
 
-chart_fineprint = (speakers_specific_properties
+db_chart_fineprint = (speakers_specific_properties
     .pipe(lsx.pd.rollup, lambda speakers_property:
         [f'{speakers_property.name}: {speakers_property.unique().squeeze()}']
         if speakers_property.nunique(dropna=False) == 1
@@ -619,6 +622,7 @@ chart_fineprint = (speakers_specific_properties
                 lambda speaker_property: speaker_property.str.cat(sep=': '),
                 axis='columns')))
     .sum() + ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer'])
+chart_fineprint = ([] if detrending_info is None else [f'Detrending: {detrending_info}']) + db_chart_fineprint
 
 speakers_fr_ready = speakers_fr_smoothed.copy()
 speakers_fr_ready.index = (speakers_fr_ready.index
@@ -686,7 +690,9 @@ def frequency_response_chart(
     process_before=lambda chart: chart,
     process_after=lambda chart: chart,
     fold=None,
-    sidebyside=False, alter_tooltips=lambda tooltips: tooltips):
+    sidebyside=False,
+    alter_tooltips=lambda tooltips: tooltips,
+    fineprint=chart_fineprint):
     return lsx.util.pipe(data
         .rename_axis(index={
             'Frequency [Hz]': 'frequency',
@@ -703,12 +709,13 @@ def frequency_response_chart(
                     tooltip=alter_tooltips([frequency_tooltip()])),
                 process_before),
             process_after=process_after),
-        postprocess_chart)
+        lambda chart: postprocess_chart(chart, fineprint=fineprint))
 
-def frequency_response_db_chart(*kargs, additional_tooltips=[], **kwargs):
+def frequency_response_db_chart(*kargs, additional_tooltips=[], fineprint=db_chart_fineprint, **kwargs):
     return frequency_response_chart(
         *kargs,
         alter_tooltips=lambda tooltips: additional_tooltips + tooltips + [value_db_tooltip()],
+        fineprint=fineprint,
         **kwargs)
 
 def standalone_speaker_frequency_response_db_chart(column, yaxis):
@@ -770,14 +777,14 @@ def speaker_input(chart):
                 name='Speaker: ', options=[None] + speakers, labels=['All'] + speakers))
     return chart.transform_filter(selection).add_selection(selection)
 
-def postprocess_chart(chart):
+def postprocess_chart(chart, fineprint=chart_fineprint):
     # Altair/Vega-Lite doesn't provide a way to set multiple titles or just display arbitrary text.
     # We hack around that limitation by concatenating with a dummy chart that has a title.
     # See https://github.com/vega/vega-lite/issues/5997
     return (alt.vconcat(
         chart,
         alt.Chart(title=alt.TitleParams(
-            chart_fineprint, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
+            fineprint, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
             width=600, height=1)
             .mark_text())
         .resolve_legend(color='independent')
@@ -1526,7 +1533,7 @@ frequency_response_db_chart(
     lambda chart: lsx.alt.interactive_line(chart),
     fold={'as_': ['curve', 'value']},
     additional_tooltips=[alt.Tooltip('reference', title='Relative to', type='nominal')],
-    sidebyside=True)
+    sidebyside=True, fineprint=chart_fineprint)
 ```
 
 ```python
