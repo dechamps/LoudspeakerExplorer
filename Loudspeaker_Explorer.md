@@ -1909,35 +1909,58 @@ lsx.alt.make_chart(
                 alt.Text('raw_value', type='quantitative', format='.2f'))))
 ```
 
+The following [box plot](https://en.wikipedia.org/wiki/Box_plot) should be read in the following way:
+
+- The **middle point** indicates the predicted Preference Rating according to the Olive model.
+- The **box** (±0.5) indicates the **50%** [prediction interval](https://en.wikipedia.org/wiki/Prediction_interval) of the rating. In other words: there is a 50% chance that the average listener will give this speaker a rating that falls within the box.
+- The **lines (whiskers)** (±0.9) are similar to boxes but with a **75%** interval.
+
+A mathematically equivalent, and perhaps more useful, way of looking at this plot is the following:
+
+- If **boxes barely overlap** (predicted score differs by 1.0), there is a **91%** chance that the average listener will prefer the higher-rated speaker.
+- If **lines (whiskers) barely overlap** (predicted score differs by 1.8), the probability is **99%**.
+
+These numbers were [derived](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-23#post-429503) from section 5.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0111 of the [patent](https://patents.google.com/patent/US20050195982A1), which states that the model error follows a normal distribution with a standard error of **0.8**.
+
+**Disclaimer: the above reasoning assumes that the speakers being rated are "typical" relative to the speakers used in the original study. Extrapolated preference ratings for speakers that are very different from the sample used in the study should be taken with a larger grain of salt than these prediction intervals indicate. For example, scores above 7 [carry more uncertainty](https://www.audiosciencereview.com/forum/index.php?threads/vanatoo-transparent-zero-speaker-review.13717/page-7#post-417999).**
+
 ```python
 lsx.alt.make_chart(
     speakers_olive
         .rename('value')
         .to_frame(),
     lambda chart: lsx.util.pipe(chart
+        .transform_calculate(rating='datum.value')
         .encode(
             alt.X(
                 'value', type='quantitative',
-                title='Olive Preference Rating (higher is better)'),
-            alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0))),
-        postprocess_chart),
+                title='Olive Predicted Preference Rating (higher is better)'),
+            alt.Y(
+                'Speaker', type='nominal', title=None,
+                axis=alt.Axis(labelLimit=0, tickMinStep=10),
+                scale=alt.Scale(paddingInner=0.5)),
+            tooltip=[
+                alt.Tooltip('Speaker'),
+                alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
+            ])
+        .properties(height=alt.Step(40)),
+        lambda chart: postprocess_chart(chart,
+            fineprint=['Prediction intervals: 50% (boxes), 75% (whiskers)'] + chart_fineprint)),
     lambda chart: alt.layer(
-        lsx.util.pipe(chart
-            .mark_bar()
-            .encode(
-                tooltip=[
-                    alt.Tooltip('Speaker'),
-                    alt.Tooltip('value', title='Olive Preference Rating', type='quantitative', format='.2f')
-                ]),
-            lsx.alt.highlight_mouseover),
         chart
-            .transform_filter(alt.datum['value'] < 0)
-            .mark_text(align='right', dx=-3)
-            .encode(
-                alt.Text('value', type='quantitative', format='.1f')),
+            # See https://en.wikipedia.org/wiki/Normal_distribution#Quantile_function
+            .transform_calculate(value='quantileNormal((0.75+1)/2, datum.rating,  0.8)')
+            .transform_calculate(end  ='quantileNormal((0.75+1)/2, datum.rating, -0.8)')
+            .mark_rule(color='#86bcdc')
+            .encode(alt.X2('end')),
         chart
-            .transform_filter(alt.datum['value'] >= 0)
-            .mark_text(align='left', dx=3)
+            .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  0.8)')
+            .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -0.8)')
+            .mark_bar(color='#86bcdc')
+            .encode(alt.X2('end')),
+        chart.mark_point(shape='diamond', color='black', filled=True, size=100),
+        chart
+            .mark_text(dy=-17)
             .encode(
                 alt.Text('value', type='quantitative', format='.1f'))))
 ```
