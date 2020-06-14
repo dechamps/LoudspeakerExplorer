@@ -714,7 +714,7 @@ def frequency_response_db_chart(*kargs, additional_tooltips=[], **kwargs):
         **kwargs)
 
 def standalone_speaker_frequency_response_db_chart(column, yaxis):
-    data = (speakers_fr_ready
+    data = (speakers_fr_ready_offset
         .loc[:, column]
         .rename('value')
         .to_frame())
