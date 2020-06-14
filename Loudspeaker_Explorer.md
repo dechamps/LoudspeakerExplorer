@@ -1658,19 +1658,21 @@ speakers_sm
 ### Calculation
 <!-- #endregion -->
 
-LFX is discussed in section 3.2.4 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0078 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses the following interpretation:
 
-$$\mathrm{LFX} = \log_{10} \max \{ x : x \lt 300 \land SP_x \lt \overline{LW}-6 \}$$
+LFX is discussed in section 3.2.4 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0078 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses the following formula:
+
+$$\mathrm{LFX} = \log_{10} \min \{ x_i : SP_{i+1} \gt \overline{LW}-6 \}$$
 
 Where:
 
  - $\mathrm{LFX}$ is the low frequency extension in $\log_{10}\mathrm{Hz}$. Bring $10$ to the power of $\mathrm{LFX}$ to get the cutoff frequency in Hz.
- - $SP_x$ is the sound pressure of the Sound Power curve in dB at frequency $x$ in Hz.
+ - $x_i$ is the frequency of the $i$th measurement point (in increasing frequency order).
+ - $SP_i$ is the sound pressure of the Sound Power curve in dB at the $i$th measurement point.
  - $\overline{LW}$ is the mean sound pressure of the Listening Window curve in dB between 300 Hz and 10 kHz.
+ 
+In plain English, given the first measurement point whose Sound Power is above the -6 dB point (based on the Listening Window average between 300 and 10 kHz), LFX is the logarithm base 10 of the frequency of the previous measurement point.
 
-In plain English, LFX is the logarithm base 10 of the highest frequency below 300 Hz where the sound power is more than 6 dB below the Listening Window 300Hz-10kHz average.
-
-For some debate on the definition of this metric, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306831), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-8#post-307638) and [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-9#post-308320).
+For some debate on the definition of this metric, see [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306831), [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-8#post-307638) and [this](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-9#post-308320). Note that the Loudspeaker Explorer formula differs somewhat from the original formula in the paper. This is because the formula in the paper did not seem to anticipate pathological Sound Power curves like the [Ocean Way Audio HR5](https://www.audiosciencereview.com/forum/index.php?threads/ocean-way-hr5-studio-monitor-review.13925/#post-424729) that dip below the -6 dB point multiple times below 300 Hz. The "improved" formula Loudspeaker Explorer uses returns a more sensible result for such speakers, but still returns the same result as the original formula for "well-behaved" Sound Power curves.
 
 ```python
 lfx_reference_curve = 'LW'
@@ -1690,19 +1692,14 @@ speakers_lfx_reference.rename(f'{lfx_reference_curve} average (dB)').to_frame()
 
 ```python
 lfx_curve = 'SP'
-lfx_max_frequency = 300
 lfx_cutoff_threshold = -6
 
 speakers_lfx_cutoff = (speakers_fr_olive
     .loc[:, lfx_curve]
-    .pipe(lambda speakers_curve: speakers_curve.loc[speakers_curve
-        .index.get_level_values('Frequency [Hz]') < lfx_max_frequency])
-    .pipe(lambda speakers_below_cutoff: speakers_below_cutoff.loc[
-        speakers_below_cutoff.lt(speakers_lfx_reference + lfx_cutoff_threshold)])
     .reset_index('Frequency [Hz]')
-    .groupby('Speaker', group_keys=False)
-    .apply(lambda speaker: speaker.nlargest(1, 'Frequency [Hz]'))
-)
+    .groupby('Speaker')
+    .apply(lambda speaker: speaker.iloc[
+        speaker.loc[:, lfx_curve].gt(speakers_lfx_reference.loc[speaker.name] + lfx_cutoff_threshold).argmax()-1]))
 speakers_lfx_cutoff
 ```
 
@@ -1765,8 +1762,8 @@ frequency_response_db_chart(
                     tooltip=[value_db_tooltip(title='Reference level (dB)')]),
             lsx.alt.interactive_line(chart, add_mark=lambda chart: chart.mark_rule())
                 .transform_calculate(curve_label=alt.expr.toString('LFX Cutoff threshold'))
-                .transform_calculate(frequency=alt.expr.toNumber(0))
-                .transform_calculate(max_frequency=alt.expr.toNumber(lfx_max_frequency))
+                .transform_calculate(frequency='MIN_VALUE')
+                .transform_calculate(max_frequency='MAX_VALUE')
                 .transform_calculate(value=alt.datum['value'] + lfx_cutoff_threshold)
                 .encode(
                     alt.X2('max_frequency'), strokeWidth=alt.value(2),
@@ -1803,7 +1800,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
                 alt.X(
                     'value', type='quantitative',
                     title='LFX (lower is better)',
-                    scale=alt.Scale(domain=[0, np.log10(lfx_max_frequency)], reverse=True)),
+                    scale=alt.Scale(domain=[0, np.log10(300)], reverse=True)),
                 tooltip=[
                     alt.Tooltip('Speaker'),
                     value_db_tooltip('cutoff', title='LFX Cutoff Level'),
