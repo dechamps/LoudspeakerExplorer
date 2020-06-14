@@ -1155,6 +1155,12 @@ def curve_input(chart, init):
             name='Curve: ',
             options=list(olive_curve_labels.keys()),
             labels=[f'{curve} {label}' for curve, label in olive_curve_labels.items()])))
+
+def value_yaxis(title_prefix=None):
+    return alt.Y(
+        'value', type='quantitative', title='Curve value (dB)',
+        scale=alt.Scale(domain=spl_domain),
+        axis=alt.Axis(grid=True))
 ```
 
 <!-- #region heading_collapsed=true -->
@@ -1266,7 +1272,7 @@ frequency_response_db_chart(
                 .rename('band_mean')
                 .reset_index()))
         .encode(
-            sound_pressure_yaxis(),
+            value_yaxis(),
             alt.Color(
                 'layer',
                 type='nominal', title=None,
@@ -1319,7 +1325,7 @@ frequency_response_db_chart(
                     value_db_tooltip('deviation', title='Deviation'),
                 ]))),
     fold={'as_': ['curve', 'value']},
-    sidebyside=True)
+    sidebyside=True, fineprint=chart_fineprint)
 ```
 
 ```python
@@ -1450,7 +1456,7 @@ frequency_response_db_chart(
                 .reset_index()))
         .transform_calculate(layer=alt.datum['curve'] + ' ' + alt.datum['Dataset'])
         .encode(
-            sound_pressure_yaxis(),
+            value_yaxis(),
             alt.Color(
                 'layer', type='nominal', title=None,
                 legend=alt.Legend(symbolType='stroke'))),
@@ -1468,7 +1474,7 @@ frequency_response_db_chart(
                     alt.Tooltip('db_per_octave', title='Slope (dB/octave)', type='quantitative', format='.2f'),
                 ])),
     fold={'as_': ['curve', 'value']},
-    sidebyside=True)
+    sidebyside=True, fineprint=chart_fineprint)
 ```
 
 <!-- #region heading_collapsed=true -->
