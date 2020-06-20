@@ -1938,7 +1938,8 @@ lsx.alt.make_chart(
             alt.Y(
                 'Speaker', type='nominal', title=None,
                 axis=alt.Axis(labelLimit=0, tickMinStep=10),
-                scale=alt.Scale(paddingInner=0.5)),
+                scale=alt.Scale(paddingInner=0.5),
+                sort=alt.SortField('rating', order='descending')),
             tooltip=[
                 alt.Tooltip('Speaker'),
                 alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
