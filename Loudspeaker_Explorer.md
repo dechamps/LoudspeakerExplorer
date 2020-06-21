@@ -119,7 +119,7 @@ import numpy as np
 import pandas as pd
 import IPython
 import ipywidgets as widgets
-import yattag
+import dominate
 import altair as alt
 import yaml
 import statsmodels.formula.api as smf
@@ -222,27 +222,27 @@ def speaker_box(speaker):
         return checkbox
 
     def img():
-        doc = yattag.Doc()
-        doc.stag('img', src=speaker.loc['Picture URL'])
-        box = widgets.Box([widgets.HTML(doc.getvalue())])
+        box = widgets.Box([widgets.HTML(str(
+            dominate.tags.img(src=speaker.loc['Picture URL'])))])
         box.layout.height = '150px'
         box.layout.width = '100px'
         return box
     
     def info():
-        doc, tag, text, line = yattag.Doc().ttl()
-        product_url = speaker.loc['Product URL']
-        if not pd.isna(product_url):
-            line('a', 'Product page', href=product_url, target='_blank')
-            text(' - ')
-        line('a', 'Review', href=speaker.loc['Review URL'], target='_blank')
-        doc.stag('br')
-        text('Active' if speaker.loc['Active'] else 'Passive')
-        doc.stag('br')
-        text('${:.0f} (single)'.format(speaker.loc['Price (Single, USD)']))
-        doc.stag('br')
-        text('Measured ' + str(speaker.loc['Measurement Date'].date()))
-        return widgets.HTML(doc.getvalue())
+        span = dominate.tags.span()
+        with span:
+            product_url = speaker.loc['Product URL']
+            if not pd.isna(product_url):
+                dominate.tags.a('Product page', href=product_url, target='_blank')
+                dominate.util.text(' - ')
+            dominate.tags.a('Review', href=speaker.loc['Review URL'], target='_blank')
+            dominate.tags.br()
+            dominate.util.text('Active' if speaker.loc['Active'] else 'Passive')
+            dominate.tags.br()
+            dominate.util.text('${:.0f} (single)'.format(speaker.loc['Price (Single, USD)']))
+            dominate.tags.br()
+            dominate.util.text('Measured ' + str(speaker.loc['Measurement Date'].date()))
+        return widgets.HTML(str(span))
 
     box.children = (
         checkbox(),

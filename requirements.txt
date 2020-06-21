@@ -2,7 +2,7 @@ numpy
 pandas
 engarde
 ipywidgets
-yattag
+dominate
 altair
 pyyaml
 statsmodels
