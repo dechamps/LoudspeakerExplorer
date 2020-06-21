@@ -1971,7 +1971,6 @@ lsx.alt.make_chart(
 
 The following [box plot](https://en.wikipedia.org/wiki/Box_plot) should be read in the following way:
 
-- The **middle point** indicates the predicted Preference Rating according to the Olive model.
 - The **box** (±0.5) indicates the **50%** [prediction interval](https://en.wikipedia.org/wiki/Prediction_interval) of the rating. In other words: there is a 50% chance that the average listener will give this speaker a rating that falls within the box.
 - The **lines (whiskers)** (±0.9) are similar to boxes but with a **75%** interval.
 
@@ -2000,13 +1999,13 @@ lsx.alt.make_chart(
             alt.Y(
                 'Speaker', type='nominal', title=None,
                 axis=alt.Axis(labelLimit=0, tickMinStep=10),
-                scale=alt.Scale(paddingInner=0.5),
+                scale=alt.Scale(paddingInner=0.2),
                 sort=alt.SortField('rating', order='descending')),
             tooltip=[
                 alt.Tooltip('Speaker'),
                 alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
             ])
-        .properties(height=alt.Step(40)),
+        .properties(height=alt.Step(25)),
         lambda chart: postprocess_chart(chart,
             fineprint=['Prediction intervals: 50% (boxes), 75% (whiskers)'] + chart_fineprint)),
     lambda chart: alt.layer(
@@ -2014,16 +2013,18 @@ lsx.alt.make_chart(
             # See https://en.wikipedia.org/wiki/Normal_distribution#Quantile_function
             .transform_calculate(value='quantileNormal((0.75+1)/2, datum.rating,  0.8)')
             .transform_calculate(end  ='quantileNormal((0.75+1)/2, datum.rating, -0.8)')
-            .mark_rule(color='#86bcdc')
+            .mark_rule(strokeWidth=1)
             .encode(alt.X2('end')),
         chart
             .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  0.8)')
             .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -0.8)')
-            .mark_bar(color='#86bcdc')
-            .encode(alt.X2('end')),
-        chart.mark_point(shape='diamond', color='black', filled=True, size=100),
+            .mark_bar(stroke='black')
+            .encode(alt.X2('end'),
+                color=alt.Color(
+                'rating', type='quantitative',
+                scale=alt.Scale(scheme='redyellowgreen', domain=[0, 10]), legend=None)),
         chart
-            .mark_text(dy=-17)
+            .mark_text(fontWeight='bold')
             .encode(
                 alt.Text('value', type='quantitative', format='.1f'))))
 ```
