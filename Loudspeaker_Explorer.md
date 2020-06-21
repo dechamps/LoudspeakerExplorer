@@ -2028,3 +2028,63 @@ lsx.alt.make_chart(
             .encode(
                 alt.Text('value', type='quantitative', format='.1f'))))
 ```
+
+```python
+olive_matrix_selection_x = alt.selection_single(
+    on='mouseover', clear='mouseout', encodings=['x'])
+olive_matrix_selection_y = alt.selection_single(
+    on='mouseover', clear='mouseout', encodings=['y'])
+
+lsx.alt.make_chart(
+    speakers_olive
+        .rename('value')
+        .to_frame()
+        .pipe(lsx.pd.append_constant_index, 0, 'dummy_key'),
+    lambda chart: lsx.util.pipe(chart
+        .properties(title='Probability that the average listener will prefer speaker A to speaker B (%)')
+        # Vega Lite doesn't seem to have a way to do do cartesian products,
+        # but we can emulate that by inserting the whole dataset into every datum using lookup(),
+        # and then we expand that into multiple datums using flatten().
+        .transform_lookup(lookup='dummy_key', from_=alt.LookupData(
+            key='dummy_key', fields=['VsSpeakerInfo'], data=pd.DataFrame(
+                {'dummy_key': 0, 'VsSpeakerInfo': [speakers_olive
+                    .rename('value')
+                    .reset_index()
+                    .to_dict(orient='records')]})))
+        .transform_flatten(['VsSpeakerInfo'])
+        .transform_calculate(VsSpeaker=alt.datum['VsSpeakerInfo']['Speaker'])
+        .transform_calculate(VsValue=alt.datum['VsSpeakerInfo']['value'])
+        .transform_calculate(diff=alt.datum['value'] - alt.datum['VsValue'])
+        .transform_calculate(percent='(1 - cumulativeNormal(0, datum.diff, 0.8)) * 100')
+        .encode(
+            alt.Y(
+                'Speaker', type='nominal', title='Speaker A',
+                sort=alt.SortField('value', order='descending')),
+            alt.X(
+                'VsSpeaker', type='nominal', title='Speaker B',
+                sort=alt.SortField('VsValue', order='ascending')),
+            tooltip=[
+                alt.Tooltip('Speaker', type='nominal', title='Speaker A'),
+                alt.Tooltip('VsSpeaker', type='nominal', title='Speaker B'),
+                alt.Tooltip('value', type='nominal', title='Speaker A Score', format='.1f'),
+                alt.Tooltip('VsValue', type='nominal', title='Speaker B Score', format='.1f'),
+                alt.Tooltip('diff', type='nominal', title='Score difference (A-B)', format='.1f'),
+                alt.Tooltip('percent', type='nominal', title='Probability of A>B (%)', format='.0f'),
+            ]),
+        postprocess_chart),
+    lambda chart: alt.layer(
+        lsx.util.pipe(chart
+            .mark_rect()
+            .add_selection(olive_matrix_selection_x)
+            .add_selection(olive_matrix_selection_y)
+            .encode(
+                color=alt.Color(
+                    'percent', type='quantitative',
+                    scale=alt.Scale(scheme='redyellowgreen', domain=[0, 100]), legend=None),
+                fillOpacity=alt.condition(
+                    olive_matrix_selection_x | olive_matrix_selection_y,
+                    alt.value(1), alt.value(0.2)))),
+        chart
+            .mark_text()
+            .encode(alt.Text('percent', type='quantitative', format='.0f'))))
+```
