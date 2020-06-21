@@ -1408,7 +1408,7 @@ lsx.alt.make_chart(
             .encode(
                 alt.X(
                     'value', type='quantitative',
-                    scale=alt.Scale(reverse=True),
+                    scale=alt.Scale(reverse=True, domain=alt.DomainUnionWith([0, 1])),
                     title=['Narrow Band Deviation (NBD)', 'lower is better']),
                 alt.Color('band_label', type='nominal', sort=None, title='Band'),
                 alt.Order('Band', sort='descending'),
@@ -1848,6 +1848,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
         }),
     lambda chart: lsx.util.pipe(chart
         .transform_calculate(value=alt.expr.log(alt.datum['frequency']) / alt.expr.LN10)
+        .transform_calculate(min_value=alt.expr.toNumber(np.log10(20)))
         .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right', labelLimit=0))),
         postprocess_chart),
     lambda chart: alt.layer(
@@ -1857,7 +1858,8 @@ lsx.alt.make_chart(speakers_lfx_cutoff
                 alt.X(
                     'value', type='quantitative',
                     title='LFX (lower is better)',
-                    scale=alt.Scale(domain=[0, np.log10(300)], reverse=True)),
+                    scale=alt.Scale(domain=alt.DomainUnionWith([np.log10(20), np.log10(100)]), reverse=True)),
+                alt.X2('min_value'),  # https://github.com/vega/vega-lite/issues/6655
                 tooltip=[
                     alt.Tooltip('Speaker'),
                     value_db_tooltip('cutoff', title='LFX Cutoff Level'),
@@ -1929,7 +1931,8 @@ lsx.alt.make_chart(
         .encode(
             alt.X(
                     'value', type='quantitative',
-                    title='Scaled Olive Preference Rating contribution (higher is better)'),
+                    title='Scaled Olive Preference Rating contribution (higher is better)',
+                    scale=alt.Scale(domain=alt.DomainUnionWith([-3, 1]))),
             alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0)))
         .facet(row=alt.Row('curve', title=None, type='nominal')),
         postprocess_chart),
@@ -1980,7 +1983,8 @@ lsx.alt.make_chart(
         .encode(
             alt.X(
                 'value', type='quantitative',
-                title='Olive Predicted Preference Rating (higher is better)'),
+                title='Olive Predicted Preference Rating (higher is better)',
+                scale=alt.Scale(domain=alt.DomainUnionWith([0, 10]))),
             alt.Y(
                 'Speaker', type='nominal', title=None,
                 axis=alt.Axis(labelLimit=0, tickMinStep=10),
