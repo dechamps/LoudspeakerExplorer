@@ -1990,7 +1990,7 @@ lsx.alt.make_chart(
         .to_frame(),
     lambda chart: lsx.util.pipe(chart
         .properties(width=bar_chart_width.value)
-        .transform_calculate(rating='datum.value')
+        .transform_calculate(rating=alt.datum['value'])
         .encode(
             alt.X(
                 'value', type='quantitative',
@@ -1999,13 +1999,11 @@ lsx.alt.make_chart(
             alt.Y(
                 'Speaker', type='nominal', title=None,
                 axis=alt.Axis(labelLimit=0, tickMinStep=10),
-                scale=alt.Scale(paddingInner=0.2),
                 sort=alt.SortField('rating', order='descending')),
             tooltip=[
                 alt.Tooltip('Speaker'),
                 alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
-            ])
-        .properties(height=alt.Step(25)),
+            ]),
         lambda chart: postprocess_chart(chart,
             fineprint=['Prediction intervals: 50% (boxes), 75% (whiskers)'] + chart_fineprint)),
     lambda chart: alt.layer(
@@ -2018,11 +2016,11 @@ lsx.alt.make_chart(
         chart
             .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  0.8)')
             .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -0.8)')
-            .mark_bar(stroke='black')
+            .mark_bar(stroke='black', size=16)
             .encode(alt.X2('end'),
-                color=alt.Color(
-                'rating', type='quantitative',
-                scale=alt.Scale(scheme='redyellowgreen', domain=[0, 10]), legend=None)),
+                alt.Color(
+                    'rating', type='quantitative',
+                    scale=alt.Scale(scheme='redyellowgreen', domain=[0, 10]), legend=None)),
         chart
             .mark_text(fontWeight='bold')
             .encode(
