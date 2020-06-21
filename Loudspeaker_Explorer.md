@@ -607,10 +607,17 @@ sidebyside_chart_height = settings.track_widget(
     widgets.IntText(
         description='height:', value=300, min=0))
 
+bar_chart_width = settings.track_widget(
+    ('chart_size', 'bar', 'width'),
+    widgets.IntText(
+        description='Bar chart width:', value=600, min=0,
+        style={'description_width': 'initial'}))
+
 form(widgets.VBox([
     widgets.HBox([speaker_offset_enabled, speaker_offset_db]),
     widgets.HBox([standalone_chart_width, standalone_chart_height]),
     widgets.HBox([sidebyside_chart_width, sidebyside_chart_height]),
+    bar_chart_width
 ]))
 ```
 
@@ -1379,6 +1386,7 @@ lsx.alt.make_chart(
     speakers_nbd_band
         .reset_index('Band'),
     lambda chart: lsx.util.pipe(chart
+        .properties(width=bar_chart_width.value)
         .transform_fold(speakers_nbd_band.columns.values, ['curve', 'value'])
         .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
             key='curve', data=pd.Series(olive_curve_labels)
@@ -1672,6 +1680,7 @@ conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_chart
 lsx.alt.make_chart(
     speakers_sm,
     lambda chart: lsx.util.pipe(chart
+        .properties(width=bar_chart_width.value)
         .transform_fold(speakers_sm.columns.values, ['curve', 'value'])
         .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
             key='curve', data=pd.Series(olive_curve_labels)
@@ -1847,6 +1856,7 @@ lsx.alt.make_chart(speakers_lfx_cutoff
             lfx_curve: 'cutoff',
         }),
     lambda chart: lsx.util.pipe(chart
+        .properties(width=bar_chart_width.value)
         .transform_calculate(value=alt.expr.log(alt.datum['frequency']) / alt.expr.LN10)
         .transform_calculate(min_value=alt.expr.toNumber(np.log10(20)))
         .encode(alt.Y('Speaker', title=None, axis=alt.Axis(orient='right', labelLimit=0))),
@@ -1920,6 +1930,7 @@ To make the below chart more readable, the LFX scale has been adjusted to be rel
 lsx.alt.make_chart(
     speakers_olive_curves,
     lambda chart: lsx.util.pipe(chart
+        .properties(width=bar_chart_width.value)
         .transform_fold(speakers_olive_curves.columns.values, ['curve', 'raw_value'])
         .transform_lookup(lookup='curve', as_='curve_info', from_=alt.LookupData(
             key='curve', data=pd.Series({**olive_curve_labels, **{'LFX': 'Low Frequency Extension'}})
@@ -1979,6 +1990,7 @@ lsx.alt.make_chart(
         .rename('value')
         .to_frame(),
     lambda chart: lsx.util.pipe(chart
+        .properties(width=bar_chart_width.value)
         .transform_calculate(rating='datum.value')
         .encode(
             alt.X(
