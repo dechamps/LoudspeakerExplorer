@@ -1998,7 +1998,7 @@ lsx.alt.make_chart(
                 scale=alt.Scale(domain=alt.DomainUnionWith([0, 10]))),
             alt.Y(
                 'Speaker', type='nominal', title=None,
-                axis=alt.Axis(labelLimit=0, tickMinStep=10),
+                axis=alt.Axis(labelLimit=0, tickMinStep=10, grid=True),
                 sort=alt.SortField('rating', order='descending')),
             tooltip=[
                 alt.Tooltip('Speaker'),
