@@ -2057,10 +2057,12 @@ lsx.alt.make_chart(
         .encode(
             alt.Y(
                 'Speaker', type='nominal', title='Speaker A',
-                sort=alt.SortField('value', order='descending')),
+                sort=alt.SortField('value', order='descending'),
+                axis=alt.Axis(grid=True, tickBand='extent')),
             alt.X(
                 'VsSpeaker', type='nominal', title='Speaker B',
-                sort=alt.SortField('VsValue', order='ascending')),
+                sort=alt.SortField('VsValue', order='ascending'),
+                axis=alt.Axis(grid=True, tickBand='extent')),
             tooltip=[
                 alt.Tooltip('Speaker', type='nominal', title='Speaker A'),
                 alt.Tooltip('VsSpeaker', type='nominal', title='Speaker B'),
