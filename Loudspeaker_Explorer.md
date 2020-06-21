@@ -134,16 +134,23 @@ prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=F
 
 def form(widget):
     form_banner = widgets.HTML()
-    def set_form_banner(contents):
-        form_banner.value = '<div style="text-align: left; padding-left: 1ex; border: 2px solid red; background-color: #eee">' + contents + '</div>'
+    def set_form_banner(*children):
+        banner = dominate.tags.div(
+            style='text-align: left; padding-left: 1ex; border: 2px solid red; background-color: #eee')
+        banner.add(*children)
+        form_banner.value = str(banner)
     if prerender_mode:
-        set_form_banner('<strong>Settings disabled</strong> because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')
+        set_form_banner(
+            dominate.tags.strong('Settings disabled'),
+            dominate.util.text(' because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.'))
         def disable_widget(widget):
             widget.disabled = True
         lsx.util.recurse_attr(widget, 'children', disable_widget)
     lsx.util.recurse_attr(widget, 'children',
         lambda widget: widget.observe(
-            lambda change: set_form_banner('<strong>Settings have changed.</strong> Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'), names='value'))
+            lambda change: set_form_banner(
+                dominate.tags.strong('Settings have changed.'),
+                dominate.util.text(' Run the notebook again (in Colab, "Runtime" → "Run All") for the changes to take effect.'))))
     lsx.ipython.display_css('''
         .widget-checkbox *, .widget-radio-box * { cursor: pointer; }
     ''')
