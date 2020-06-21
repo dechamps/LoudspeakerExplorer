@@ -213,6 +213,7 @@ speakers.loc[:, 'Measurement Date'] = pd.to_datetime(speakers.loc[:, 'Measuremen
 speakers.loc[:, 'Enabled'] = speakers.index.isin(
     speakers.loc[:, 'Measurement Date'].nlargest(3).index)
 
+speaker_checkboxes = []
 def speaker_box(speaker):
     box = widgets.VBox()
     
@@ -229,6 +230,7 @@ def speaker_box(speaker):
             widgets.Checkbox(value=speaker_copy.loc['Enabled'], description=speaker_copy.name, style={'description_width': 'initial'}),
             speaker_change)
         checkbox.add_class('lsx-speaker-checkbox')
+        speaker_checkboxes.append(checkbox)
         return checkbox
 
     def img():
@@ -287,9 +289,23 @@ lsx.ipython.display_css('''
     }
 ''')
 
+def speakers_set_all_button(enabled, **kwargs):
+    button = widgets.Button(**kwargs)
+    def set_all(_):
+        for checkbox in speaker_checkboxes:
+            checkbox.value = enabled
+    button.on_click(set_all)
+    return button
+
 speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
 speakers_box.layout.flex_flow = 'row wrap'
-form(speakers_box)
+form(widgets.VBox([
+    widgets.HBox([
+        speakers_set_all_button(True, description='Select all'),
+        speakers_set_all_button(False, description='Unselect all'),
+    ]),
+    speakers_box,
+]))
 ```
 
 <!-- #region heading_collapsed=true -->
