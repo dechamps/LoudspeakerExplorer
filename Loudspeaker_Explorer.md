@@ -132,17 +132,20 @@ settings = lsx.Settings(pathlib.Path('settings.json'))
 
 prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
 
+def banner(*children):
+    banner = dominate.tags.div(
+            style='text-align: left; padding: 0.5ex 1ex; padding-left: 1ex; border: 2px solid red; background-color: #eee')
+    banner.add(*children)
+    return banner
+
 def form(widget):
     form_banner = widgets.HTML()
     def set_form_banner(*children):
-        banner = dominate.tags.div(
-            style='text-align: left; padding-left: 1ex; border: 2px solid red; background-color: #eee')
-        banner.add(*children)
-        form_banner.value = str(banner)
+        form_banner.value = str(banner(children))
     if prerender_mode:
-        set_form_banner(
+        form_banner.value = str(banner(
             dominate.tags.strong('Settings disabled'),
-            dominate.util.text(' because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.'))
+            dominate.util.text(' because the notebook is not running. Run the notebook (in Colab, "Runtime" → "Run All") to change settings.')))
         def disable_widget(widget):
             widget.disabled = True
         lsx.util.recurse_attr(widget, 'children', disable_widget)
@@ -595,6 +598,11 @@ form(widgets.VBox([
 ```
 
 ```python
+speakers_count = (speakers_fr_smoothed
+    .index
+    .get_level_values('Speaker')
+    .nunique())                  
+
 speakers_properties = (pd.concat([
         speakers_fr_smoothed
             .index
@@ -672,6 +680,18 @@ alt.data_transformers.disable_max_rows()
 if alt.expr.Expression.__getitem__ == alt.utils.schemapi.SchemaBase.__getitem__:
     alt.expr.core.Expression.__getitem__ = lambda self, val: alt.expr.core.GetItemExpression(self, val)
     alt.expr.core.GetItemExpression.__repr__ = lambda self: '{}[{!r}]'.format(self.group, self.name)
+    
+max_standalone_speaker_count = 10
+max_sidebyside_speaker_count = 6
+def conditional_chart(max_speaker_count, make_chart):
+    if speakers_count > max_speaker_count:
+        return IPython.core.display.HTML(str(banner(
+            dominate.util.text('This chart is not displayed because there are too many speakers selected (currently '),
+            dominate.tags.strong(speakers_count),
+            dominate.util.text(', max '),
+            dominate.tags.strong(max_speaker_count),
+            dominate.util.text(').'))))
+    return make_chart()
 
 def set_chart_dimensions(chart, sidebyside=False):
     if single_speaker_mode:
@@ -726,19 +746,21 @@ def frequency_response_db_chart(*kargs, additional_tooltips=[], fineprint=db_cha
         **kwargs)
 
 def standalone_speaker_frequency_response_db_chart(column, yaxis):
-    data = (speakers_fr_ready_offset
-        .loc[:, column]
-        .rename('value')
-        .to_frame())
-    return frequency_response_db_chart(
-        data,
-        lambda chart: lsx.util.pipe(chart
-            .encode(speaker_color(), y=yaxis),
-            speaker_input),
-        lambda chart: lsx.alt.interactive_line(chart),
-        additional_tooltips=
-            [alt.Tooltip('speaker', type='nominal', title='Speaker')]
-            if data.index.get_level_values('Speaker').nunique() > 1 else [])
+    def make_chart():
+        data = (speakers_fr_ready_offset
+            .loc[:, column]
+            .rename('value')
+            .to_frame())
+        return frequency_response_db_chart(
+            data,
+            lambda chart: lsx.util.pipe(chart
+                .encode(speaker_color(), y=yaxis),
+                speaker_input),
+            lambda chart: lsx.alt.interactive_line(chart),
+            additional_tooltips=
+                [alt.Tooltip('speaker', type='nominal', title='Speaker')]
+                if data.index.get_level_values('Speaker').nunique() > 1 else [])
+    return conditional_chart(max_standalone_speaker_count, make_chart)
 
 def frequency_xaxis(shorthand):
     return alt.X(
@@ -811,7 +833,7 @@ This chart shows the resolution of the input data at each frequency. For each po
 A straight, horizontal line means that resolution is constant throughout the spectrum, or in other words, points are equally spaced in log-frequency. Some Loudspeaker Explorer features, especially smoothing and detrending, implicitly assume that this is the case, and might produce inaccurate results otherwise.
 
 ```python
-frequency_response_chart(
+conditional_chart(max_standalone_speaker_count, lambda: frequency_response_chart(
     speakers_fr_ready
         .pipe(lsx.pd.index_as_columns)
         .set_index('Speaker')
@@ -834,7 +856,7 @@ frequency_response_chart(
             if speakers_fr_ready.index.get_level_values('Speaker').nunique() > 1 else []) +
         tooltips +
         [alt.Tooltip('value', type='quantitative', title='Resolution (points/octave)', format='.2f')]
-)
+))
 ```
 
 # Standard measurements
@@ -853,7 +875,7 @@ Remember:
  - **Charts will not be generated if the section they're under is folded while the notebook is running.** To manually load a chart after running the notebook, click on the square to the left of the *Show Code* button. Or simply use *Run all* again after unfolding the section.
 
 ```python
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     speakers_fr_ready.pipe(lsx.pd.remap_columns, {
         ('CEA2034', 'On Axis'): 'On Axis',
         ('CEA2034', 'Listening Window'): 'Listening Window',
@@ -886,7 +908,7 @@ frequency_response_db_chart(
             .interactive())),  # Required, otherwise only left axis scales.
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
-    sidebyside=True)
+    sidebyside=True))
 ```
 
 ## On-axis response
@@ -912,7 +934,7 @@ Keep in mind that these graphs can be shown normalized to flat on-axis by changi
 
 ```python
 def off_axis_angles_chart(direction):
-    return frequency_response_db_chart(
+    return conditional_chart(4, lambda: frequency_response_db_chart(
         speakers_fr_ready
             .loc[:, 'SPL ' + direction]
             .pipe(lsx.data.convert_angles)
@@ -936,7 +958,7 @@ def off_axis_angles_chart(direction):
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title=direction + ' angle (°)')],
         sidebyside=True
-    )
+    ))
 
 off_axis_angles_chart('Horizontal')
 ```
@@ -957,7 +979,7 @@ off_axis_angles_chart('Vertical')
 
 ```python
 def reflection_responses_chart(axis):
-    return frequency_response_db_chart(
+    return conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
         speakers_fr_ready
             .loc[:, f'{axis} Reflections']
             .rename_axis(columns=['Direction'])
@@ -969,7 +991,7 @@ def reflection_responses_chart(axis):
         lambda chart: lsx.alt.interactive_line(chart),
         fold={},
         additional_tooltips=[alt.Tooltip('key', type='nominal', title='Direction')],
-        sidebyside=True)
+        sidebyside=True))
 
 reflection_responses_chart('Horizontal')
 ```
@@ -1074,7 +1096,7 @@ standalone_speaker_frequency_response_db_chart(
 This chart provides more detail by including each individual angle that is used in the Listening Window average. This can be used to assess the consistency of the response within the Listening Window.
 
 ```python
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     speakers_fr_ready
         .pipe(lsx.pd.remap_columns, {
             ('SPL Vertical', '-10°'): '-10° Vertical',
@@ -1112,7 +1134,7 @@ frequency_response_db_chart(
     lambda chart: lsx.alt.interactive_line(chart),
     fold={},
     additional_tooltips=[alt.Tooltip('key', type='nominal', title='Response')],
-    sidebyside=True)
+    sidebyside=True))
 ```
 
 # Olive Preference Rating
@@ -1259,7 +1281,7 @@ nbd_fr_chart_data = (pd.concat({
             .pipe(lsx.pd.append_constant_index, name='Frequency [Hz]')
     }, names=['Dataset']))
 
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     nbd_fr_chart_data,
     lambda chart: lsx.util.pipe(chart
         .transform_lookup(lookup='Band', as_='band_info', from_=alt.LookupData(
@@ -1332,7 +1354,7 @@ frequency_response_db_chart(
                     value_db_tooltip('deviation', title='Deviation'),
                 ]))),
     fold={'as_': ['curve', 'value']},
-    sidebyside=True, fineprint=chart_fineprint)
+    sidebyside=True, fineprint=chart_fineprint))
 ```
 
 ```python
@@ -1446,7 +1468,7 @@ def speakers_slope_value_at_frequency(frequency_hz):
               regression_results.predict({'frequency_hz': frequency_hz}).squeeze())
         .pipe(lsx.pd.append_constant_index, frequency_hz, name='Frequency [Hz]'))
 
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     pd.concat({
         'Curve': speakers_fr_olive,
         'Slope': pd.concat([
@@ -1481,7 +1503,7 @@ frequency_response_db_chart(
                     alt.Tooltip('db_per_octave', title='Slope (dB/octave)', type='quantitative', format='.2f'),
                 ])),
     fold={'as_': ['curve', 'value']},
-    sidebyside=True, fineprint=chart_fineprint)
+    sidebyside=True, fineprint=chart_fineprint))
 ```
 
 <!-- #region heading_collapsed=true -->
@@ -1525,7 +1547,7 @@ def compensate_slope(speakers_fr):
                         .get_level_values('Frequency [Hz]')
                         .to_series()}))))
 
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     pd.concat({
         'Mean': compensate_mean(speakers_fr_olive),
         'Slope': compensate_slope(speakers_fr_olive),
@@ -1546,11 +1568,11 @@ frequency_response_db_chart(
     lambda chart: lsx.alt.interactive_line(chart),
     fold={'as_': ['curve', 'value']},
     additional_tooltips=[alt.Tooltip('reference', title='Relative to', type='nominal')],
-    sidebyside=True, fineprint=chart_fineprint)
+    sidebyside=True, fineprint=chart_fineprint))
 ```
 
 ```python
-frequency_response_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_chart(
     pd.concat({
         'Mean': compensate_mean(speakers_fr_slope),
         'Slope': compensate_slope(speakers_fr_slope),
@@ -1585,11 +1607,11 @@ frequency_response_chart(
             value_db_tooltip('deviation', title='Deviation'),
             alt.Tooltip('deviation_squared', title='Squared deviation (dB²)', type='quantitative', format='.2f'),
         ],
-    sidebyside=True)
+    sidebyside=True))
 ```
 
 ```python
-frequency_response_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_chart(
     pd.concat({
         'mean': compensate_mean(speakers_fr_slope),
         'slope': compensate_slope(speakers_fr_slope),
@@ -1626,7 +1648,7 @@ frequency_response_chart(
             alt.Tooltip('sm', title='SM-1 contribution', type='quantitative', format='.4f'),
             alt.Tooltip('value', title='Scaled SM-1 contribution', type='quantitative', format='.2f'),
         ],
-    sidebyside=True)
+    sidebyside=True))
 ```
 
 ```python
@@ -1734,7 +1756,7 @@ speakers_lfx
 Note that the LFX cutoff frequency can appear slightly below the threshold in the following chart. That's because the calculation is made on the set of measurement points in their original resolution, not the interpolated curve that is drawn on the chart.
 
 ```python
-frequency_response_db_chart(
+conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     speakers_fr_olive.loc[:, [lfx_curve, lfx_reference_curve]],
     lambda chart: lsx.util.pipe(chart
         .transform_lookup(lookup='speaker', as_='speaker_cutoff', from_=alt.LookupData(
@@ -1798,7 +1820,7 @@ frequency_response_db_chart(
                     alt.Tooltip('lfx', type='quantitative', title='LFX', format='.02f')])))),
     fold={'as_': ['curve', 'value']},
     additional_tooltips=[alt.Tooltip('curve_label', title='Curve', type='nominal')],
-    sidebyside=True)
+    sidebyside=True))
 ```
 
 ```python
