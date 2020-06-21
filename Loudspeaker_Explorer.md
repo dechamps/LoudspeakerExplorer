@@ -295,6 +295,7 @@ def speakers_set_all_button(enabled, **kwargs):
         for checkbox in speaker_checkboxes:
             checkbox.value = enabled
     button.on_click(set_all)
+    button.style.font_weight = 'bold'
     return button
 
 speakers_box = widgets.HBox(list(speakers.apply(speaker_box, axis='columns')))
