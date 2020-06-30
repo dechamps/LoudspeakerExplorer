@@ -87,7 +87,9 @@ import shutil
 import pathlib
 import re
 
-if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and 'COLAB_GPU' in os.environ:
+running_in_colab = 'COLAB_GPU' in os.environ
+
+if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and running_in_colab:
     def read_git_sha(directory):
         try:
             with open(directory / '.loudspeaker_explorer_git_sha', mode='r') as git_sha_file:
@@ -131,6 +133,9 @@ import loudspeakerexplorer as lsx
 settings = lsx.Settings(pathlib.Path('settings.json'))
 
 prerender_mode = bool(os.environ.get('LOUDSPEAKER_EXPLORER_PRERENDER', default=False))
+
+if prerender_mode or running_in_colab:
+    %load_ext loudspeakerexplorer.ipython_extensions.colab_remove_scrollbar
 
 def banner(*children):
     banner = dominate.tags.div(
@@ -265,14 +270,6 @@ def speaker_box(speaker):
     box.layout.margin = '5px'
     box.layout.padding = '5px'
     return box
-
-# Colab does not recognize the scrolled=false cell metadata.
-# Simulate it using the technique described at https://github.com/googlecolab/colabtools/issues/541
-# Note that this only has an effect in Colab. The reason we don't add that line as part of Continuous Integration is because the Javascript to be present in prerender *and* run.
-IPython.display.display(IPython.display.Javascript('''
-    try { google.colab.output.setIframeHeight(0, true, {maxHeight: 5000}) }
-    catch (e) {}
-'''))
 
 lsx.ipython.display_css('''
     .lsx-speaker { background-color: #f6f6f6; }
