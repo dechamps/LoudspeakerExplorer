@@ -840,9 +840,12 @@ def postprocess_chart(chart, fineprint=chart_fineprint):
             .mark_text())
         .resolve_legend(color='independent')
         .configure_view(opacity=0)
-        # Sets the Vega-Embed PNG export scale factor to provide higher-quality
-        # exports. See https://github.com/vega/vega-embed/issues/492
-        .properties(usermeta={'embedOptions': {'scaleFactor': 4}}))
+        .properties(usermeta={'embedOptions': {
+            'downloadFileName': 'Loudspeaker Explorer chart',
+            # Sets the Vega-Embed PNG export scale factor to provide higher-quality
+            # exports. See https://github.com/vega/vega-embed/issues/492
+            'scaleFactor': 4,
+        }}))
 ```
 
 <!-- #region heading_collapsed=true -->
