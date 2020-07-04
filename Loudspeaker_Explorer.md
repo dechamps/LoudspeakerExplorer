@@ -839,7 +839,10 @@ def postprocess_chart(chart, fineprint=chart_fineprint):
             width=600, height=1)
             .mark_text())
         .resolve_legend(color='independent')
-        .configure_view(opacity=0))
+        .configure_view(opacity=0)
+        # Sets the Vega-Embed PNG export scale factor to provide higher-quality
+        # exports. See https://github.com/vega/vega-embed/issues/492
+        .properties(usermeta={'embedOptions': {'scaleFactor': 4}}))
 ```
 
 <!-- #region heading_collapsed=true -->
