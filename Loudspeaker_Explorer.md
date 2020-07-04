@@ -1995,6 +1995,8 @@ These numbers were [derived](https://www.audiosciencereview.com/forum/index.php?
 
 ```python
 olive_standard_error = 0.8
+olive_boxes_prediction_interval = 0.50
+olive_whiskers_prediction_interval = 0.75
 
 lsx.alt.make_chart(
     speakers_olive
@@ -2003,6 +2005,8 @@ lsx.alt.make_chart(
     lambda chart: lsx.util.pipe(chart
         .properties(width=bar_chart_width.value)
         .transform_calculate(olive_standard_error=alt.expr.toNumber(olive_standard_error))
+        .transform_calculate(olive_boxes_prediction_interval=alt.expr.toNumber(olive_boxes_prediction_interval))
+        .transform_calculate(olive_whiskers_prediction_interval=alt.expr.toNumber(olive_whiskers_prediction_interval))
         .transform_calculate(rating=alt.datum['value'])
         .encode(
             alt.X(
@@ -2018,17 +2022,17 @@ lsx.alt.make_chart(
                 alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
             ]),
         lambda chart: postprocess_chart(chart,
-            fineprint=['Prediction intervals: 50% (boxes), 75% (whiskers)'] + chart_fineprint)),
+            fineprint=[f'Prediction intervals: {olive_boxes_prediction_interval*100:.0f}% (boxes), {olive_whiskers_prediction_interval*100:.0f}% (whiskers)'] + chart_fineprint)),
     lambda chart: alt.layer(
         chart
             # See https://en.wikipedia.org/wiki/Normal_distribution#Quantile_function
-            .transform_calculate(value='quantileNormal((0.75+1)/2, datum.rating,  datum.olive_standard_error)')
-            .transform_calculate(end  ='quantileNormal((0.75+1)/2, datum.rating, -datum.olive_standard_error)')
+            .transform_calculate(value='quantileNormal((datum.olive_whiskers_prediction_interval+1)/2, datum.rating,  datum.olive_standard_error)')
+            .transform_calculate(end  ='quantileNormal((datum.olive_whiskers_prediction_interval+1)/2, datum.rating, -datum.olive_standard_error)')
             .mark_rule(strokeWidth=1)
             .encode(alt.X2('end')),
         chart
-            .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  datum.olive_standard_error)')
-            .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -datum.olive_standard_error)')
+            .transform_calculate(value ='quantileNormal((datum.olive_boxes_prediction_interval+1)/2, datum.rating,  datum.olive_standard_error)')
+            .transform_calculate(end   ='quantileNormal((datum.olive_boxes_prediction_interval+1)/2, datum.rating, -datum.olive_standard_error)')
             .mark_bar(stroke='black', size=16)
             .encode(alt.X2('end'),
                 alt.Color(
