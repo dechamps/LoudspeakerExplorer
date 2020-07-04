@@ -1994,12 +1994,15 @@ These numbers were [derived](https://www.audiosciencereview.com/forum/index.php?
 **Disclaimer: the above reasoning assumes that the speakers being rated are "typical" relative to the speakers used in the original study. Extrapolated preference ratings for speakers that are very different from the sample used in the study should be taken with a larger grain of salt than these prediction intervals indicate. For example, scores above 7 [carry more uncertainty](https://www.audiosciencereview.com/forum/index.php?threads/vanatoo-transparent-zero-speaker-review.13717/page-7#post-417999).**
 
 ```python
+olive_standard_error = 0.8
+
 lsx.alt.make_chart(
     speakers_olive
         .rename('value')
         .to_frame(),
     lambda chart: lsx.util.pipe(chart
         .properties(width=bar_chart_width.value)
+        .transform_calculate(olive_standard_error=alt.expr.toNumber(olive_standard_error))
         .transform_calculate(rating=alt.datum['value'])
         .encode(
             alt.X(
@@ -2019,13 +2022,13 @@ lsx.alt.make_chart(
     lambda chart: alt.layer(
         chart
             # See https://en.wikipedia.org/wiki/Normal_distribution#Quantile_function
-            .transform_calculate(value='quantileNormal((0.75+1)/2, datum.rating,  0.8)')
-            .transform_calculate(end  ='quantileNormal((0.75+1)/2, datum.rating, -0.8)')
+            .transform_calculate(value='quantileNormal((0.75+1)/2, datum.rating,  datum.olive_standard_error)')
+            .transform_calculate(end  ='quantileNormal((0.75+1)/2, datum.rating, -datum.olive_standard_error)')
             .mark_rule(strokeWidth=1)
             .encode(alt.X2('end')),
         chart
-            .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  0.8)')
-            .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -0.8)')
+            .transform_calculate(value ='quantileNormal((0.50+1)/2, datum.rating,  datum.olive_standard_error)')
+            .transform_calculate(end   ='quantileNormal((0.50+1)/2, datum.rating, -datum.olive_standard_error)')
             .mark_bar(stroke='black', size=16)
             .encode(alt.X2('end'),
                 alt.Color(
@@ -2050,6 +2053,7 @@ lsx.alt.make_chart(
         .pipe(lsx.pd.append_constant_index, 0, 'dummy_key'),
     lambda chart: lsx.util.pipe(chart
         .properties(title='Probability that the average listener will prefer speaker A to speaker B (%)')
+        .transform_calculate(olive_standard_error=alt.expr.toNumber(olive_standard_error))
         # Vega Lite doesn't seem to have a way to do do cartesian products,
         # but we can emulate that by inserting the whole dataset into every datum using lookup(),
         # and then we expand that into multiple datums using flatten().
@@ -2063,7 +2067,7 @@ lsx.alt.make_chart(
         .transform_calculate(VsSpeaker=alt.datum['VsSpeakerInfo']['Speaker'])
         .transform_calculate(VsValue=alt.datum['VsSpeakerInfo']['value'])
         .transform_calculate(diff=alt.datum['value'] - alt.datum['VsValue'])
-        .transform_calculate(percent='(1 - cumulativeNormal(0, datum.diff, 0.8)) * 100')
+        .transform_calculate(percent='(1 - cumulativeNormal(0, datum.diff, datum.olive_standard_error)) * 100')
         .encode(
             alt.Y(
                 'Speaker', type='nominal', title='Speaker A',
