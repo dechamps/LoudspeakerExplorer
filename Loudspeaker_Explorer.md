@@ -86,6 +86,7 @@ import os
 import shutil
 import pathlib
 import re
+import textwrap
 
 running_in_colab = 'COLAB_GPU' in os.environ
 
@@ -839,7 +840,8 @@ def postprocess_chart(chart, fineprint=chart_fineprint):
     return (alt.vconcat(
         chart,
         alt.Chart(title=alt.TitleParams(
-            fineprint, fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
+            [line for long_line in fineprint for line in textwrap.wrap(long_line, 120)],
+            fontSize=10, fontWeight='lighter', color='gray', anchor='start'),
             width=600, height=1)
             .mark_text())
         .resolve_legend(color='independent')
