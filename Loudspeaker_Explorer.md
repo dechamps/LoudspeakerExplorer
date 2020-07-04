@@ -648,16 +648,20 @@ speakers_specific_properties = (speakers_properties
 
 single_speaker_mode = speakers_properties.index.nunique() <= 1
 
+def format_speakers_property(speakers_property):
+    nunique_values = speakers_property.nunique(dropna=False)
+    if nunique_values == 1:
+        return [f'{speakers_property.name}: {speakers_property.unique().squeeze()}']
+    
+    def format_speakers(speaker_property):
+        return speaker_property.dropna().str.cat(sep=', ')
+    return [f'{speakers_property.name}:'] + list(speakers_property
+        .pipe(lsx.pd.swap_index_values)
+        .groupby(level=0)
+        .apply(lambda property_speakers: '- ' + property_speakers.name + ': ' + format_speakers(property_speakers)))
+
 db_chart_fineprint = (speakers_specific_properties
-    .pipe(lsx.pd.rollup, lambda speakers_property:
-        [f'{speakers_property.name}: {speakers_property.unique().squeeze()}']
-        if speakers_property.nunique(dropna=False) == 1
-        else [f'{speakers_property.name}:'] + list('- ' + speakers_property
-            .dropna()
-            .reset_index()
-            .apply(
-                lambda speaker_property: speaker_property.str.cat(sep=': '),
-                axis='columns')))
+    .pipe(lsx.pd.rollup, format_speakers_property)
     .sum() + ['Data: amirm, AudioScienceReview.com - Plotted by Loudspeaker Explorer'])
 chart_fineprint = ([] if detrending_info is None else [f'Detrending: {detrending_info}']) + db_chart_fineprint
 

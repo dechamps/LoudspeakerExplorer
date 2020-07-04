@@ -108,3 +108,16 @@ def join_index(df, labels):
     return df.drop(index=df.index.difference(labels.index)).pipe(
         lambda df: df.pipe(set_index, pd.MultiIndex.from_frame(
             pd.concat([df.index.to_frame(), labels], axis='columns'))))
+
+
+def swap_index_values(s):
+    # Given a Series, swap the index and values.
+    # That is, given:
+    #  A 1
+    #  B 2
+    # Will return:
+    #  1 A
+    #  2 B
+
+    # Shamelessly stolen from https://stackoverflow.com/a/40146518/172594
+    return pd.Series(s.index.values, index=s.values, name=s.name)
