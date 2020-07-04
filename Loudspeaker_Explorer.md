@@ -70,7 +70,7 @@ The *measurement data* is not part of Loudspeaker Explorer - it is published by 
 You might also be interested in:
 
  - [pozz](https://www.audiosciencereview.com/forum/index.php?members/pozz.7752/)'s [ASR Speaker Review and Measurement Index](https://www.audiosciencereview.com/forum/index.php?pages/SpeakerTestData/)
- - [MZKM](https://www.audiosciencereview.com/forum/index.php?members/mzkm.4645/)'s [Preference Rating data](https://docs.google.com/spreadsheets/d/e/2PACX-1vRVN63daR6Ph8lxhCDUEHxWq_gwV0wEjL2Q1KRDA0J4i_eE1JS-JQYSZy7kCQZMKtRnjTOn578fYZPJ/pubhtml)
+ - [MZKM](https://www.audiosciencereview.com/forum/index.php?members/mzkm.4645/)'s [Preference Rating data](https://sites.google.com/view/speakerdata/preference-ratings-graphs)
  - [pierre](https://www.audiosciencereview.com/forum/index.php?members/pierre.344/)'s [Spinorama visualizations](https://pierreaubert.github.io/spinorama/)
 <!-- #endregion -->
 <!-- #region heading_collapsed=true -->
