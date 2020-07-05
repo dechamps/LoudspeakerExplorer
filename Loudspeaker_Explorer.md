@@ -1780,9 +1780,11 @@ speakers_lfx_cutoff
 ```
 
 ```python
+frequency_to_lfx = np.log10
+
 speakers_lfx = (speakers_lfx_cutoff
     .pipe(lsx.pd.remap_columns, {'Frequency [Hz]': 'LFX'})
-    .pipe(np.log10))
+    .pipe(frequency_to_lfx))
 speakers_lfx
 ```
 
@@ -1896,6 +1898,52 @@ lsx.alt.make_chart(speakers_lfx_cutoff
 
 ## Preference Rating
 
+
+### Settings
+
+
+The following settings can be used to change how the **Low Frequency Extension (LFX)** variable is used in the final preference rating. Most notably they can be used to simulate the presence of a subwoofer.
+
+Note that the LFX value used in [MZKM's](https://sites.google.com/view/speakerdata/preference-ratings-graphs) "with subwoofer" ratings corresponds to a -6 dB point of [15 Hz](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/#post-313766). In Loudspeaker Explorer, a value of 20 Hz was chosen as it was deemed more realistic and less prone to excessive model extrapolation when comparing a standard rating to an "ideal subwoofer" rating. As a result, when operating in "with subwoofer" mode, Loudspeaker Explorer ratings are 0.6 points lower than MZKM ratings.
+
+**Models using non-standard settings have never been tested. It is not clear how much of an impact these settings have on the accuracy of predicted ratings. Use at your own risk.**
+
+```python
+olive_lfx_scale_factor = -4.31
+olive_lfx_custom_lfx = None
+
+def frequency_slider(**kwargs):
+    return widgets.FloatLogSlider(base=10, min=np.log10(20), max=np.log10(20000), step=0.1, readout_format='.2s', layout=widgets.Layout(width='90%'), **kwargs)
+
+olive_lfx_custom_label = widgets.Label()
+def on_olive_custom_frequency_new_value(frequency):
+    lfx = frequency_to_lfx(frequency)
+    olive_lfx_custom_label.value = f'LFX = {lfx:.2f}, scaled LFX = {lfx*olive_lfx_scale_factor:.2f}'
+olive_lfx_custom_frequency = settings.track_widget(
+    ('olive', 'lfx', 'custom', 'frequency'),
+    widgets.FloatLogSlider(
+        description='-6 dB point (Hz)', value=20,
+        base=21/20, min=np.log(20)/np.log(21/20), max=np.log(300)/np.log(21/20), step=1,
+        readout_format='.2s', style={'description_width': 'initial'}),
+    on_new_value=on_olive_custom_frequency_new_value)
+olive_lfx_custom = widgets.HBox([olive_lfx_custom_frequency, olive_lfx_custom_label])
+olive_lfx_mode = settings.track_widget(
+    ('olive', 'lfx', 'mode'),
+    widgets.RadioButtons(
+        options=[
+            ('Standard model: use LFX computed from speaker data', 'computed'),
+            ('Override LFX to assume an ideal subwoofer (-6 dB at 20 Hz)', 'ideal'),
+            ('Custom LFX override', 'custom'),
+        ], value='computed',
+        layout={'width': 'max-content'}),
+    on_new_value=lambda value: lsx.widgets.display(olive_lfx_custom, value == 'custom'))
+    
+form(widgets.VBox([
+    olive_lfx_mode,
+    olive_lfx_custom,
+]))
+```
+
 <!-- #region heading_collapsed=true -->
 ### Calculation
 <!-- #endregion -->
@@ -1905,10 +1953,23 @@ The definition of the final preference rating is discussed in section 5.3 of the
 $$\mathrm{PR} = 12.69-2.49\cdot\mathrm{NBD}_\mathrm{ON}-2.99\cdot\mathrm{NBD}_\mathrm{PIR}+2.32\cdot\mathrm{SM}_\mathrm{PIR}-4.31\cdot\mathrm{LFX}$$
 
 ```python
+speakers_lfx_override_frequency = None
+if olive_lfx_mode.value == 'ideal':
+    speakers_lfx_override_frequency = 20
+elif olive_lfx_mode.value == 'custom':
+    speakers_lfx_override_frequency = olive_lfx_custom_frequency.value
+
+speakers_lfx_effective = speakers_lfx.loc[:, 'LFX'].copy()
+speakers_lfx_fineprint = []
+if speakers_lfx_override_frequency is not None:
+    speakers_lfx_override = frequency_to_lfx(speakers_lfx_override_frequency)
+    speakers_lfx_effective.loc[:] = speakers_lfx_override
+    speakers_lfx_fineprint = [f'LFX override: -6 dB at {speakers_lfx_override_frequency:.0f} Hz (LFX = {speakers_lfx_override:.2f}, scaled LFX = {speakers_lfx_override*olive_lfx_scale_factor:.2f})']
+
 speakers_olive_components = pd.concat({
     'NBD': [-2.49, -2.99] * speakers_nbd.loc[:, ['ON', 'PIR']],
     'SM': +2.32 * speakers_sm.loc[:, ['PIR']],
-    'LFX': -4.31 * speakers_lfx.loc[:, 'LFX'],
+    'LFX': olive_lfx_scale_factor * speakers_lfx_effective,
 }, axis='columns').rename_axis(columns=['Variable', 'Curve'])
 speakers_olive_components
 ```
@@ -1956,7 +2017,7 @@ lsx.alt.make_chart(
                     scale=alt.Scale(domain=alt.DomainUnionWith([-3, 1]))),
             alt.Y('Speaker', type='nominal', title=None, axis=alt.Axis(labelLimit=0)))
         .facet(row=alt.Row('curve', title=None, type='nominal')),
-        postprocess_chart),
+        lambda chart: postprocess_chart(chart, fineprint=speakers_lfx_fineprint + chart_fineprint)),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
             .mark_bar()
@@ -2022,7 +2083,7 @@ lsx.alt.make_chart(
                 alt.Tooltip('rating', title='Predicted rating', type='quantitative', format='.2f')
             ]),
         lambda chart: postprocess_chart(chart,
-            fineprint=[f'Prediction intervals: {olive_boxes_prediction_interval*100:.0f}% (boxes), {olive_whiskers_prediction_interval*100:.0f}% (whiskers)'] + chart_fineprint)),
+            fineprint=[f'Prediction intervals: {olive_boxes_prediction_interval*100:.0f}% (boxes), {olive_whiskers_prediction_interval*100:.0f}% (whiskers)'] + speakers_lfx_fineprint + chart_fineprint)),
     lambda chart: alt.layer(
         chart
             # See https://en.wikipedia.org/wiki/Normal_distribution#Quantile_function
@@ -2089,7 +2150,7 @@ lsx.alt.make_chart(
                 alt.Tooltip('diff', type='nominal', title='Score difference (A-B)', format='.1f'),
                 alt.Tooltip('percent', type='nominal', title='Probability of A>B (%)', format='.0f'),
             ]),
-        postprocess_chart),
+        lambda chart: postprocess_chart(chart, fineprint=speakers_lfx_fineprint + chart_fineprint)),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
             .mark_rect()
