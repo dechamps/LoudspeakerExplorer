@@ -850,7 +850,9 @@ def postprocess_chart(chart, fineprint=chart_fineprint):
             'downloadFileName': 'Loudspeaker Explorer chart',
             # Sets the Vega-Embed PNG export scale factor to provide higher-quality
             # exports. See https://github.com/vega/vega-embed/issues/492
-            'scaleFactor': 4,
+            # Note that we can't go much higher than this, otherwise the image size
+            # becomes problematic for sharing (e.g. on ASR)
+            'scaleFactor': 2,
         }}))
 ```
 
