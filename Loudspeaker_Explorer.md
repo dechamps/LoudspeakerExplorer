@@ -193,6 +193,11 @@ Note that the following speakers, despite having been measured by amirm, are not
  - [**NHT Pro M-00**](https://www.audiosciencereview.com/forum/index.php?threads/nht-pro-m-00-powered-monitor-review.10859/): the [raw data published](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306521) is [incomplete](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-14#post-424713).
  - [**Yamaha HS5**](https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/): the raw data published is incomplete.
  
+Measurements were made using the **tweeter as the reference axis**, with two exceptions:
+
+ - The **Neumann KH 80 (sample 3)** measurement uses the [manufacturer's recommended axis](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh80-dsp-monitor-measurements-3.14637/#post-452966).
+ - The **Sony SS-CS5** measurement was accidentally made using the [supertweeter axis](https://www.audiosciencereview.com/forum/index.php?threads/sony-ss-cs5-3-way-speaker-review.13562/page-5#post-409981), making it inaccurate at high frequencies.
+ 
 Also keep in mind the following known issues with the measurements:
 
  - **[Low frequency (<100 Hz) measurement errors](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/page-2#post-389147)** are present in measurements made before 2020-05-03. This was [fixed](https://www.audiosciencereview.com/forum/index.php?threads/jbl-hdi-3600-speaker-review.13027/) in the JBL HDI-3600 measurement.
@@ -201,7 +206,6 @@ Also keep in mind the following known issues with the measurements:
  - Klippel uses slightly wrong weights to compute the **Early Reflections** and **Estimated In-Room Response** curves. See the Early Reflections and Estimated In-Room Response sections, below, for details. Loudspeaker Explorer displays the Klippel data as-is and does not (yet) attempt to correct it.
  - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
  - The **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
- - The **Sony SS-CS5** measurement is inaccurate at high frequencies because [an erroneous measurement axis was used](https://www.audiosciencereview.com/forum/index.php?threads/sony-ss-cs5-3-way-speaker-review.13562/page-5#post-409981).
  - The very first measurements (**JBL Control 1 Pro** and **JBL 305P MkII**) were only published in 10 points/octave resolution. [This is also the case](https://www.audiosciencereview.com/forum/index.php?threads/revel-f208-tower-speaker-review.13192/page-7#post-394941) for the **Revel F208**.
 
 ```python scrolled=false
