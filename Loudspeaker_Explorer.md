@@ -2159,7 +2159,10 @@ lsx.alt.make_chart(
                 alt.Tooltip('diff', type='nominal', title='Score difference (A-B)', format='.1f'),
                 alt.Tooltip('percent', type='nominal', title='Probability of A>B (%)', format='.0f'),
             ]),
-        lambda chart: postprocess_chart(chart, fineprint=speakers_lfx_fineprint + chart_fineprint)),
+        lambda chart: postprocess_chart(chart, fineprint=
+            ['Probabilities according to the Olive Preference Rating model'] +
+            speakers_lfx_fineprint +
+            chart_fineprint)),
     lambda chart: alt.layer(
         lsx.util.pipe(chart
             .mark_rect()
