@@ -45,6 +45,16 @@ def side_wall_reflection(speaker_fr):
     ])].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
+def rear_wall_reflection(speaker_fr):
+    # As defined in CTA-2034A §5.2
+    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
+        '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
+        '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
+        '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
+        '180°',
+    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+
+
 def validate_early_reflections(speaker_fr):
     # Verifies that the data in "Horizontal Reflections" and "Vertical
     # Reflections" is identical to the data in "Early Reflections".
@@ -63,7 +73,9 @@ def validate_early_reflections(speaker_fr):
         'Horizontal', 'Front', 'Front Wall Bounce')
     validate_early_reflection(
         'Horizontal', 'Side', 'Side Wall Bounce')
-    # TODO: add Rear Wall Bounce
+    # Rear deliberately left out because the data in "Early Reflections" is
+    # known to be wrong. See:
+    #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472466
 
 
 def validate_spatial_averages(speaker_fr):
@@ -93,7 +105,9 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Side'),
         side_wall_reflection)
-    # TODO: add Rear Wall Bounce
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
+        rear_wall_reflection)
     # TODO: add Sound Power
     # TODO: add Early Reflections
     # TODO: add Directivity Index
