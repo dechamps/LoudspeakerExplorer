@@ -24,3 +24,11 @@ def recurse_attr(obj, attr, fn):
     for child in getattr(obj, attr, []):
         recurse_attr(child, attr, fn)
     fn(obj)
+
+
+def assert_similar(s1, s2, tolerance=0):
+    deviation = s1.sub(s2).abs()
+    idxmax = deviation.idxmax()
+    max = deviation.loc[idxmax]
+    if max > tolerance:
+        raise AssertionError(idxmax, s1.loc[idxmax], s2.loc[idxmax], max)

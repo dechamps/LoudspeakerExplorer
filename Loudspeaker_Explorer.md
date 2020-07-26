@@ -331,6 +331,10 @@ speakers_fr_raw = (speakers
 speakers_fr_raw
 ```
 
+```python
+lsx.cta2034.validate_spatial_averages(speakers_fr_raw)
+```
+
 <!-- #region heading_collapsed=true -->
 # Raw data summary
 
