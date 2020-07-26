@@ -1,6 +1,5 @@
 numpy
 pandas
-engarde
 ipywidgets
 dominate
 altair

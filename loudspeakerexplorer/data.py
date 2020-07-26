@@ -1,6 +1,5 @@
 import re
 
-import engarde.decorators as ed
 import pandas as pd
 
 
@@ -72,15 +71,17 @@ def _load_fr(file):
             .pipe(_index_by_frequency))
 
 
-@ed.none_missing()
 def load_speaker(dir):
-    # If the none_missing() assertion fires, it likely means something is wrong or
-    # corrupted in the data files of the speaker (e.g. some frequencies present in
-    # some columns/files but not others)
-    return pd.concat(
+    speaker = pd.concat(
         (_load_fr(file) for file in filter(lambda path: not path.name in (
             'LICENSE.txt', 'Read License Agreement.txt', 'speaker_metadata.yaml'), dir.iterdir())),
         axis='columns')
+    if speaker.isna().any(axis=None):
+        # If this fires, it likely means something is wrong or corrupted in the
+        # data files of the speaker (e.g. some frequencies present in some
+        # columns/files but not others)
+        raise AssertionError
+    return speaker
 
 
 def convert_angles(df):
