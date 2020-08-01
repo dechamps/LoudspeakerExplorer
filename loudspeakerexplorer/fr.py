@@ -3,7 +3,7 @@ import numpy as np
 import loudspeakerexplorer as lsx
 
 
-def db_power_mean(frs, *kargs, **kwargs):
+def db_power_mean(frs, weights=None, *kargs, **kwargs):
     # Like DataFrame.mean(), but does a power mean (assuming decibel input)
     # instead of the usual mean. "Power mean" means a root-mean-square (RMS)
     # mean applied in linear scale (i.e. Pascals, in the case of sound
@@ -13,7 +13,9 @@ def db_power_mean(frs, *kargs, **kwargs):
     return (frs
             .pipe(lsx.db.dbspl_to_pascals)
             .pipe(np.square)
-            .mean(*kargs, **kwargs)
+            .pipe(lambda df: df if weights is None else df.mul(weights))
+            .pipe(lambda df: df.mean(*kargs, **kwargs) if weights is None
+                  else df.sum(*kargs, **kwargs) / weights.sum())
             .pipe(np.sqrt)
             .pipe(lsx.db.pascals_to_dbspl))
 

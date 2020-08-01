@@ -1,4 +1,38 @@
+import pandas as pd
+
 import loudspeakerexplorer as lsx
+
+# As defined in CTA-2034A Appendix C
+# See also:
+#   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472599
+_SOUND_POWER_WEIGHTS = (pd.Series({
+    'On-Axis': 0.000604486,
+    '10°':     0.004730189,
+    '20°':     0.008955027,
+    '30°':     0.012387354,
+    '40°':     0.014989611,
+    '50°':     0.016868154,
+    '60°':     0.018165962,
+    '70°':     0.019006744,
+    '80°':     0.019477787,
+    '90°':     0.019629373,
+    '100°':    0.019477787,
+    '110°':    0.019006744,
+    '120°':    0.018165962,
+    '130°':    0.016868154,
+    '140°':    0.014989611,
+    '150°':    0.012387354,
+    '160°':    0.008955027,
+    '170°':    0.004730189,
+})
+    .pipe(lambda semicircle: pd.concat([semicircle, semicircle.rename(
+        lambda angle: '180°' if angle == 'On-Axis' else f'-{angle}')]))
+    .pipe(lambda circle: pd.concat({
+        'SPL Horizontal': circle,
+        # 0° and 180° are the same measurement on both horizontal and vertical
+        # planes. Don't count them twice.
+        'SPL Vertical': circle.drop(['On-Axis', '180°']),
+    })))
 
 
 def listening_window(speaker_fr):
@@ -55,6 +89,11 @@ def rear_wall_reflection(speaker_fr):
     ])].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
+def sound_power(speaker_fr):
+    return (speaker_fr.loc[:, 'Sound Pessure Level [dB]'].loc[:, _SOUND_POWER_WEIGHTS.index]
+            .pipe(lsx.fr.db_power_mean, weights=_SOUND_POWER_WEIGHTS, axis='columns'))
+
+
 def validate_early_reflections(speaker_fr):
     # Verifies that the data in "Horizontal Reflections" and "Vertical
     # Reflections" is identical to the data in "Early Reflections".
@@ -105,6 +144,8 @@ def validate_spatial_averages(speaker_fr):
         lsx.util.assert_similar(
             speaker_fr.loc[:, curve],
             generate_spatial_average(speaker_fr),
+            # Should be accurate within rounding error of the input curves. See
+            #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472599
             tolerance=0.001)
 
     validate_spatial_average(
@@ -127,7 +168,9 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
         rear_wall_reflection)
-    # TODO: add Sound Power
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
+        sound_power)
     # TODO: add Early Reflections
     # TODO: add Directivity Index
     # TODO: add Predicted In-Room Response
