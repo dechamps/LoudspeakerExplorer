@@ -332,6 +332,7 @@ speakers_fr_raw
 ```
 
 ```python
+lsx.cta2034.validate_early_reflections(speakers_fr_raw)
 lsx.cta2034.validate_spatial_averages(speakers_fr_raw)
 ```
 

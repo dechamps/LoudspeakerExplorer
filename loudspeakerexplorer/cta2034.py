@@ -45,6 +45,27 @@ def side_wall_reflection(speaker_fr):
     ])].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
+def validate_early_reflections(speaker_fr):
+    # Verifies that the data in "Horizontal Reflections" and "Vertical
+    # Reflections" is identical to the data in "Early Reflections".
+
+    def validate_early_reflection(axis, reflection, early_reflection):
+        lsx.util.assert_similar(
+            speaker_fr.loc[:, ('Sound Pessure Level [dB]',
+                               f'{axis} Reflections', reflection)],
+            speaker_fr.loc[:, ('Sound Pessure Level [dB]',
+                               'Early Reflections', early_reflection)])
+
+    validate_early_reflection('Vertical', 'Floor Reflection', 'Floor Bounce')
+    validate_early_reflection(
+        'Vertical', 'Ceiling Reflection', 'Ceiling Bounce')
+    validate_early_reflection(
+        'Horizontal', 'Front', 'Front Wall Bounce')
+    validate_early_reflection(
+        'Horizontal', 'Side', 'Side Wall Bounce')
+    # TODO: add Rear Wall Bounce
+
+
 def validate_spatial_averages(speaker_fr):
     # Verifies that the CTA2034 spatial average curves in `speaker_fr` are
     # consistent with the individual angle frequency responses.
