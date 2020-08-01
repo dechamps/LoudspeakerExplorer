@@ -78,6 +78,25 @@ def validate_early_reflections(speaker_fr):
     #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472466
 
 
+def validate_common_angles(speaker_fr):
+    # Verifies that redundant single-angle data, e.g. On-Axis, is the same
+    # everywhere in the input.
+
+    def assert_similar_curve(index1, index2):
+        lsx.util.assert_similar(
+            speaker_fr.loc[:, index1], speaker_fr.loc[:, index2])
+
+    assert_similar_curve(
+        ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis'),
+        ('Sound Pessure Level [dB]', 'SPL Vertical', 'On-Axis'))
+    assert_similar_curve(
+        ('Sound Pessure Level [dB]', 'SPL Horizontal', '180°'),
+        ('Sound Pessure Level [dB]', 'SPL Vertical', '180°'))
+    assert_similar_curve(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis'),
+        ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis'))
+
+
 def validate_spatial_averages(speaker_fr):
     # Verifies that the CTA2034 spatial average curves in `speaker_fr` are
     # consistent with the individual angle frequency responses.
