@@ -110,6 +110,21 @@ def alt_rear_wall_reflection(speaker_fr):
         '-90°', '90°', '180°'])].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
+def total_horizontal_reflection(speaker_fr):
+    # Not a standard curve, but included in the data, so we check it anyway.
+    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
+        # Front
+        'On-Axis', '-10°', '10°', '-20°', '20°', '-30°', '30°',
+        # Side
+        '-40°', '40°', '-50°', '50°', '-60°', '60°', '-70°', '70°', '-80°', '80°',
+        # Rear
+        '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
+        '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
+        '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
+        '180°',
+    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+
+
 def sound_power(speaker_fr):
     return (speaker_fr.loc[:, 'Sound Pessure Level [dB]'].loc[:, _SOUND_POWER_WEIGHTS.index]
             .pipe(lsx.fr.db_power_mean, weights=_SOUND_POWER_WEIGHTS, axis='columns'))
@@ -196,9 +211,10 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
         rear_wall_reflection)
-    # Not validating "Total Horizontal Reflection" because it's not clear how
-    # it's computed - the obvious choices of (Front+Side+Rear) or
-    # (Front+Side+Rear Wall Bounce) don't work.
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]',
+         'Horizontal Reflections', 'Total Horizontal Reflection'),
+        total_horizontal_reflection)
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce'),
         alt_rear_wall_reflection)
