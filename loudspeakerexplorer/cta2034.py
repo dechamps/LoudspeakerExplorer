@@ -2,6 +2,29 @@ import pandas as pd
 
 import loudspeakerexplorer as lsx
 
+# As defined in CTA-2034A §5.2
+_FLOOR_REFLECTION_VERTICAL_ANGLES = ['-20°', '-30°', '-40°']
+_CEILING_REFLECTION_VERTICAL_ANGLES = ['40°', '50°', '60°']
+_FRONT_WALL_REFLECTION_HORIZONTAL_ANGLES = [
+    'On-Axis', '-10°', '10°', '-20°', '20°', '-30°', '30°']
+_SIDE_WALL_REFLECTION_HORIZONTAL_ANGLES = [
+    '-40°', '40°', '-50°', '50°', '-60°', '60°', '-70°', '70°',
+    '-80°', '80°']
+# Note that there is ambiguity as to whether the rear wall reflection should be
+# an average of all horizontal angles in the rear hemisphere, or if it should
+# only be an average of -90°, 90° and 180°. The correct answer is the former, as
+# explained here:
+#   https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970
+_REAR_WALL_REFLECTION_HORIZONTAL_ANGLES = [
+    '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
+    '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
+    '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
+    '180°']
+# What follows is the *WRONG* way to calculate the Rear Reflections curve, using
+# -90°, 90° and 180° horizontal angles. See:
+#   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-26#post-473546
+_ALT_REAR_WALL_REFLECTION_HORIZONTAL_ANGLES = ['-90°', '90°', '180°']
+
 # As defined in CTA-2034A Appendix C
 # See also:
 #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472599
@@ -52,77 +75,62 @@ def listening_window(speaker_fr):
 
 def floor_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
-    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Vertical', [
-        '-20°', '-30°', '-40°'])]
-        .pipe(lsx.fr.db_power_mean, axis='columns'))
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Vertical',
+                               _FLOOR_REFLECTION_VERTICAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def ceiling_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
-    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Vertical', [
-        '40°', '50°', '60°'])]
-        .pipe(lsx.fr.db_power_mean, axis='columns'))
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Vertical',
+                               _CEILING_REFLECTION_VERTICAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def total_vertical_reflection(speaker_fr):
     # Not a standard curve, but included in the data, so we check it anyway.
-    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'Vertical Reflections', [
-        'Floor Reflection', 'Ceiling Reflection'])]
-        .pipe(lsx.fr.db_power_mean, axis='columns'))
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Vertical',
+                               _FLOOR_REFLECTION_VERTICAL_ANGLES +
+                               _CEILING_REFLECTION_VERTICAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def front_wall_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
-    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
-        'On-Axis', '-10°', '10°', '-20°', '20°', '-30°', '30°',
-    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal',
+                               _FRONT_WALL_REFLECTION_HORIZONTAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def side_wall_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
-    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
-        '-40°', '40°', '-50°', '50°', '-60°', '60°', '-70°', '70°',
-        '-80°', '80°',
-    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal',
+                               _SIDE_WALL_REFLECTION_HORIZONTAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def rear_wall_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
-    # Note that there is ambiguity as to whether this should be an average of
-    # all horizontal angles in the rear hemisphere, or if it should only be an
-    # average of -90°, 90° and 180°. The correct answer is the former, as
-    # explained here:
-    #   https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970
-    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
-        '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
-        '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
-        '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
-        '180°',
-    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal',
+                               _REAR_WALL_REFLECTION_HORIZONTAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def alt_rear_wall_reflection(speaker_fr):
-    # The *WRONG* way to calculate the Rear Reflections curve, using -90°, 90°
-    # and 180° horizontal angles. This function only exists to check that the
-    # input data is "consistently wrong". See:
-    #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-26#post-473546
-    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
-        '-90°', '90°', '180°'])].pipe(lsx.fr.db_power_mean, axis='columns')
+    # This function only exists to check that the input data is "consistently
+    # wrong", and should not be used for any other purpose.
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal',
+                               _ALT_REAR_WALL_REFLECTION_HORIZONTAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def total_horizontal_reflection(speaker_fr):
     # Not a standard curve, but included in the data, so we check it anyway.
-    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
-        # Front
-        'On-Axis', '-10°', '10°', '-20°', '20°', '-30°', '30°',
-        # Side
-        '-40°', '40°', '-50°', '50°', '-60°', '60°', '-70°', '70°', '-80°', '80°',
-        # Rear
-        '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
-        '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
-        '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
-        '180°',
-    ])].pipe(lsx.fr.db_power_mean, axis='columns')
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal',
+                               _FRONT_WALL_REFLECTION_HORIZONTAL_ANGLES +
+                               _SIDE_WALL_REFLECTION_HORIZONTAL_ANGLES +
+                               _REAR_WALL_REFLECTION_HORIZONTAL_ANGLES)]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
 def sound_power(speaker_fr):
