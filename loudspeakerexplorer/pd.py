@@ -48,12 +48,27 @@ def index_as_columns(df):
     return df.index.to_frame().reset_index(drop=True)
 
 
+class _OpaqueContainer:
+    # A trivial class that acts as a container for some value. The use case is
+    # to force Pandas to treat the value as a scalar and not change its behavior
+    # depending on its type (e.g. DataFrame.apply(func) behaves very differently
+    # when func returns something that looks like a collection).
+    #
+    # In Pandas 1.0.5, wrapping the value inside a single-element tuple would do
+    # the trick, but in 1.1.0 that doesn't work anymore, hence this class.
+    #   https://github.com/pandas-dev/pandas/issues/35518
+
+    def __init__(self, value):
+        self.value = value
+
+
 def rollup(df, func, *kargs, **kwargs):
     # Similar to df.apply(), with the subtle difference that if `func` returns
     # a collection, the collection type is preserved instead of being expanded.
+
     return (df
-            .apply(func=lambda df: (func(df),), *kargs, **kwargs)
-            .apply(lambda value: value[0]))
+            .apply(func=lambda df: _OpaqueContainer(func(df)), *kargs, **kwargs)
+            .apply(lambda container: container.value))
 
 
 def implode(df):
@@ -74,8 +89,9 @@ def implode(df):
             .groupby(level=list(range(0, df.index.nlevels)))
             # Wrap in a tuple to avoid Pandas interpreting the return value
             # as a list of rows.
-            .apply(lambda df: df.aggregate(lambda column: (list(column.values),)))
-            .applymap(lambda column: column[0]))
+            .apply(lambda df: df.aggregate(
+                lambda column: _OpaqueContainer(list(column.values))))
+            .applymap(lambda container: container.value))
 
 
 def join_index(df, labels):
