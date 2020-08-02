@@ -1,3 +1,5 @@
+import itertools
+
 import pandas as pd
 
 import loudspeakerexplorer as lsx
@@ -138,6 +140,27 @@ def sound_power(speaker_fr):
             .pipe(lsx.fr.db_power_mean, weights=_SOUND_POWER_WEIGHTS, axis='columns'))
 
 
+def alt_early_reflections(speaker_fr):
+    # Note that this is *NOT* the correct way to compute the Early Reflections
+    # curve. The Early Reflections curve is supposed to be an average of
+    # averages, not an average of individual angles. The CTA-2034A standard is
+    # ambiguous in that regard, but clarifications have been provided elsewhere:
+    #   https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/#post-312191
+    # This function only exists to check that the input data is "consistently
+    # wrong", and should not be used for any other purpose.
+    return speaker_fr.loc[:, 'Sound Pessure Level [dB]'].loc[:, itertools.chain(
+        (('SPL Vertical', angle)
+         for angle in _FLOOR_REFLECTION_VERTICAL_ANGLES),
+        (('SPL Vertical', angle)
+         for angle in _CEILING_REFLECTION_VERTICAL_ANGLES),
+        (('SPL Horizontal', angle)
+         for angle in _FRONT_WALL_REFLECTION_HORIZONTAL_ANGLES),
+        (('SPL Horizontal', angle)
+         for angle in _SIDE_WALL_REFLECTION_HORIZONTAL_ANGLES),
+        (('SPL Horizontal', angle) for angle in _ALT_REAR_WALL_REFLECTION_HORIZONTAL_ANGLES))
+    ].pipe(lsx.fr.db_power_mean, axis='columns')
+
+
 def validate_early_reflections(speaker_fr):
     # Verifies that the data in "Horizontal Reflections" and "Vertical
     # Reflections" is identical to the data in "Early Reflections".
@@ -227,8 +250,10 @@ def validate_spatial_averages(speaker_fr):
         ('Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce'),
         alt_rear_wall_reflection)
     validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections'),
+        alt_early_reflections)
+    validate_spatial_average(
         ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
         sound_power)
-    # TODO: add Early Reflections
     # TODO: add Directivity Index
     # TODO: add Predicted In-Room Response
