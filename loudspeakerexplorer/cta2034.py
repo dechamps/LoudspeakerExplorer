@@ -64,6 +64,13 @@ def ceiling_reflection(speaker_fr):
         .pipe(lsx.fr.db_power_mean, axis='columns'))
 
 
+def total_vertical_reflection(speaker_fr):
+    # Not a standard curve, but included in the data, so we check it anyway.
+    return (speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'Vertical Reflections', [
+        'Floor Reflection', 'Ceiling Reflection'])]
+        .pipe(lsx.fr.db_power_mean, axis='columns'))
+
+
 def front_wall_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
     return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
@@ -177,6 +184,10 @@ def validate_spatial_averages(speaker_fr):
          'Vertical Reflections', 'Ceiling Reflection'),
         ceiling_reflection)
     validate_spatial_average(
+        ('Sound Pessure Level [dB]',
+         'Vertical Reflections', 'Total Vertical Reflection'),
+        total_vertical_reflection)
+    validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Front'),
         front_wall_reflection)
     validate_spatial_average(
@@ -185,6 +196,9 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
         rear_wall_reflection)
+    # Not validating "Total Horizontal Reflection" because it's not clear how
+    # it's computed - the obvious choices of (Front+Side+Rear) or
+    # (Front+Side+Rear Wall Bounce) don't work.
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce'),
         alt_rear_wall_reflection)
