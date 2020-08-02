@@ -148,6 +148,9 @@ def validate_common_angles(speaker_fr):
     assert_similar_curve(
         ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis'),
         ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis'))
+    assert_similar_curve(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections'),
+        ('Sound Pessure Level [dB]', 'Early Reflections', 'Total Early Reflection'))
 
 
 def validate_spatial_averages(speaker_fr):
