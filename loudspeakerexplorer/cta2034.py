@@ -81,12 +81,26 @@ def side_wall_reflection(speaker_fr):
 
 def rear_wall_reflection(speaker_fr):
     # As defined in CTA-2034A §5.2
+    # Note that there is ambiguity as to whether this should be an average of
+    # all horizontal angles in the rear hemisphere, or if it should only be an
+    # average of -90°, 90° and 180°. The correct answer is the former, as
+    # explained here:
+    #   https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970
     return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
         '-90°', '90°', '-100°', '100°', '-110°', '110°', '-120°', '120°',
         '-130°', '130°', '-140°', '140°', '-150°', '150°', '-160°', '160°',
         '-170°', '170°', '-150°', '150°', '-160°', '160°', '-170°', '170°',
         '180°',
     ])].pipe(lsx.fr.db_power_mean, axis='columns')
+
+
+def alt_rear_wall_reflection(speaker_fr):
+    # The *WRONG* way to calculate the Rear Reflections curve, using -90°, 90°
+    # and 180° horizontal angles. This function only exists to check that the
+    # input data is "consistently wrong". See:
+    #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-26#post-473546
+    return speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'SPL Horizontal', [
+        '-90°', '90°', '180°'])].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
 def sound_power(speaker_fr):
@@ -168,6 +182,9 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
         rear_wall_reflection)
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce'),
+        alt_rear_wall_reflection)
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
         sound_power)
