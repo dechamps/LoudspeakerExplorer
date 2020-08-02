@@ -651,14 +651,14 @@ speakers_specific_properties = (speakers_properties
         speakers_properties.groupby('Speaker').nunique(dropna=False).eq(1).all()])
     .groupby('Speaker')
     .apply(lambda speaker_properties: speaker_properties.apply(
-        lambda speaker_property: speaker_property.unique().squeeze())))
+        lambda speaker_property: speaker_property.unique().item())))
 
 single_speaker_mode = speakers_properties.index.nunique() <= 1
 
 def format_speakers_property(speakers_property):
     nunique_values = speakers_property.nunique(dropna=False)
     if nunique_values == 1:
-        return [f'{speakers_property.name}: {speakers_property.unique().squeeze()}']
+        return [f'{speakers_property.name}: {speakers_property.unique().item()}']
     
     def format_speakers(speaker_property):
         return speaker_property.dropna().str.cat(sep=', ')
@@ -1508,7 +1508,7 @@ speakers_slope_b
 def speakers_slope_value_at_frequency(frequency_hz):
     return (speakers_slope_regression
         .pipe(lsx.pd.applymap_notna, lambda regression_results:
-              regression_results.predict({'frequency_hz': frequency_hz}).squeeze())
+              regression_results.predict({'frequency_hz': frequency_hz}).item())
         .pipe(lsx.pd.append_constant_index, frequency_hz, name='Frequency [Hz]'))
 
 conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
