@@ -204,7 +204,7 @@ Also keep in mind the following known issues with the measurements:
  - Slight **low frequency (<200 Hz) measurement errors** can appear in measurements made before 2020-07-11, especially those made during winter. This issue was [linked](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh80-dsp-monitor-measurements-3.14637/) to ambient temperature in the measurement environment. An example of this problem can be seen by comparing Neumann KH 80 samples 2 and 3.
  - A [measurement artefact](https://www.audiosciencereview.com/forum/index.php?threads/klipsch-r-41m-bookshelf-speaker-review.11566/page-3#post-332136) in the form of a slight **[ripple in high frequencies](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-10#post-324189)** (above 4 kHz or so) is present in all measurements made before 2020-02-23. This was [partially fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8341a-sam%E2%84%A2-studio-monitor-review.11652/#post-335109) starting from the Genelec 8341A measurement, and seemingly [completely fixed](https://www.audiosciencereview.com/forum/index.php?threads/genelec-8030c-studio-monitor-review.14795/page-7#post-461280) starting from the [Neumann KH 80 (sample 3)](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh80-dsp-monitor-measurements-3.14637/) measurement.
  - Klippel uses slightly wrong weights to compute the **Early Reflections** and **Estimated In-Room Response** curves. See the Early Reflections and Estimated In-Room Response sections, below, for details. Loudspeaker Explorer displays the Klippel data as-is and does not (yet) attempt to correct it.
- - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data. Due to a bug in the tool this also breaks the Spinorama charts unless another speaker is also selected.
+ - Datasets for **JBL 305P MkII** and **Neumann KH80 (sample 1)** are missing *Directivity Index* data.
  - The **Revel F35** measurement suffers from [numerical computation issues](https://www.audiosciencereview.com/forum/index.php?threads/revel-f35-speaker-review.12053/page-20#post-354889) that cause erroneous spikes around 1 kHz.
  - The very first measurements (**JBL Control 1 Pro** and **JBL 305P MkII**) were only published in 10 points/octave resolution. [This is also the case](https://www.audiosciencereview.com/forum/index.php?threads/revel-f208-tower-speaker-review.13192/page-7#post-394941) for the **Revel F208**.
 
@@ -1497,8 +1497,10 @@ speakers_slope_regression = (speakers_fr_slope
                 .rename(columns={'Frequency [Hz]': 'frequency_hz'}),
             formula='value_db ~ np.log(frequency_hz)').fit())))
 
-speakers_slope_b = speakers_slope_regression.pipe(lsx.pd.applymap_notna, lambda regression_results:
-    regression_results.params.loc['np.log(frequency_hz)'])
+speakers_slope_b = (speakers_slope_regression
+    .fillna(np.nan)
+    .pipe(lsx.pd.applymap_notna, lambda regression_results:
+        regression_results.params.loc['np.log(frequency_hz)']))
 speakers_slope_b
 ```
 
@@ -1509,6 +1511,7 @@ def speakers_slope_value_at_frequency(frequency_hz):
     return (speakers_slope_regression
         .pipe(lsx.pd.applymap_notna, lambda regression_results:
               regression_results.predict({'frequency_hz': frequency_hz}).item())
+        .fillna(np.nan)
         .pipe(lsx.pd.append_constant_index, frequency_hz, name='Frequency [Hz]'))
 
 conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
@@ -1564,8 +1567,10 @@ conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_ch
 SM is discussed in section 3.2.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0071 of the [patent](https://patents.google.com/patent/US20050195982A1). Loudspeaker Explorer uses an interpretation in which SM is the [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) ($r^2$) of the linear regression model computed in the previous Slope section. Higher is better.
 
 ```python
-speakers_sm = speakers_slope_regression.pipe(lsx.pd.applymap_notna, lambda regression_results:
-    regression_results.rsquared)
+speakers_sm = (speakers_slope_regression
+    .pipe(lsx.pd.applymap_notna, lambda regression_results:
+        regression_results.rsquared)
+    .fillna(np.nan))
 speakers_sm
 ```
 
@@ -1589,7 +1594,8 @@ def compensate_slope(speakers_fr):
                     .predict({'frequency_hz': curve
                         .index
                         .get_level_values('Frequency [Hz]')
-                        .to_series()}))))
+                        .to_series()}))
+               .fillna(np.nan)))
 
 conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
     pd.concat({
