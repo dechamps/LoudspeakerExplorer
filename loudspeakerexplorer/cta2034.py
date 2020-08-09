@@ -59,6 +59,13 @@ _SOUND_POWER_WEIGHTS = (pd.Series({
         'SPL Vertical': circle.drop(['On-Axis', '180°']),
     })))
 
+# As defined in CTA-2034A §13
+_ESTIMATED_IN_ROOM_WEIGHTS = pd.Series({
+    'Listening Window': 0.12,
+    'Early Reflections': 0.44,
+    'Sound Power': 0.44,
+})
+
 
 def listening_window(speaker_fr):
     # As defined in CTA-2034A §5.2
@@ -161,6 +168,13 @@ def alt_early_reflections(speaker_fr):
     ].pipe(lsx.fr.db_power_mean, axis='columns')
 
 
+def estimated_in_room(speaker_fr):
+    return (speaker_fr
+            .loc[:, ('Sound Pessure Level [dB]', 'CEA2034')]
+            .loc[:, _ESTIMATED_IN_ROOM_WEIGHTS.index]
+            .pipe(lsx.fr.db_power_mean, weights=_ESTIMATED_IN_ROOM_WEIGHTS, axis='columns'))
+
+
 def validate_early_reflections(speaker_fr):
     # Verifies that the data in "Horizontal Reflections" and "Vertical
     # Reflections" is identical to the data in "Early Reflections".
@@ -255,5 +269,8 @@ def validate_spatial_averages(speaker_fr):
     validate_spatial_average(
         ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
         sound_power)
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]',
+         'Estimated In-Room Response', 'Estimated In-Room Response'),
+        estimated_in_room)
     # TODO: add Directivity Index
-    # TODO: add Predicted In-Room Response
