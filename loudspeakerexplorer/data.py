@@ -2,6 +2,39 @@ import re
 
 import pandas as pd
 
+_CEA2034_COLUMNS = ['On Axis', 'Listening Window',
+                    'Early Reflections', 'Sound Power', 'Sound Power DI', 'Early Reflections DI', 'DI offset']
+_DIRECTIVITY_INDEX_COLUMNS = ['Sound Power DI', 'Early Reflections DI']
+_EARLY_REFLECTIONS_COLUMNS = ['Floor Bounce',
+                              'Ceiling Bounce', 'Front Wall Bounce', 'Side Wall Bounce', 'Rear Wall Bounce', 'Total Early Reflection']
+_ESTIMATED_IN_ROOM_RESPONSE_COLUMNS = ['Estimated In-Room Response']
+_HORIZONTAL_REFLECTIONS_COLUMNS = [
+    'Front', 'Side', 'Rear', 'Total Horizontal Reflection']
+_ANGLE_COLUMNS = (['On-Axis'] + [f'{angle}°' for absolute_angle in range(10, 180, 10)
+                                 for angle in (absolute_angle, -absolute_angle)] + ['180°'])
+_VERTICAL_REFLECTIONS_COLUMNS = [
+    'Floor Reflection', 'Ceiling Reflection', 'Total Vertical Reflection']
+
+
+_DIRECTIVITY_INDEX_COLUMNS = [(section, column) for section, columns in {
+    'Directivity Index': _DIRECTIVITY_INDEX_COLUMNS,
+}.items() for column in columns]
+_SOUND_PESSURE_LEVEL_COLUMNS = [(section, column) for section, columns in {
+    'CEA2034': _CEA2034_COLUMNS,
+    'Early Reflections': _EARLY_REFLECTIONS_COLUMNS,
+    'Estimated In-Room Response': _ESTIMATED_IN_ROOM_RESPONSE_COLUMNS,
+    'Horizontal Reflections': _HORIZONTAL_REFLECTIONS_COLUMNS,
+    'SPL Horizontal': _ANGLE_COLUMNS,
+    'SPL Vertical': _ANGLE_COLUMNS,
+    'Vertical Reflections': _VERTICAL_REFLECTIONS_COLUMNS,
+}.items() for column in columns]
+
+_COLUMNS = [(section,) + column for section, columns in {
+    '[dB] Directivity Index ': _DIRECTIVITY_INDEX_COLUMNS,
+    'Sound Pessure Level [dB]': _SOUND_PESSURE_LEVEL_COLUMNS,
+}.items() for column in columns]
+_COLUMNS_INDEX = columns = pd.MultiIndex.from_tuples(_COLUMNS)
+
 
 def _fix_unnamed_columns(columns):
     # pd.read_table() expects the following multi-level column headers:
@@ -81,7 +114,14 @@ def load_speaker(dir):
         # data files of the speaker (e.g. some frequencies present in some
         # columns/files but not others)
         raise AssertionError
-    return speaker
+    # Double-check that we don't have unexpected column labels.
+    spurious_columns = speaker.columns.difference(_COLUMNS_INDEX)
+    if not spurious_columns.empty:
+        raise AssertionError(spurious_columns)
+    # Some columns might be missing (e.g. a couple of early speakers are missing
+    # the Directivity Index columns). We don't want downstream code to have to
+    # deal with that edge case though, so fill any missing columns with N/A.
+    return speaker.reindex(columns=_COLUMNS_INDEX)
 
 
 def convert_angles(df):
