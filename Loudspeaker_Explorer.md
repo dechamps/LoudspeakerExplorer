@@ -323,9 +323,11 @@ DataFrame. The DataFrame index is arranged by speaker name, then frequency. All
 data files for each speaker are merged to form the columns of the DataFrame.
 
 ```python
-speakers_fr_raw = pd.concat(
-  {speaker.Index: lsx.data.load_speaker(pathlib.Path('speaker_data') / speaker.Index) for speaker in speakers[speakers['Enabled']].itertuples()},
-  names=['Speaker'], axis='rows')
+speakers_fr_raw = (speakers
+    .loc[speakers.loc[:, 'Enabled'], :]
+    .groupby('Speaker')
+    .apply(lambda speaker: lsx.data.load_speaker(
+        pathlib.Path('speaker_data') / speaker.name)))
 speakers_fr_raw
 ```
 
