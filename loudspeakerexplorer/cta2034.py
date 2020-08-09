@@ -175,6 +175,18 @@ def estimated_in_room(speaker_fr):
             .pipe(lsx.fr.db_power_mean, weights=_ESTIMATED_IN_ROOM_WEIGHTS, axis='columns'))
 
 
+def sound_power_directivity_index(speaker_fr):
+    return (speaker_fr
+            .loc[:, ('Sound Pessure Level [dB]', 'CEA2034')]
+            .pipe(lambda cea2034: cea2034.loc[:, 'Listening Window'] - cea2034.loc[:, 'Sound Power']))
+
+
+def early_reflections_directivity_index(speaker_fr):
+    return (speaker_fr
+            .loc[:, ('Sound Pessure Level [dB]', 'CEA2034')]
+            .pipe(lambda cea2034: cea2034.loc[:, 'Listening Window'] - cea2034.loc[:, 'Early Reflections']))
+
+
 def validate_early_reflections(speaker_fr):
     # Verifies that the data in "Horizontal Reflections" and "Vertical
     # Reflections" is identical to the data in "Early Reflections".
@@ -273,4 +285,19 @@ def validate_spatial_averages(speaker_fr):
         ('Sound Pessure Level [dB]',
          'Estimated In-Room Response', 'Estimated In-Room Response'),
         estimated_in_room)
-    # TODO: add Directivity Index
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power DI'),
+        lambda speaker_fr: speaker_fr.loc[:, (
+            '[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI')] +
+        speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'DI offset')])
+    validate_spatial_average(
+        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections DI'),
+        lambda speaker_fr: speaker_fr.loc[:, (
+            '[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI')] +
+        speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'DI offset')])
+    validate_spatial_average(
+        ('[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI'),
+        sound_power_directivity_index)
+    validate_spatial_average(
+        ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'),
+        early_reflections_directivity_index)
