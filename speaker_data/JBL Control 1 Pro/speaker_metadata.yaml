@@ -5,3 +5,6 @@ Picture URL: https://www.audiosciencereview.com/forum/index.php?attachments/jbl-
 Measurement Date: 2020-01-10
 Active: true
 Price (Single, USD): 82
+Inconsistent Curves:
+ # https://www.audiosciencereview.com/forum/index.php?threads/jbl-305p-mkii-and-control-1-pro-monitors-review.10811/page-29#post-479641
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI']

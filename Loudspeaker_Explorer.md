@@ -332,6 +332,19 @@ speakers_fr_raw
 ```
 
 ```python
+def remove_inconsistent_curves(speaker_fr):
+    inconsistent_curves = speakers.loc[speaker_fr.name, 'Inconsistent Curves']
+    try:
+        inconsistent_curves = (tuple(inconsistent_curve) for inconsistent_curve in inconsistent_curves)
+    except TypeError:
+        return speaker_fr
+    speaker_fr.loc[:, inconsistent_curves] = np.nan
+    return speaker_fr
+speakers_fr_raw = speakers_fr_raw.groupby('Speaker').apply(remove_inconsistent_curves)
+speakers_fr_raw
+```
+
+```python
 lsx.cta2034.validate_early_reflections(speakers_fr_raw)
 lsx.cta2034.validate_common_angles(speakers_fr_raw)
 lsx.cta2034.validate_spatial_averages(speakers_fr_raw)
