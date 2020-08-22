@@ -958,7 +958,7 @@ conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_ch
 ## On-axis response
 
 
-On-axis (**ON**) is is the response at a 0° horizontal and vertical angle, i.e. on the reference axis of measurement. Note that in all measurements done thus far, the reference axis is the same as the tweeter axis.
+On-axis (**ON**) is is the response at a 0° horizontal and vertical angle, i.e. on the reference axis of measurement.
 
 ```python
 standalone_speaker_frequency_response_db_chart(
