@@ -187,7 +187,7 @@ def early_reflections_directivity_index(speaker_fr):
             .pipe(lambda cea2034: cea2034.loc[:, 'Listening Window'] - cea2034.loc[:, 'Early Reflections']))
 
 
-def _curve_descriptors():
+def _curve_descriptors(for_generation=False):
     def copy_of(destination, source):
         return [destination, lambda speaker_fr: speaker_fr.loc[:, source], 0]
 
@@ -211,13 +211,14 @@ def _curve_descriptors():
                                'CEA2034', 'DI offset')],
             0.001]
 
-    return pd.DataFrame([
+    return pd.DataFrame(([
         copy_of(
             ('Sound Pessure Level [dB]', 'SPL Vertical', 'On-Axis'),
             ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis')),
         copy_of(
             ('Sound Pessure Level [dB]', 'SPL Vertical', '180°'),
             ('Sound Pessure Level [dB]', 'SPL Horizontal', '180°')),
+    ] if not for_generation else []) + [
         spatial_average(
             ('Sound Pessure Level [dB]',
              'Vertical Reflections', 'Floor Reflection'),
@@ -283,9 +284,10 @@ def _curve_descriptors():
         spatial_average(
             ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'),
             early_reflections_directivity_index),
+    ] + ([
         cea2034_directivity_index('Sound Power'),
         cea2034_directivity_index('Early Reflections'),
-    ], columns=['Curve', 'Generator', 'Tolerance']).set_index('Curve')
+    ] if not for_generation else []), columns=['Curve', 'Generator', 'Tolerance']).set_index('Curve')
 
 
 def validate(speakers_fr):
@@ -301,3 +303,19 @@ def validate(speakers_fr):
                 curve_descriptor.loc['Tolerance'])
         except:
             raise AssertionError(curve_name)
+
+
+def generate(speakers_fr):
+    # Generates derived curves (i.e. reflections, CTA2034, DI, etc.) based on
+    # the "SPL Horizontal" and "SPL Vertical" raw angle data in the input.
+    # Derived curves already present in the input are thrown away.
+
+    speakers_fr = speakers_fr.loc[:, ('Sound Pessure Level [dB]', [
+        'SPL Horizontal', 'SPL Vertical'])]
+    for curve_name, curve_descriptor in _curve_descriptors(for_generation=True).iterrows():
+        curve = curve_descriptor.loc['Generator'](speakers_fr)
+        curve.name = curve_name
+        # Assigning to speakers_fr.loc[:, curve_name] leads to a Pandas
+        # SettingWithCopyError, so we use concat() instead.
+        speakers_fr = pd.concat([speakers_fr, curve], axis='columns')
+    return speakers_fr

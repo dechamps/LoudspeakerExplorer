@@ -375,6 +375,11 @@ speakers_fr_raw
 lsx.cta2034.validate(speakers_fr_raw)
 ```
 
+```python
+speakers_fr_raw = lsx.cta2034.generate(speakers_fr_raw)
+speakers_fr_raw
+```
+
 <!-- #region heading_collapsed=true -->
 # Raw data summary
 
@@ -949,7 +954,7 @@ conditional_chart(max_standalone_speaker_count, lambda: frequency_response_chart
 
 # Standard measurements
 
-Note that all the data shown in this section is a direct representation of the input data after normalization. No complex processing is done. In particular, data for derived metrics such as *Listening Window*, *Early Reflections*, *Sound Power*, Directivity Indices and even *Estimated In-Room Response* come directly from the input - they are not derived by this code.
+Note that the curves shown here are calculated by Loudspeaker Explorer - they are not a direct visualization of the curves in the published datasets.
 
 
 ## Spinorama
