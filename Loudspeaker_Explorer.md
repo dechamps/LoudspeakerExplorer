@@ -332,6 +332,33 @@ speakers_fr_raw
 ```
 
 ```python
+def validate_missing_curves(speaker_curves_missing):
+    missing_curves = (speaker_curves_missing
+        .loc[speaker_curves_missing]
+        .index)
+    expected_missing_curves = (
+        speakers
+        .loc[speaker_curves_missing.name, 'Missing Curves'])
+    try:
+        expected_missing_curves = list(expected_missing_curves)
+    except TypeError:
+        expected_missing_curves = []
+    expected_missing_curves = [tuple(missing_curve) for missing_curve in expected_missing_curves]
+    if list(missing_curves.to_flat_index()) != list(expected_missing_curves):
+        raise AssertionError(
+            speaker_curves_missing.name,
+            missing_curves.to_flat_index(),
+            expected_missing_curves)
+
+(speakers_fr_raw
+   .isna()
+   .groupby('Speaker')
+   .any()
+   .apply(validate_missing_curves, axis='columns'))
+pass
+```
+
+```python
 def remove_inconsistent_curves(speaker_fr):
     inconsistent_curves = speakers.loc[speaker_fr.name, 'Inconsistent Curves']
     try:

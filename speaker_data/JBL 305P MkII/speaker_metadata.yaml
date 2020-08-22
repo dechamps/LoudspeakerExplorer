@@ -5,3 +5,6 @@ Picture URL: https://www.audiosciencereview.com/forum/index.php?attachments/jbl-
 Measurement Date: 2020-01-10
 Active: true
 Price (Single, USD): 150
+Missing Curves:
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI']
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI']

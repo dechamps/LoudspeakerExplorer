@@ -4,3 +4,6 @@ Picture URL: https://www.audiosciencereview.com/forum/index.php?attachments/neum
 Measurement Date: 2020-01-21
 Active: true
 Price (Single, USD): 500
+Missing Curves:
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI']
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI']
