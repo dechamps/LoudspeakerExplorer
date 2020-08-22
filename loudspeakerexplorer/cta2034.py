@@ -147,12 +147,22 @@ def sound_power(speaker_fr):
             .pipe(lsx.fr.db_power_mean, weights=_SOUND_POWER_WEIGHTS, axis='columns'))
 
 
-def alt_early_reflections(speaker_fr):
-    # Note that this is *NOT* the correct way to compute the Early Reflections
-    # curve. The Early Reflections curve is supposed to be an average of
-    # averages, not an average of individual angles. The CTA-2034A standard is
-    # ambiguous in that regard, but clarifications have been provided elsewhere:
+def early_reflections(speaker_fr):
+    # Note that CTA-2034A §5.2 is ambiguous as to whether the Early Reflections
+    # curve should be an average of all early reflection angles, or an
+    # average of the early reflection curves (i.e. an average of averages).
+    # This was clarified to be the latter:
     #   https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/#post-312191
+    return (speaker_fr
+            .loc[:, ('Sound Pessure Level [dB]', 'Early Reflections')]
+            .loc[:, [
+                'Floor Bounce', 'Ceiling Bounce', 'Front Wall Bounce',
+                'Side Wall Bounce', 'Rear Wall Bounce',
+            ]]
+            .pipe(lsx.fr.db_power_mean, axis='columns'))
+
+
+def alt_early_reflections(speaker_fr):
     # This function only exists to check that the input data is "consistently
     # wrong", and should not be used for any other purpose.
     return speaker_fr.loc[:, 'Sound Pessure Level [dB]'].loc[:, itertools.chain(
@@ -187,7 +197,7 @@ def early_reflections_directivity_index(speaker_fr):
             .pipe(lambda cea2034: cea2034.loc[:, 'Listening Window'] - cea2034.loc[:, 'Early Reflections']))
 
 
-def _curve_descriptors(for_generation=False):
+def _curve_descriptors(for_generation=False, alt_mode=False):
     def copy_of(destination, source):
         return [destination, lambda speaker_fr: speaker_fr.loc[:, source], 0]
 
@@ -256,11 +266,11 @@ def _curve_descriptors(for_generation=False):
         spatial_average(
             ('Sound Pessure Level [dB]',
              'Early Reflections', 'Rear Wall Bounce'),
-            alt_rear_wall_reflection),
+            alt_rear_wall_reflection if alt_mode else rear_wall_reflection),
         spatial_average(
             ('Sound Pessure Level [dB]',
              'Early Reflections', 'Total Early Reflection'),
-            alt_early_reflections),
+            alt_early_reflections if alt_mode else early_reflections),
         copy_of(
             ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis'),
             ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis')),
@@ -290,12 +300,13 @@ def _curve_descriptors(for_generation=False):
     ] if not for_generation else []), columns=['Curve', 'Generator', 'Tolerance']).set_index('Curve')
 
 
-def validate(speakers_fr):
+def validate(speakers_fr, alt_mode=False):
     # Validates that all derived curves in the input (i.e. reflections, CTA2034,
     # DI, etc.) are consistent with the "SPL Horizontal" and "SPL Vertical" raw
     # angle data. In other words, verifies that the input is self-consistent.
 
-    for curve_name, curve_descriptor in _curve_descriptors().iterrows():
+    for curve_name, curve_descriptor in _curve_descriptors(
+            alt_mode=alt_mode).iterrows():
         try:
             lsx.util.assert_similar(
                 speakers_fr.loc[:, curve_name],
@@ -305,14 +316,15 @@ def validate(speakers_fr):
             raise AssertionError(curve_name)
 
 
-def generate(speakers_fr):
+def generate(speakers_fr, alt_mode=False):
     # Generates derived curves (i.e. reflections, CTA2034, DI, etc.) based on
     # the "SPL Horizontal" and "SPL Vertical" raw angle data in the input.
     # Derived curves already present in the input are thrown away.
 
     speakers_fr = speakers_fr.loc[:, ('Sound Pessure Level [dB]', [
         'SPL Horizontal', 'SPL Vertical'])]
-    for curve_name, curve_descriptor in _curve_descriptors(for_generation=True).iterrows():
+    for curve_name, curve_descriptor in _curve_descriptors(
+            for_generation=True, alt_mode=alt_mode).iterrows():
         curve = curve_descriptor.loc['Generator'](speakers_fr)
         curve.name = curve_name
         # Assigning to speakers_fr.loc[:, curve_name] leads to a Pandas

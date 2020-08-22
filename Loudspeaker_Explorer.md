@@ -373,7 +373,7 @@ speakers_fr_raw
 ```
 
 ```python
-lsx.cta2034.validate(speakers_fr_raw)
+lsx.cta2034.validate(speakers_fr_raw, alt_mode=True)
 ```
 
 <!-- #region heading_collapsed=true -->
@@ -404,8 +404,27 @@ pd.concat([
 The standard curves defined in the [CEA/CTA-2034 standard](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) (listening window, early reflections, sound power, etc.) are calculated here. While the published datasets do include these curves, Loudspeaker Explorer always recalculates them from the raw horizontal and vertical angle data for greater flexibility.
 <!-- #endregion -->
 
+Sadly, the CTA-2034A standard is ambiguous in some aspects, leading to multiple interpretations of the formulas used to calculate the curves. Loudspeaker Explorer can be configured to compute curves according to two possible interpretations:
+
+ - **Standard mode** uses formulas whose validity has been [confirmed](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343897) by authors of the [research](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/#post-312191) the standard is based on, and is widely considered to be the correct interpretation of the standard. 
+ - **Alternate (Klippel) mode** uses formulas that are consistent with the curves found in the dataset Amir publishes, i.e. [Klippel's dB-Lab](https://www.klippel.de/products/rd-system/software/db-lab-software.html) software. In this mode, the curves that Loudspeaker Explorer generates are identical to the curves included in the published datasets. The differences with standard mode are:
+   - In the *Early Reflections* set of curves, the *Rear Wall Bounce* curve [only uses](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472466) the -90°, 90° and 180° angles. In standard mode all rear semicircle angles are used. (However, strangely, in the *Horizontal Reflections* set of curves, the *Rear* curve is different and uses all rear angles just like standard mode.)
+   - The total *Early Reflections* curve is an average of all individual angles used in the *Early Reflections* set of curves. In standard mode it is an average of all Early Reflection curves; in other words, it is an [average of averages](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/#post-312191). Errors in the order of 1 dB are typically observed.
+   - The *Estimated In-Room Response* curve differs as well because it is partly based on the *Early Reflections* curve. Errors in the order of 0.5 dB are typically observed.
+
 ```python
-speakers_fr_raw = lsx.cta2034.generate(speakers_fr_raw)
+curve_generation_mode = settings.track_widget(
+    ('curve_generation', 'mode'),
+    widgets.RadioButtons(
+        options=[
+            ('Standard mode (recommended)', 'standard'),
+            ('Alternate (Klippel) mode', 'alt'),
+        ], value='standard', layout={'width': 'max-content'}))
+form(curve_generation_mode)
+```
+
+```python
+speakers_fr_raw = lsx.cta2034.generate(speakers_fr_raw, alt_mode=curve_generation_mode.value == 'alt')
 speakers_fr_raw
 ```
 
@@ -1077,6 +1096,8 @@ off_axis_angles_chart('Vertical')
 - **Side**: ±40-80°
 - **Rear**: ±90-180° (i.e. rear semicircle)
 
+Note that CTA-2034 is sometimes [misinterpreted](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-2#post-323270) to mean that the Rear reflection is an average of three angles: -90°, 180° and 90°. This incorrect definition is notably used in the "Early Reflections" section in published datasets. Loudspeaker Explorer always uses the correct definition.
+
 ```python
 def reflection_responses_chart(axis):
     return conditional_chart(max_sidebyside_speaker_count, lambda: frequency_response_db_chart(
@@ -1125,7 +1146,7 @@ standalone_speaker_frequency_response_db_chart(
 
 [ANSI-CTA-2034-A](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) section 5.2 defines the Early Reflections (**ER**) curve as the average of all Reflection curves described previously (**Floor**, **Ceiling**, **Front**, **Side**, **Rear**).
 
-**Note:** CTA-2034-A is actually ambiguous as to the definition of this curve - the text could also be interpreted to refer to the average of the *individual responses* from all the angles that make up the aforementioned curves. A clearer definition can be found in the [seminal paper](http://www.aes.org/e-lib/browse.cfm?elib=11234) the standard is based on, which does define the Early Reflections curve as an average of averages, and this was [confirmed by Todd Welti](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970) who worked with the author of the paper. **Sadly, Klippel uses the wrong definition (average of individual responses), and for that reason, the data shown here is slightly wrong.** For details, see [this](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-2#post-323270), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-16#post-395073), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-18#post-397135) and [this](https://www.audiosciencereview.com/forum/index.php?threads/erinsaudiocorner.11219/page-14#post-421640).
+**Note:** CTA-2034-A is actually ambiguous as to the definition of this curve - the text could also be interpreted to refer to the average of the *individual responses* from all the angles that make up the aforementioned curves. A clearer definition can be found in the [seminal paper](http://www.aes.org/e-lib/browse.cfm?elib=11234) the standard is based on, which does define the Early Reflections curve as an average of averages, and this was [confirmed by Todd Welti](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-3#post-343970) who worked with the author of the paper. Sadly, Klippel uses the wrong definition (average of individual responses). By default, Loudspeaker Explorer uses the correct interpretation, which means **the data shown here is different from the data included in published datasets**. This behavior can be changed in the "Curve generation" section. For details, see [this](https://www.audiosciencereview.com/forum/index.php?threads/spinorama-also-known-as-cta-cea-2034-but-that-sounds-dull-apparently.10862/page-2#post-323270), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-16#post-395073), [this](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-18#post-397135) and [this](https://www.audiosciencereview.com/forum/index.php?threads/erinsaudiocorner.11219/page-14#post-421640).
 
 ```python
 standalone_speaker_frequency_response_db_chart(
@@ -1177,7 +1198,7 @@ standalone_speaker_frequency_response_db_chart(
 
 It [has been shown](http://www.aes.org/e-lib/browse.cfm?elib=12847) (section 6) that, in practice, there is good agreement between the Estimated In-Room Response curve and the In-Situ Response, i.e. the response that would be picked up by an omnidirectional measurement microphone at a typical listener location in a typical room, between 300 Hz and 10 kHz.
 
-**Note:** because the Predicted In-Room Response curve is calculated using the Early Reflections curve, it suffers from the same problem described in the Early Reflection section, meaning that the data shown here is [slightly wrong](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-12#post-389656).
+**Note:** because the Predicted In-Room Response curve is calculated using the Early Reflections curve, it suffers from the same problem described in the "Early Reflections response" section, meaning that the data in published datasets is [slightly wrong](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-12#post-389656). By default, Loudspeaker Explorer calculates the correct Early Reflections curve and from there the correct Estimated In-Room Response, which is shown here.
 
 ```python
 standalone_speaker_frequency_response_db_chart(
