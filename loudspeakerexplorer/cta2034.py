@@ -187,117 +187,117 @@ def early_reflections_directivity_index(speaker_fr):
             .pipe(lambda cea2034: cea2034.loc[:, 'Listening Window'] - cea2034.loc[:, 'Early Reflections']))
 
 
-def validate_early_reflections(speaker_fr):
-    # Verifies that the data in "Horizontal Reflections" and "Vertical
-    # Reflections" is identical to the data in "Early Reflections".
+def _curve_descriptors():
+    def copy_of(destination, source):
+        return [destination, lambda speaker_fr: speaker_fr.loc[:, source], 0]
 
-    def validate_early_reflection(axis, reflection, early_reflection):
-        lsx.util.assert_similar(
+    def copy_of_early_reflection(axis, reflection, early_reflection):
+        return copy_of(
+            ('Sound Pessure Level [dB]',
+             'Early Reflections', early_reflection),
+            ('Sound Pessure Level [dB]', f'{axis} Reflections', reflection))
+
+    def spatial_average(destination, generate):
+        # Should be accurate within rounding error of the input curves. See
+        #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472599
+        return [destination, generate, 0.001]
+
+    def cea2034_directivity_index(name):
+        return [
+            ('Sound Pessure Level [dB]', 'CEA2034', f'{name} DI'),
+            lambda speaker_fr: speaker_fr.loc[:, (
+                '[dB] Directivity Index ', 'Directivity Index', f'{name} DI')] +
             speaker_fr.loc[:, ('Sound Pessure Level [dB]',
-                               f'{axis} Reflections', reflection)],
-            speaker_fr.loc[:, ('Sound Pessure Level [dB]',
-                               'Early Reflections', early_reflection)])
+                               'CEA2034', 'DI offset')],
+            0.001]
 
-    validate_early_reflection('Vertical', 'Floor Reflection', 'Floor Bounce')
-    validate_early_reflection(
-        'Vertical', 'Ceiling Reflection', 'Ceiling Bounce')
-    validate_early_reflection(
-        'Horizontal', 'Front', 'Front Wall Bounce')
-    validate_early_reflection(
-        'Horizontal', 'Side', 'Side Wall Bounce')
-    # Rear deliberately left out because the data in "Early Reflections" is
-    # known to be wrong. See:
-    #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472466
+    return pd.DataFrame([
+        copy_of(
+            ('Sound Pessure Level [dB]', 'SPL Vertical', 'On-Axis'),
+            ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis')),
+        copy_of(
+            ('Sound Pessure Level [dB]', 'SPL Vertical', '180°'),
+            ('Sound Pessure Level [dB]', 'SPL Horizontal', '180°')),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Vertical Reflections', 'Floor Reflection'),
+            floor_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Vertical Reflections', 'Ceiling Reflection'),
+            ceiling_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Vertical Reflections', 'Total Vertical Reflection'),
+            total_vertical_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Front'),
+            front_wall_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Side'),
+            side_wall_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
+            rear_wall_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Horizontal Reflections', 'Total Horizontal Reflection'),
+            total_horizontal_reflection),
+        copy_of_early_reflection(
+            'Vertical', 'Floor Reflection', 'Floor Bounce'),
+        copy_of_early_reflection(
+            'Vertical', 'Ceiling Reflection', 'Ceiling Bounce'),
+        copy_of_early_reflection(
+            'Horizontal', 'Front', 'Front Wall Bounce'),
+        copy_of_early_reflection(
+            'Horizontal', 'Side', 'Side Wall Bounce'),
+        # https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472466
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Early Reflections', 'Rear Wall Bounce'),
+            alt_rear_wall_reflection),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Early Reflections', 'Total Early Reflection'),
+            alt_early_reflections),
+        copy_of(
+            ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis'),
+            ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis')),
+        spatial_average(
+            ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window'),
+            listening_window),
+        copy_of(
+            ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections'),
+            ('Sound Pessure Level [dB]',
+             'Early Reflections', 'Total Early Reflection')),
+        spatial_average(
+            ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
+            sound_power),
+        spatial_average(
+            ('Sound Pessure Level [dB]',
+             'Estimated In-Room Response', 'Estimated In-Room Response'),
+            estimated_in_room),
+        spatial_average(
+            ('[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI'),
+            sound_power_directivity_index),
+        spatial_average(
+            ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'),
+            early_reflections_directivity_index),
+        cea2034_directivity_index('Sound Power'),
+        cea2034_directivity_index('Early Reflections'),
+    ], columns=['Curve', 'Generator', 'Tolerance']).set_index('Curve')
 
 
-def validate_common_angles(speaker_fr):
-    # Verifies that redundant single-angle data, e.g. On-Axis, is the same
-    # everywhere in the input.
+def validate(speakers_fr):
+    # Validates that all derived curves in the input (i.e. reflections, CTA2034,
+    # DI, etc.) are consistent with the "SPL Horizontal" and "SPL Vertical" raw
+    # angle data. In other words, verifies that the input is self-consistent.
 
-    def assert_similar_curve(index1, index2):
-        lsx.util.assert_similar(
-            speaker_fr.loc[:, index1], speaker_fr.loc[:, index2])
-
-    assert_similar_curve(
-        ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis'),
-        ('Sound Pessure Level [dB]', 'SPL Vertical', 'On-Axis'))
-    assert_similar_curve(
-        ('Sound Pessure Level [dB]', 'SPL Horizontal', '180°'),
-        ('Sound Pessure Level [dB]', 'SPL Vertical', '180°'))
-    assert_similar_curve(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'On Axis'),
-        ('Sound Pessure Level [dB]', 'SPL Horizontal', 'On-Axis'))
-    assert_similar_curve(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections'),
-        ('Sound Pessure Level [dB]', 'Early Reflections', 'Total Early Reflection'))
-
-
-def validate_spatial_averages(speaker_fr):
-    # Verifies that the CTA2034 spatial average curves in `speaker_fr` are
-    # consistent with the individual angle frequency responses.
-
-    def validate_spatial_average(curve, generate_spatial_average):
-        lsx.util.assert_similar(
-            speaker_fr.loc[:, curve],
-            generate_spatial_average(speaker_fr),
-            # Should be accurate within rounding error of the input curves. See
-            #   https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-25#post-472599
-            tolerance=0.001)
-
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Listening Window'),
-        listening_window)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]',
-         'Vertical Reflections', 'Floor Reflection'),
-        floor_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]',
-         'Vertical Reflections', 'Ceiling Reflection'),
-        ceiling_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]',
-         'Vertical Reflections', 'Total Vertical Reflection'),
-        total_vertical_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Front'),
-        front_wall_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Side'),
-        side_wall_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear'),
-        rear_wall_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]',
-         'Horizontal Reflections', 'Total Horizontal Reflection'),
-        total_horizontal_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce'),
-        alt_rear_wall_reflection)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections'),
-        alt_early_reflections)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power'),
-        sound_power)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]',
-         'Estimated In-Room Response', 'Estimated In-Room Response'),
-        estimated_in_room)
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Sound Power DI'),
-        lambda speaker_fr: speaker_fr.loc[:, (
-            '[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI')] +
-        speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'DI offset')])
-    validate_spatial_average(
-        ('Sound Pessure Level [dB]', 'CEA2034', 'Early Reflections DI'),
-        lambda speaker_fr: speaker_fr.loc[:, (
-            '[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI')] +
-        speaker_fr.loc[:, ('Sound Pessure Level [dB]', 'CEA2034', 'DI offset')])
-    validate_spatial_average(
-        ('[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI'),
-        sound_power_directivity_index)
-    validate_spatial_average(
-        ('[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI'),
-        early_reflections_directivity_index)
+    for curve_name, curve_descriptor in _curve_descriptors().iterrows():
+        try:
+            lsx.util.assert_similar(
+                speakers_fr.loc[:, curve_name],
+                curve_descriptor.loc['Generator'](speakers_fr),
+                curve_descriptor.loc['Tolerance'])
+        except:
+            raise AssertionError(curve_name)

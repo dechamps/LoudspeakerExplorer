@@ -372,9 +372,7 @@ speakers_fr_raw
 ```
 
 ```python
-lsx.cta2034.validate_early_reflections(speakers_fr_raw)
-lsx.cta2034.validate_common_angles(speakers_fr_raw)
-lsx.cta2034.validate_spatial_averages(speakers_fr_raw)
+lsx.cta2034.validate(speakers_fr_raw)
 ```
 
 <!-- #region heading_collapsed=true -->
