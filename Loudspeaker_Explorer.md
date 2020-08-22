@@ -318,9 +318,10 @@ form(widgets.VBox([
 # Data intake
 <!-- #endregion -->
 
-This loads all data from all speakers into a single, massive `speaker_fr_raw`
-DataFrame. The DataFrame index is arranged by speaker name, then frequency. All
-data files for each speaker are merged to form the columns of the DataFrame.
+
+This loads all data from all selected speakers into a single, massive `speaker_fr_raw` DataFrame. The DataFrame index is arranged by speaker name, then frequency. All data files for each speaker are merged to form the columns of the DataFrame.
+
+Validation is then performed on the resulting DataFrame to check for self-consistency issues (e.g. spatial averages not matching the raw angle data).
 
 ```python
 speakers_fr_raw = (speakers
