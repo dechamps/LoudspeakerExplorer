@@ -376,11 +376,6 @@ speakers_fr_raw
 lsx.cta2034.validate(speakers_fr_raw)
 ```
 
-```python
-speakers_fr_raw = lsx.cta2034.generate(speakers_fr_raw)
-speakers_fr_raw
-```
-
 <!-- #region heading_collapsed=true -->
 # Raw data summary
 
@@ -401,6 +396,17 @@ pd.concat([
   speakers_octaves,
   speakers_freqs_per_octave
 ], axis='columns')
+```
+
+<!-- #region heading_collapsed=true -->
+# Curve generation
+
+The standard curves defined in the [CEA/CTA-2034 standard](https://shop.cta.tech/products/standard-method-of-measurement-for-in-home-loudspeakers) (listening window, early reflections, sound power, etc.) are calculated here. While the published datasets do include these curves, Loudspeaker Explorer always recalculates them from the raw horizontal and vertical angle data for greater flexibility.
+<!-- #endregion -->
+
+```python
+speakers_fr_raw = lsx.cta2034.generate(speakers_fr_raw)
+speakers_fr_raw
 ```
 
 <!-- #region heading_collapsed=true -->
