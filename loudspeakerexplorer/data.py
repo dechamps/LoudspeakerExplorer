@@ -97,7 +97,13 @@ def _cleanup_spl_column(column):
 
 
 def _load_fr(file):
-    fr = pd.read_table(file, header=[0, 1, 2], thousands=',')
+    try:
+        fr = pd.read_table(file, header=[0, 1, 2], thousands=',')
+    except FileNotFoundError:
+        # Some speakers are missing some files (e.g. a couple of early speakers
+        # are missing "Directivity Index.txt"). We don't care about that here;
+        # the notebook will validate the resulting set of curves after loading.
+        return pd.DataFrame()
     fr.columns = _fix_unnamed_columns(fr.columns)
     return (fr
             .rename(columns=_cleanup_spl_column)
@@ -106,8 +112,12 @@ def _load_fr(file):
 
 def load_speaker(dir):
     speaker = pd.concat(
-        (_load_fr(file) for file in filter(lambda path: not path.name in (
-            'LICENSE.txt', 'Read License Agreement.txt', 'speaker_metadata.yaml'), dir.iterdir())),
+        (_load_fr(dir / file) for file in [
+            'CEA2034.txt', 'Directivity Index.txt', 'Early Reflections.txt',
+            'Estimated In-Room Response.txt', 'Horizontal Reflections.txt',
+            'SPL Horizontal.txt', 'SPL Vertical.txt',
+            'Vertical Reflections.txt',
+        ]),
         axis='columns')
     if speaker.isna().any(axis=None):
         # If this fires, it likely means something is wrong or corrupted in the
@@ -120,7 +130,8 @@ def load_speaker(dir):
         raise AssertionError(spurious_columns)
     # Some columns might be missing (e.g. a couple of early speakers are missing
     # the Directivity Index columns). We don't want downstream code to have to
-    # deal with that edge case though, so fill any missing columns with N/A.
+    # deal with that edge case though, so fill any missing columns with N/A. The
+    # downstream code will check for N/A and validate accordingly.
     return speaker.reindex(columns=_COLUMNS_INDEX)
 
 
