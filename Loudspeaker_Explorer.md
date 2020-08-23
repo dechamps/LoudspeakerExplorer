@@ -2145,6 +2145,8 @@ These numbers were [derived](https://www.audiosciencereview.com/forum/index.php?
 
 **Disclaimer: the above reasoning assumes that the speakers being rated are "typical" relative to the speakers used in the original study. Extrapolated preference ratings for speakers that are very different from the sample used in the study should be taken with a larger grain of salt than these prediction intervals indicate. For example, scores above 7 [carry more uncertainty](https://www.audiosciencereview.com/forum/index.php?threads/vanatoo-transparent-zero-speaker-review.13717/page-7#post-417999).**
 
+Note that scores shown here can be slightly different from [MZKM's](https://sites.google.com/view/speakerdata/preference-ratings-graphs) because MZKM [did not apply](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-26#post-493724) the Early Reflections curve fix to all speakers. Loudspeaker Explorer consistently applies the ER fix.
+
 ```python
 olive_standard_error = 0.8
 olive_boxes_prediction_interval = 0.50
