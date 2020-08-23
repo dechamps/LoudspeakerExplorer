@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def pipe(data, *funcs):
     # Equivalent to the (deprecated) alt.pipe(), or toolz.curried.pipe()
     # (but without the extra dependency)
@@ -29,6 +32,8 @@ def recurse_attr(obj, attr, fn):
 def assert_similar(s1, s2, tolerance=0):
     deviation = s1.sub(s2).abs()
     idxmax = deviation.idxmax()
+    if pd.isna(idxmax):
+        return
     max = deviation.loc[idxmax]
     if max > tolerance:
         raise AssertionError(idxmax, s1.loc[idxmax], s2.loc[idxmax], max)
