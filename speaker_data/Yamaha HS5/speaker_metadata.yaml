@@ -1,0 +1,22 @@
+Review URL: https://www.audiosciencereview.com/forum/index.php?threads/yamaha-hs5-powered-monitor-review.10967/
+Product URL: https://usa.yamaha.com/products/proaudio/speakers/hs_series/index.html#product-tabs
+Picture URL: https://www.audiosciencereview.com/forum/index.php?attachments/yamaha-hs5-studio-monitor-powered-speaker-review-jpg.46441/
+Measurement Date: 2020-01-19
+Active: true
+Price (Single, USD): 200
+Missing Curves:
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Sound Power DI']
+ - ['[dB] Directivity Index ', 'Directivity Index', 'Early Reflections DI']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Floor Bounce']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Ceiling Bounce']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Front Wall Bounce']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Side Wall Bounce']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Rear Wall Bounce']
+ - ['Sound Pessure Level [dB]', 'Early Reflections', 'Total Early Reflection']
+ - ['Sound Pessure Level [dB]', 'Horizontal Reflections', 'Front']
+ - ['Sound Pessure Level [dB]', 'Horizontal Reflections', 'Side']
+ - ['Sound Pessure Level [dB]', 'Horizontal Reflections', 'Rear']
+ - ['Sound Pessure Level [dB]', 'Horizontal Reflections', 'Total Horizontal Reflection']
+ - ['Sound Pessure Level [dB]', 'Vertical Reflections', 'Floor Reflection']
+ - ['Sound Pessure Level [dB]', 'Vertical Reflections', 'Ceiling Reflection']
+ - ['Sound Pessure Level [dB]', 'Vertical Reflections', 'Total Vertical Reflection']
