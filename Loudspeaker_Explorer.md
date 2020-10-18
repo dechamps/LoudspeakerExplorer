@@ -192,6 +192,7 @@ Note that the following speakers, despite having been measured by amirm, are not
  - [**Neumann KH80 (sample 2, low order)**](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/): the raw data was not published. The data shown here is from the [high order measurement](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh-80-dsp-speaker-measurements-take-two.11323/page-12#post-324456).
  - [**Neumann KH80 (sample 3, first measurement)**](https://www.audiosciencereview.com/forum/index.php?threads/neumann-kh80-dsp-monitor-measurements-3.14637/): the raw data was not published. The data shown here is from the final measurement.
  - [**NHT Pro M-00**](https://www.audiosciencereview.com/forum/index.php?threads/nht-pro-m-00-powered-monitor-review.10859/): the [raw data published](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-7#post-306521) is [incomplete](https://www.audiosciencereview.com/forum/index.php?threads/speaker-equivalent-sinad-discussion.10818/page-14#post-424713).
+ - [**Wharfedale Diamond 220 (grille on)**](https://www.audiosciencereview.com/forum/index.php?threads/wharfedale-diamond-220-budget-speaker-review.16752/): the raw data was not published. The data shown here is with the grille off.
  
 Measurements were made using the **tweeter as the reference axis**, with two exceptions:
 
