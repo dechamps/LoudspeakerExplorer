@@ -2135,13 +2135,13 @@ lsx.alt.make_chart(
 
 The following [box plot](https://en.wikipedia.org/wiki/Box_plot) should be read in the following way:
 
-- The **box** (±0.5) indicates the **50%** [prediction interval](https://en.wikipedia.org/wiki/Prediction_interval) of the rating. In other words: there is a 50% chance that the average listener will give this speaker a rating that falls within the box.
-- The **lines (whiskers)** (±0.9) are similar to boxes but with a **75%** interval.
+- The **box** (±0.54) indicates the **50%** [prediction interval](https://en.wikipedia.org/wiki/Prediction_interval) of the rating. In other words: there is a 50% chance that the average listener will give this speaker a rating that falls within the box.
+- The **lines (whiskers)** (±0.92) are similar to boxes but with a **75%** interval.
 
 A mathematically equivalent, and perhaps more useful, way of looking at this plot is the following:
 
-- If **boxes barely overlap** (predicted score differs by 1.0), there is a **91%** chance that the average listener will prefer the higher-rated speaker.
-- If **lines (whiskers) barely overlap** (predicted score differs by 1.8), the probability is **99%**.
+- If **boxes barely overlap** (predicted score differs by 1.08), there is a **83%** chance that the average listener will prefer the higher-rated speaker.
+- If **lines (whiskers) barely overlap** (predicted score differs by 1.84), the probability is **95%**.
 
 These numbers were [derived](https://www.audiosciencereview.com/forum/index.php?threads/master-preference-ratings-for-loudspeakers.11091/page-23#post-429503) from section 5.3 of the [paper](http://www.aes.org/e-lib/browse.cfm?elib=12847) and section 0111 of the [patent](https://patents.google.com/patent/US20050195982A1), which states that the model error follows a normal distribution with a standard error of **0.8**.
 
@@ -2227,7 +2227,7 @@ lsx.alt.make_chart(
         .transform_calculate(VsSpeaker=alt.datum['VsSpeakerInfo']['Speaker'])
         .transform_calculate(VsValue=alt.datum['VsSpeakerInfo']['value'])
         .transform_calculate(diff=alt.datum['value'] - alt.datum['VsValue'])
-        .transform_calculate(percent='(1 - cumulativeNormal(0, datum.diff, datum.olive_standard_error)) * 100')
+        .transform_calculate(percent='(1 - cumulativeNormal(0, datum.diff, sqrt(2*datum.olive_standard_error^2))) * 100')
         .encode(
             alt.Y(
                 'Speaker', type='nominal', title='Speaker A',
