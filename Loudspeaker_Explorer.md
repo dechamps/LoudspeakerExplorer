@@ -88,7 +88,11 @@ import pathlib
 import re
 import textwrap
 
-running_in_colab = 'COLAB_GPU' in os.environ
+try:
+  import google.colab
+  running_in_colab = True
+except:
+  running_in_colab = False
 
 if LOUDSPEAKER_EXPLORER_PRERENDERED_GIT_SHA is not None and running_in_colab:
     def read_git_sha(directory):
