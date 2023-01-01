@@ -8,6 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
       - run: pip3 install --requirement requirements.txt jupyter jupytext
+      # Work around https://github.com/altair-viz/altair/issues/2794
+      - run: pip3 uninstall --yes rfc3986-validator
       - run: gawk --include inplace --file replace_build_info.awk Loudspeaker_Explorer.md
       - run: jupytext --to notebook --execute Loudspeaker_Explorer.md
         env:
